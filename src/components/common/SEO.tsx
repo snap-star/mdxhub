@@ -10,10 +10,10 @@ interface SEOProps {
 }
 
 const siteConfig = {
-  title: 'ReactMDX',
-  titleTemplate: '%s | ReactMDX',
+  title: 'MDXHub',
+  titleTemplate: '%s | MDXHub',
   description: 'A blazingly fast documentation and blog platform built with React, Vite, and MDX.',
-  siteUrl: 'http://localhost:3000', // Use your production URL here
+  siteUrl: 'mdxhub.vercel.app', // Use your production URL here
   defaultImage: '/snap-star.png',
   twitterUsername: '@chigusa',
 }

@@ -11,7 +11,7 @@ export function SponsorCard() {
         <div className="p-2 bg-pink-100 dark:bg-pink-950/50 text-pink-500 rounded-lg">
           <Heart size={20} className="fill-current" />
         </div>
-        <h3 className="font-bold text-foreground">Support Our Work</h3>
+        <h3 className="font-bold text-foreground">Support Our Work ^_^)/</h3>
       </div>
       
       <p className="text-sm text-muted-foreground mb-5 leading-relaxed relative z-10">
@@ -19,7 +19,7 @@ export function SponsorCard() {
       </p>
       
       <a
-        href="#"
+        href="https://ko-fi.com/snapstar"
         className="block w-full text-center py-2.5 px-4 rounded-xl bg-brand-50 text-brand-700 dark:bg-[oklch(22%_0.040_245)] dark:text-brand-300 font-medium hover:bg-brand-100 dark:hover:bg-[oklch(28%_0.055_245)] transition-colors focus:outline-none focus:ring-2 focus:ring-brand-400 relative z-10"
       >
         Become a Sponsor

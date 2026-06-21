@@ -80,7 +80,7 @@ export function ProfileBadge() {
           <p className="text-brand-600 dark:text-brand-400 font-medium text-lg mb-5">Lead Developer & Creative Technologist</p>
           
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 text-sm text-muted-foreground mb-6">
-            <span className="flex items-center gap-1.5"><MapPinIcon size={16} /> Tokyo, Japan</span>
+            <span className="flex items-center gap-1.5"><MapPinIcon size={16} /> East Java, Indonesia</span>
           </div>
 
           <p className="leading-relaxed text-foreground/80 text-[1.05rem]">
