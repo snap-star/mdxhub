@@ -56,7 +56,7 @@ export default function BlogIndex() {
 
       {/* Main Content */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 sm:py-12 grid blog-index-grid gap-8 sm:gap-12">
-        <main>
+        <main className="min-w-0">
           <div className="mb-6 sm:mb-8">
             <CategoryFilter categories={categories} />
           </div>

@@ -101,25 +101,25 @@ export function Footer() {
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} MDX Hub. Built with <Heart className="inline-block w-4 h-4 text-red-800/40 fill-red-400" /> in this chaotic world.
           </p>
-          <p className="text-xs text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-2">
             Powered by{' '}
-            <a href="https://react.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              <SimpleIconSvg icon={siReact} size={20} />
+            <a href="https://react.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+              <SimpleIconSvg icon={siReact} size={14} />
               React
             </a>
-            {' + '}
-            <a href="https://mdxjs.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              <SimpleIconSvg icon={siMdx} size={20} />
+            <span className="text-muted-foreground/50">+</span>
+            <a href="https://mdxjs.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+              <SimpleIconSvg icon={siMdx} size={14} />
               MDX
             </a>
-            {' + '}
-            <a href="https://vitejs.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              <SimpleIconSvg icon={siVite} size={20} />
+            <span className="text-muted-foreground/50">+</span>
+            <a href="https://vitejs.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+              <SimpleIconSvg icon={siVite} size={14} />
               Vite
             </a>
           </div>
-          </p>
+          </div>
         </div>
       </div>
     </footer>

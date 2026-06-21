@@ -21,7 +21,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
       transition={{ duration: 0.35, delay: index * 0.06, ease: [0.4, 0, 0.2, 1] }}
     >
       {/* Cover image — real thumbnail if available, else decorative gradient */}
-      <Link to={`/blog/${slug}`} className="no-underline shrink-0">
+      <Link to={`/blog/${slug}`} className="block w-full no-underline shrink-0">
         <div
           className="h-[200px] flex items-center justify-center relative overflow-hidden"
           style={!frontmatter.coverImage ? {

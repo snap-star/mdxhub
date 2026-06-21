@@ -10,16 +10,7 @@ export function CategoryFilter({ categories, activeCategoryParam }: CategoryFilt
   const all = ['All', ...categories]
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '0.5rem',
-        overflowX: 'auto',
-        paddingBottom: '0.25rem',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-      }}
-    >
+    <div className="flex gap-2 overflow-x-auto pb-1 w-full max-w-full scrollbar-none snap-x">
       {all.map((cat) => {
         const isAll = cat === 'All'
         const isActive = isAll ? !activeCategoryParam : cat === activeCategoryParam

@@ -51,13 +51,7 @@ export function PostGrid({ posts, emptyMessage = 'No posts found.' }: PostGridPr
   }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
-        gap: '1.25rem',
-      }}
-    >
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
       {posts.map((post, i) => (
         <PostCard key={post.slug} post={post} index={i} />
       ))}
@@ -67,13 +61,7 @@ export function PostGrid({ posts, emptyMessage = 'No posts found.' }: PostGridPr
 
 export function PostGridSkeleton() {
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
-        gap: '1.25rem',
-      }}
-    >
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
         <PostCardSkeleton key={i} />
       ))}
