@@ -1,0 +1,176 @@
+---
+title: "What's New in React 19: A Practical Overview"
+date: "2026-06-21"
+author: "chigusa-asuha"
+category: "React"
+tags: ["react", "react-19", "javascript", "frontend"]
+description: "A practical deep-dive into the biggest React 19 features — the new compiler, Actions, use() hook, improved hydration, and what they mean for your codebase."
+coverImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2670&auto=format&fit=crop"
+---
+
+React 19 landed in 2024 and brought with it one of the most significant API evolutions in years. This post breaks down the most important changes and how they apply to a project like this one — a Vite-based SPA using React Router v8, Zustand, and MDX.
+
+---
+
+## 1. The React Compiler
+
+The biggest underlying change in React 19 is the **React Compiler** (previously known as React Forget). It automatically handles memoization — meaning you no longer need to manually wrap functions in `useCallback` or wrap computed values in `useMemo` in most cases.
+
+Before React 19, preventing unnecessary re-renders required boilerplate:
+
+```tsx
+// Before — manual memoization
+const expensiveValue = useMemo(() => computeExpensive(input), [input])
+const stableHandler = useCallback(() => doSomething(input), [input])
+```
+
+With the React Compiler enabled, the compiler statically analyzes your component and inserts the right memoization automatically:
+
+```tsx
+// After — the compiler handles this for you
+const expensiveValue = computeExpensive(input)
+const stableHandler = () => doSomething(input)
+```
+
+<Callout type="note">
+This project uses Vite with `@vitejs/plugin-react`. The React Compiler can be enabled by adding `babel: { plugins: [['babel-plugin-react-compiler']] }` to the plugin config.
+</Callout>
+
+---
+
+## 2. Actions — Async State Without useEffect
+
+React 19 introduces **Actions**, a new pattern for managing asynchronous state transitions. Instead of the classic `useState` + `useEffect` + error handling boilerplate, you can now use `useTransition` with async functions directly.
+
+```tsx
+// Before React 19
+function SubmitButton() {
+  const [isPending, setIsPending] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function handleSubmit() {
+    setIsPending(true)
+    try {
+      await submitForm()
+    } catch (e) {
+      setError(e)
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  return <button onClick={handleSubmit} disabled={isPending}>Submit</button>
+}
+```
+
+```tsx
+// React 19 — using useTransition with an async action
+function SubmitButton() {
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState(null)
+
+  function handleSubmit() {
+    startTransition(async () => {
+      const err = await submitForm()
+      if (err) setError(err)
+    })
+  }
+
+  return <button onClick={handleSubmit} disabled={isPending}>Submit</button>
+}
+```
+
+---
+
+## 3. The `use()` Hook
+
+`use()` is a new hook that allows you to read the value of a **Promise** or **Context** inside a component — crucially, it can be called conditionally (unlike other hooks).
+
+```tsx
+import { use } from 'react'
+
+function UserProfile({ userPromise }) {
+  // This will suspend the component until the promise resolves
+  const user = use(userPromise)
+  return <div>{user.name}</div>
+}
+```
+
+This pairs perfectly with `<Suspense>` — which this project already uses for lazy-loading the About page and route components.
+
+---
+
+## 4. `useFormStatus` and `useOptimistic`
+
+Two new hooks streamline form handling and optimistic UI:
+
+### `useFormStatus`
+
+```tsx
+import { useFormStatus } from 'react-dom'
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return <button disabled={pending}>{pending ? 'Saving...' : 'Save'}</button>
+}
+```
+
+### `useOptimistic`
+
+```tsx
+import { useOptimistic } from 'react'
+
+function LikeButton({ post }) {
+  const [optimisticLikes, addOptimisticLike] = useOptimistic(
+    post.likes,
+    (state) => state + 1
+  )
+
+  async function handleLike() {
+    addOptimisticLike()       // UI updates instantly
+    await saveLike(post.id)   // Server call happens in background
+  }
+
+  return <button onClick={handleLike}>❤️ {optimisticLikes}</button>
+}
+```
+
+---
+
+## 5. Improved Error Handling & Hydration
+
+React 19 significantly improves hydration error messages. When a server-rendered page doesn't match the client render, you now get a detailed diff showing exactly what the mismatch was — instead of a cryptic generic error.
+
+This is particularly relevant in this project when using `React.lazy` + `Suspense` for route components.
+
+---
+
+## 6. `ref` as a Prop
+
+React 19 eliminates the need for `forwardRef`. You can now pass `ref` directly as a regular prop:
+
+```tsx
+// Before — required forwardRef wrapper
+const Input = forwardRef((props, ref) => <input {...props} ref={ref} />)
+
+// React 19 — ref is just a prop
+function Input({ ref, ...props }) {
+  return <input {...props} ref={ref} />
+}
+```
+
+---
+
+## Summary
+
+| Feature | What it replaces / improves |
+| :--- | :--- |
+| **React Compiler** | Manual `useMemo` / `useCallback` |
+| **Actions** | `useState` + `useEffect` async boilerplate |
+| **`use()` hook** | Conditional context reading, Promise unwrapping |
+| **`useFormStatus`** | Manual form submission state tracking |
+| **`useOptimistic`** | Complex optimistic UI patterns |
+| **`ref` as prop** | `forwardRef` wrapper boilerplate |
+| **Hydration diffs** | Cryptic mismatch error messages |
+
+React 19 is a major quality-of-life upgrade for every React developer. If you haven't upgraded yet — now is the perfect time.

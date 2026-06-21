@@ -1,0 +1,164 @@
+---
+title: "Exploring Advanced MDX Features: Math, Video, Tables & More"
+date: "2026-06-21"
+author: "chigusa-asuha"
+category: "Tutorial"
+tags: ["mdx", "react", "katex", "video", "components"]
+description: "Learn how to leverage mathematical equations, video embeds, advanced data tables, callouts, and custom MDX components to supercharge your content."
+coverImage: "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2670&auto=format&fit=crop"
+---
+
+MDX allows you to write standard Markdown while seamlessly embedding React components. But it doesn't stop there. By combining the power of `remark` and `rehype` plugins with globally registered components, we can transform plain text into rich, interactive experiences.
+
+Here is a comprehensive look at what you can achieve out of the box with this platform.
+
+---
+
+## 1. Video Embeds
+
+One of the most powerful features is native video embedding. Use the `VideoEmbed` component anywhere in your post — no imports needed.
+
+### YouTube (Full URL)
+
+```mdx
+<VideoEmbed
+  src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  caption="A caption is optional but recommended for accessibility."
+/>
+```
+
+<VideoEmbed
+  src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  title="Sample YouTube embed"
+  caption="This VideoEmbed automatically parsed a full YouTube URL."
+/>
+
+### Short Links & Custom Aspect Ratios
+
+```mdx
+<VideoEmbed
+  src="https://youtu.be/dQw4w9WgXcQ"
+  aspect="4/3"
+  caption="youtu.be short links and custom aspect ratios are supported."
+/>
+```
+
+All URL formats are auto-detected: `youtube.com/watch`, `youtu.be`, `youtube.com/shorts`, and raw embed URLs.
+
+| Prop | Values | Default |
+| :--- | :--- | :--- |
+| `src` | Any YouTube / iframe URL | Required |
+| `aspect` | `16/9`, `4/3`, `1/1`, `9/16` | `16/9` |
+| `caption` | Any string | — |
+| `title` | Any string (for a11y) | `"Embedded video"` |
+
+---
+
+## 2. Mathematical Equations (KaTeX)
+
+Whether you are writing a research paper, an AI tutorial, or explaining algorithms, native math support is crucial. We use `remark-math` and `rehype-katex` to parse LaTeX syntax directly into styled HTML.
+
+### Inline Math
+
+You can include inline equations easily. For example, the famous Pythagorean theorem is $a^2 + b^2 = c^2$, and Einstein's mass-energy equivalence is $E=mc^2$.
+
+### Block Math
+
+For more complex, standalone equations, use block math syntax:
+
+$$
+\mathcal{L} = \sum_{i=1}^N \left( y_i \log(\hat{y}_i) + (1-y_i) \log(1-\hat{y}_i) \right)
+$$
+
+Or a matrix representation of a neural network layer:
+
+$$
+\mathbf{Y} = \sigma \left( \mathbf{W} \mathbf{X} + \mathbf{b} \right)
+$$
+
+---
+
+## 3. Advanced Data Tables
+
+Data is often best presented in a structured format. With `remark-gfm`, standard Markdown tables are fully supported and styled for both light and dark modes.
+
+| Feature | Support | Description |
+| :--- | :---: | :--- |
+| **Markdown** | ✅ | Native markdown parsing via remark. |
+| **MDX** | ✅ | First-class React component injection. |
+| **Math** | ✅ | Full KaTeX integration for block/inline equations. |
+| **Tables** | ✅ | GFM tables with responsive overflow handling. |
+| **Syntax** | ✅ | Shiki integration with Monokai/GitHub themes. |
+| **Video** | ✅ | YouTube, Shorts, and iframe embeds. |
+| **SEO** | ✅ | Per-page OG tags, Twitter Cards, canonical URLs. |
+
+<Callout type="note">
+Notice how the table is responsive! If the data extends beyond the container width, it will horizontally scroll rather than breaking the page layout.
+</Callout>
+
+---
+
+## 4. High-Contrast Code Blocks
+
+Using Shiki, we provide true-to-IDE syntax highlighting. The dark mode uses the classic **Monokai** theme for maximum legibility. The language label is automatically detected and shown in the top-right corner.
+
+```tsx
+import React, { useState, useMemo } from 'react';
+
+export function FibonacciCounter() {
+  const [count, setCount] = useState(1);
+  
+  const fibonacci = useMemo(() => {
+    const calculate = (n: number): number => {
+      if (n <= 1) return n;
+      return calculate(n - 1) + calculate(n - 2);
+    };
+    return calculate(count);
+  }, [count]);
+
+  return (
+    <div className="p-4 bg-muted rounded-xl border border-border">
+      <h3>Fibonacci({count}) = {fibonacci}</h3>
+      <button onClick={() => setCount(c => c + 1)}>
+        Calculate Next
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+## 5. Callout Components
+
+The true power of MDX is the ability to drop interactive React components anywhere in your text. All four callout types are globally available without any imports.
+
+<Callout type="tip">
+You can use `Callout` components like this one to grab the reader's attention. They automatically adapt their color schemes in dark mode!
+</Callout>
+
+**Callout Types:**
+
+<Callout type="note" title="Note — Blue">
+  Background context, implementation details, or helpful explanations.
+</Callout>
+
+<Callout type="tip" title="Tip — Green">
+  Performance optimizations, best practices, or efficiency suggestions.
+</Callout>
+
+<Callout type="warning" title="Warning — Yellow">
+  Non-destructive cautions — things that may cause unexpected behavior.
+</Callout>
+
+<Callout type="danger" title="Danger — Red">
+  Critical warnings: data loss risks, security issues, or breaking changes.
+</Callout>
+
+---
+
+## Conclusion
+
+With Markdown, React, Shiki, KaTeX, and the `VideoEmbed` component all working together, you have a tremendously powerful, developer-first writing environment at your fingertips.
+
+Every feature shown in this post works the same way in documentation pages too. Happy writing!

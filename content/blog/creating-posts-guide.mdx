@@ -1,0 +1,396 @@
+---
+title: "Complete Guide: Creating Posts in This Project"
+date: "2026-06-21"
+author: "chigusa-asuha"
+category: "Guide"
+tags: ["mdx", "guide", "frontmatter", "authoring", "content", "video"]
+description: "The definitive guide to creating blog posts and docs pages — covering YAML frontmatter, auto-discovery, video embeds, math, callouts, SEO, and every supported feature."
+coverImage: "https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=2673&auto=format&fit=crop"
+---
+
+This guide covers everything you need to know to write and publish content in this platform. By the end you will be able to create richly formatted blog posts and documentation pages that are automatically discovered by the build system.
+
+---
+
+## How Content Discovery Works
+
+This project uses **Vite's `import.meta.glob`** to automatically discover and load every `.mdx` file at build time. You do not register files manually — simply drop them into the right folder and they appear.
+
+```
+content/
+├── blog/             ← All blog posts go here
+│   ├── my-post.mdx
+│   └── sub-folder/
+│       └── nested-post.mdx   ← Nested files supported!
+├── docs/             ← All documentation pages go here
+│   └── guides/
+│       └── getting-started.mdx
+├── authors/
+│   └── authors.yaml  ← Author registry
+└── about.mdx         ← Special page (rendered at /about)
+```
+
+The discovery rules are:
+- **Blog posts**: Any `.mdx` file inside `/content/blog/**` is automatically a blog post.
+- **Doc pages**: Any `.mdx` file inside `/content/docs/**` is automatically a documentation page.
+- **Slug derivation**: `content/blog/my-post.mdx` → `/blog/my-post`. A file named `index.mdx` inside a folder maps to the folder slug.
+- **Draft posts**: Set `draft: true` in frontmatter to exclude a post from the published feed.
+- **Sorting**: Blog posts are sorted by `date` descending. Doc pages are sorted by `order` ascending.
+
+---
+
+## Part 1: Creating a Blog Post
+
+### Step 1 — Create the File
+
+Create a new `.mdx` file inside `/content/blog/`. The filename becomes the URL slug.
+
+```
+content/blog/my-first-post.mdx    → /blog/my-first-post
+```
+
+### Step 2 — Write the YAML Frontmatter
+
+Every blog post **must** begin with a YAML frontmatter block delimited by `---`. Here is the full schema:
+
+```yaml
+---
+title: "My Awesome Post"         # Required — displayed as the page title and in cards
+date: "2026-06-21"               # Required — ISO 8601 date (YYYY-MM-DD), used for sorting
+author: "chigusa-asuha"          # Required — must match an id in content/authors/authors.yaml
+category: "Tutorial"             # Required — used for category filtering
+tags: ["react", "mdx", "vite"]  # Required — array of strings for tag filtering and search
+description: "A short summary."  # Optional but recommended — shown on cards and SEO meta tags
+coverImage: "https://..."        # Optional — thumbnail shown on the blog homepage card
+cc: "by-sa"                      # Optional — shows a Creative Commons license badge
+readingTime: 5                   # Optional — override auto-calculated reading time (minutes)
+draft: true                      # Optional — set to true to hide from the published feed
+---
+```
+
+<Callout type="warning" title="Required Fields">
+If you omit `title`, `date`, `author`, `category`, or `tags`, the post will either fail to build or display incorrectly. All five are required.
+</Callout>
+
+<Callout type="tip" title="Cover Images">
+Set `coverImage` to a URL (e.g. from Unsplash) and the image will appear as a thumbnail on the blog homepage card grid AND as the hero image inside the post. It is also automatically used as the Open Graph image for social sharing previews.
+</Callout>
+
+### Step 3 — Start Writing
+
+Below the closing `---`, write your content using standard Markdown. All the supported syntax is detailed below.
+
+---
+
+## Part 2: Creating a Docs Page
+
+Documentation pages live in `/content/docs/` and are organized into **sections** using subdirectories.
+
+### File Structure
+
+```
+content/docs/
+├── introduction/
+│   └── index.mdx           → /docs/introduction
+├── guides/
+│   ├── installation.mdx    → /docs/guides/installation
+│   └── advanced.mdx        → /docs/guides/advanced
+├── deployment/
+│   └── hosting.mdx         → /docs/deployment/hosting
+└── troubleshooting/
+    └── index.mdx           → /docs/troubleshooting
+```
+
+### Docs Frontmatter Schema
+
+```yaml
+---
+title: "Getting Started"        # Required — page title shown in sidebar and heading
+section: "Introduction"         # Required — the human-readable section name
+order: 1                        # Optional — controls sidebar sort order within a section
+description: "Learn how to…"   # Optional — shown in search results and browser tab
+draft: false                    # Optional — hides page from nav and search when true
+version: "v1.0"                 # Optional — displays a version badge next to the page title
+toc: true                       # Optional — enables the table of contents (default: true)
+prev: "introduction"            # Optional — slug of the previous doc
+next: "guides/advanced"         # Optional — slug of the next doc
+---
+```
+
+### Sidebar Section Order
+
+The sidebar sections are sorted in this fixed order regardless of file system order:
+
+1. **Getting Started** (`introduction/`)
+2. **Guides** (`guides/`)
+3. **Deployment** (`deployment/`)
+4. **Troubleshooting** (`troubleshooting/`)
+
+Within each section, pages are sorted by their `order` frontmatter field.
+
+---
+
+## Part 3: Managing Authors
+
+Authors are stored in a single YAML registry at `/content/authors/authors.yaml`. Add a new entry to register an author:
+
+```yaml
+- id: chigusa-asuha            # Must be unique — used in post frontmatter
+  name: "Chigusa Asuha"
+  avatar: "/snap-star.png"     # Can be a local /public path or a full URL
+  bio: "Lead Developer & Creative Technologist."
+  twitter: chigusa
+  github: chigusa-asuha
+  website: https://example.com
+```
+
+After adding the entry, reference the author in any blog post's frontmatter using the `id`:
+
+```yaml
+author: "chigusa-asuha"
+```
+
+---
+
+## Part 4: Full MDX Syntax Reference
+
+### Standard Markdown
+
+All standard Markdown is supported:
+
+```markdown
+# H1 Heading
+## H2 Heading
+### H3 Heading
+
+**Bold text**, _italic text_, ~~strikethrough~~
+
+[Link text](https://example.com)
+[Internal link](/blog/another-post)
+
+> A blockquote stands out with a branded left border.
+
+- Unordered list item
+- Another item
+  - Nested item
+
+1. Ordered list
+2. Second item
+
+---
+A horizontal rule
+```
+
+### Code Blocks
+
+Code blocks use **Shiki** with Monokai in dark mode and GitHub Light in light mode. Specify the language after the opening triple backtick for syntax highlighting:
+
+````markdown
+```javascript
+const greeting = "Hello, world!";
+console.log(greeting);
+```
+
+```tsx
+export function Button({ children }: { children: React.ReactNode }) {
+  return <button className="btn">{children}</button>;
+}
+```
+
+```bash
+npm install && npm run dev
+```
+
+```yaml
+name: Deploy
+on:
+  push:
+    branches: [main]
+```
+````
+
+The language label is automatically displayed in the top-right corner of every code block.
+
+### Tables
+
+GFM-style tables are fully supported with responsive horizontal scrolling:
+
+```markdown
+| Column A | Column B | Column C |
+| :------- | :------: | -------: |
+| Left     | Center   | Right    |
+| Data     | Data     | Data     |
+```
+
+| Alignment | Syntax | Effect |
+| :-------- | :----: | -----: |
+| Left | `:---` | Default |
+| Center | `:---:` | Centered |
+| Right | `---:` | Right-aligned |
+
+### Mathematical Equations (KaTeX)
+
+Full LaTeX math is supported via `remark-math` and `rehype-katex`.
+
+**Inline math** — wrap with single `$`:
+
+```markdown
+The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.
+```
+
+**Block math** — wrap with double `$$`:
+
+```markdown
+$$
+\nabla \cdot \mathbf{E} = \frac{\rho}{\varepsilon_0}
+$$
+```
+
+---
+
+## Part 5: React Components in MDX
+
+All components below are **globally available** in every MDX file — no import needed.
+
+### Callout / Admonition
+
+```mdx
+<Callout type="note" title="Custom Title">
+  This is an informational callout. The title is optional.
+</Callout>
+
+<Callout type="tip">A helpful tip for the reader.</Callout>
+
+<Callout type="warning">Something the reader should be careful about.</Callout>
+
+<Callout type="danger">A critical error or dangerous action warning.</Callout>
+```
+
+**Live examples:**
+
+<Callout type="note" title="Note (Blue)">
+  Used for supplementary information, context, or background details.
+</Callout>
+
+<Callout type="tip" title="Tip (Green)">
+  Used for helpful suggestions, best practices, or time-saving tricks.
+</Callout>
+
+<Callout type="warning" title="Warning (Yellow)">
+  Used for non-destructive cautions — things that may cause unexpected behavior.
+</Callout>
+
+<Callout type="danger" title="Danger (Red)">
+  Used for critical warnings — data loss risks, security issues, or breaking changes.
+</Callout>
+
+### VideoEmbed
+
+Embed YouTube videos, Shorts, Vimeo, or any iframe-compatible URL directly in your content:
+
+```mdx
+{/* Full YouTube URL */}
+<VideoEmbed src="https://www.youtube.com/watch?v=VIDEO_ID" />
+
+{/* Short youtu.be link */}
+<VideoEmbed src="https://youtu.be/VIDEO_ID" caption="Optional caption below" />
+
+{/* Custom aspect ratio */}
+<VideoEmbed src="https://youtu.be/VIDEO_ID" aspect="4/3" />
+
+{/* Vertical Shorts */}
+<VideoEmbed src="https://www.youtube.com/shorts/VIDEO_ID" aspect="9/16" />
+```
+
+**Supported `aspect` values:** `16/9` (default), `4/3`, `1/1`, `9/16`
+
+All formats are auto-detected and resolved to proper embed URLs. Videos are lazy-loaded for performance.
+
+### ProfileBadge
+
+Renders your author profile card (used on the About page):
+
+```mdx
+<ProfileBadge />
+```
+
+### Creative Commons License
+
+Add a license badge at the end of a post using the `cc` frontmatter key, or inline:
+
+```mdx
+<CCLicense code="by-sa" author="Chigusa Asuha" />
+```
+
+**Supported `cc` codes:**
+
+| Code | License Name |
+| :--- | :--- |
+| `by` | Attribution 4.0 |
+| `by-sa` | Attribution-ShareAlike 4.0 |
+| `by-nc` | Attribution-NonCommercial 4.0 |
+| `by-nc-sa` | Attribution-NonCommercial-ShareAlike 4.0 |
+| `zero` | CC0 — Public Domain |
+
+---
+
+## Part 6: SEO
+
+Every page automatically gets SEO meta tags, Open Graph, and Twitter Card tags injected via `react-helmet-async`.
+
+For blog posts, the SEO data is auto-populated from frontmatter:
+- **Title** → `title`
+- **Description** → `description`
+- **OG Image** → `coverImage`
+
+No manual configuration is needed — it works automatically.
+
+---
+
+## Part 7: Frontmatter Quick Reference
+
+### Blog Post
+
+| Field | Type | Required | Default | Description |
+| :--- | :--- | :---: | :--- | :--- |
+| `title` | string | ✅ | — | Post title |
+| `date` | string | ✅ | — | ISO date `YYYY-MM-DD` |
+| `author` | string | ✅ | — | Author id from `authors.yaml` |
+| `category` | string | ✅ | — | Single category label |
+| `tags` | string[] | ✅ | — | Array of tag strings |
+| `description` | string | ❌ | — | Short excerpt for cards & SEO |
+| `coverImage` | string | ❌ | — | Thumbnail URL for card & OG image |
+| `cc` | string | ❌ | — | CC license code |
+| `readingTime` | number | ❌ | auto | Minutes override |
+| `draft` | boolean | ❌ | `false` | Hides from feed |
+
+### Doc Page
+
+| Field | Type | Required | Default | Description |
+| :--- | :--- | :---: | :--- | :--- |
+| `title` | string | ✅ | — | Page title |
+| `section` | string | ✅ | — | Sidebar section name |
+| `order` | number | ❌ | `99` | Sort position in sidebar |
+| `description` | string | ❌ | — | Subtitle / meta description |
+| `draft` | boolean | ❌ | `false` | Hides from sidebar |
+| `version` | string | ❌ | — | Version badge text |
+| `toc` | boolean | ❌ | `true` | Show table of contents |
+| `prev` | string | ❌ | — | Previous page slug |
+| `next` | string | ❌ | — | Next page slug |
+
+---
+
+## Summary
+
+| Task | Where |
+| :--- | :--- |
+| Create a blog post | `/content/blog/your-post.mdx` |
+| Create a nested blog post | `/content/blog/category/your-post.mdx` |
+| Create a docs page | `/content/docs/section/your-page.mdx` |
+| Register a new author | `/content/authors/authors.yaml` |
+| Edit the About page | `/content/about.mdx` |
+| Configure GitHub link | `/site.config.json` |
+
+<Callout type="tip" title="You're ready!">
+That's everything. Drop a `.mdx` file in the right folder, add your frontmatter, and the system handles the rest. No routing config, no imports — it just works.
+</Callout>

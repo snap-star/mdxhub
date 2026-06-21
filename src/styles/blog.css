@@ -1,0 +1,170 @@
+/* ============================================================
+   Blog Theme — .blog-theme scoped overrides
+   Editorial / magazine feel
+   ============================================================ */
+
+.blog-theme {
+  --heading-font: var(--font-serif);
+  --card-radius:  var(--radius-xl);
+  --card-border:  var(--color-base-border);
+}
+
+/* Blog headings use serif */
+.blog-theme .prose h1,
+.blog-theme .prose h2,
+.blog-theme .prose h3 {
+  font-family: var(--font-serif);
+}
+
+/* Hero section gradient */
+.blog-hero {
+  background: linear-gradient(
+    135deg,
+    oklch(96% 0.020 245) 0%,
+    oklch(93% 0.035 255) 50%,
+    oklch(95% 0.025 235) 100%
+  );
+}
+.dark .blog-hero {
+  background: linear-gradient(
+    135deg,
+    oklch(16% 0.025 245) 0%,
+    oklch(13% 0.018 255) 50%,
+    oklch(15% 0.022 235) 100%
+  );
+}
+
+/* Post card */
+.post-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-base-border);
+  border-radius: var(--card-radius);
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s var(--ease-smooth), border-color 0.2s;
+  overflow: hidden;
+}
+.dark .post-card {
+  background: var(--color-slate-900);
+  border-color: var(--color-slate-800);
+}
+.post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-brand-300);
+}
+.dark .post-card:hover {
+  border-color: var(--color-brand-600);
+}
+
+/* Category badge */
+.category-badge {
+  background: oklch(93% 0.035 245);
+  color: var(--color-brand-700);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  border: 1px solid oklch(87% 0.052 245);
+}
+.dark .category-badge {
+  background: oklch(25% 0.040 245);
+  color: var(--color-brand-300);
+  border-color: oklch(32% 0.055 245);
+}
+
+/* Tag pill */
+.tag-pill {
+  background: var(--color-surface-2);
+  color: var(--color-slate-600);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-base-border);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-decoration: none;
+}
+.tag-pill:hover {
+  background: var(--color-brand-100);
+  color: var(--color-brand-700);
+  border-color: var(--color-brand-200);
+}
+.dark .tag-pill {
+  background: var(--color-slate-800);
+  color: var(--color-slate-400);
+  border-color: var(--color-slate-700);
+}
+.dark .tag-pill:hover {
+  background: oklch(25% 0.040 245);
+  color: var(--color-brand-300);
+  border-color: oklch(32% 0.055 245);
+}
+
+/* Author avatar ring */
+.author-avatar {
+  border: 2px solid var(--color-brand-300);
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-brand-400), var(--color-brand-600));
+}
+
+/* CC License block */
+.cc-license {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-base-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+.dark .cc-license {
+  background: var(--color-slate-800);
+  border-color: var(--color-slate-700);
+}
+
+/* Footnotes section */
+.footnotes {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-base-border);
+  font-size: 0.875rem;
+  color: var(--color-base-muted);
+}
+.dark .footnotes {
+  border-color: var(--color-slate-700);
+}
+
+/* Reading time badge */
+.reading-time {
+  color: var(--color-base-muted);
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Category filter bar */
+.category-filter-btn {
+  padding: 0.375rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--color-base-border);
+  background: var(--color-surface);
+  color: var(--color-slate-600);
+  cursor: pointer;
+  transition: all 0.15s var(--ease-smooth);
+  white-space: nowrap;
+}
+.dark .category-filter-btn {
+  background: var(--color-slate-900);
+  border-color: var(--color-slate-700);
+  color: var(--color-slate-400);
+}
+.category-filter-btn:hover,
+.category-filter-btn.active {
+  background: var(--color-brand-500);
+  color: white;
+  border-color: var(--color-brand-500);
+  box-shadow: var(--shadow-brand);
+}

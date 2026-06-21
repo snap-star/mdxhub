@@ -1,0 +1,82 @@
+---
+title: "Git as a CMS: How We Manage Content Without a Database"
+date: "2026-06-21"
+description: "Why we abandoned traditional database-backed Content Management Systems (CMS) in favor of a purely Git-backed, file-based MDX workflow."
+category: "Architecture"
+tags: ["cms", "git", "mdx", "architecture", "github"]
+author: "chigusa-asuha"
+coverImage: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=2688&auto=format&fit=crop"
+---
+
+When building this platform, one of the first architectural decisions we faced was how to manage content. Should we use WordPress? Should we hook up a headless CMS like Sanity or Contentful? Should we build our own database and admin dashboard?
+
+We ultimately decided on a radically simpler approach: **Git as a CMS**.
+
+In this post, we'll explain how it works, why it's better for developer-focused blogs, and how you actually "insert" new content into the site.
+
+---
+
+## What is a Git-Backed CMS?
+
+A Git-backed CMS means that the "database" for all of our blog posts and documentation is simply the file system of our code repository. 
+
+There is no SQL database. There is no external API to fetch posts from. Instead, every piece of content exists as an `.mdx` file right alongside the source code in GitHub.
+
+### How do you add new content?
+
+You don't log into a dashboard. To publish a new post, you simply:
+
+1. Open your code editor (or the GitHub web interface).
+2. Create a new `.mdx` file in the `content/blog/` or `content/docs/` folder.
+3. Commit the file and push it to GitHub.
+
+That's it. **GitHub is our CMS.**
+
+<Callout type="tip" title="Publishing from the browser">
+You don't even need to use the command line! You can navigate to your repository on `github.com`, click **"Add file"** -> **"Create new file"**, write your MDX right there in the browser, and click commit.
+</Callout>
+
+---
+
+## The Workflow: From GitHub to Live Site
+
+Because there's no database to query at runtime, we rely on the build process to handle content discovery.
+
+When you push a new `.mdx` file to the `main` branch on GitHub:
+1. **GitHub Actions / Vercel** detects the new commit.
+2. The build process (`npm run build`) starts.
+3. **Vite's `import.meta.glob`** scans the `content/` folder, discovers the new file, parses the YAML frontmatter, and bundles it into the JavaScript payload.
+4. The static assets are deployed to the edge.
+
+This whole process takes seconds, and the result is a blazingly fast Single Page Application where content loads instantly because it's already pre-compiled.
+
+---
+
+## Why Git beats a Traditional CMS
+
+### 1. Version Control is Perfect for Content
+Have you ever accidentally deleted a paragraph in WordPress and couldn't get it back? With Git, every typo fix, every major revision, and every deleted post is tracked forever. You can literally `git blame` a paragraph to see exactly when and why it was added.
+
+### 2. Peer Review via Pull Requests
+Want someone to proofread your blog post before it goes live? Just open a Pull Request! Your team can leave line-by-line comments on your Markdown exactly like they would on code.
+
+### 3. Ultimate Portability (No Vendor Lock-in)
+If a Headless CMS startup goes out of business or raises their prices, migrating your data is a nightmare. With MDX, your content is just a folder full of text files. You own it forever.
+
+### 4. Interactive Components (MDX)
+Traditional CMS rich-text editors are terrible at handling custom interactive components. Because we use MDX, we can drop fully functional React components straight into the text:
+
+```mdx
+Here is a live video embed right from the file:
+<VideoEmbed src="https://youtu.be/dQw4w9WgXcQ" />
+```
+
+---
+
+## The Trade-offs
+
+This approach isn't for everyone. If you have a marketing team of non-technical writers who are terrified of Markdown and GitHub, a Headless CMS with a visual editor is a better choice. 
+
+But for developers, technical writers, and engineering teams? The Git-backed MDX approach provides the lowest friction, highest performance, and most durable way to publish content on the modern web.
+
+<CCLicense code="by-sa" author="Chigusa Asuha" />

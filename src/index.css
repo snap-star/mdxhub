@@ -1,0 +1,430 @@
+/* =============================================================
+   Global CSS — TailwindCSS v4 CSS-first configuration
+   OKLCH color palette: Blue brand accent + Discord dark surfaces
+   Discord dark palette:
+     #313338 → body/main bg   → oklch(22.5% 0.006 264)
+     #2b2d31 → sidebar bg     → oklch(19.8% 0.006 264)
+     #1e1f22 → deepest bg     → oklch(14.2% 0.005 264)
+     #383a40 → elevated card  → oklch(25.2% 0.007 264)
+     #404249 → input/muted bg → oklch(27.8% 0.008 264)
+     #b5bac1 → secondary text → oklch(74.5% 0.005 264)
+     #dce0e8 → primary text   → oklch(88.8% 0.006 264)
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+/* Fonts moved to top */
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "katex/dist/katex.min.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* ── Brand / Blue-slate palette (OKLCH) ── */
+  --color-brand-50:  oklch(97.5% 0.012 245);
+  --color-brand-100: oklch(93.8% 0.026 245);
+  --color-brand-200: oklch(87.2% 0.052 245);
+  --color-brand-300: oklch(78.5% 0.088 245);
+  --color-brand-400: oklch(67.8% 0.128 245);
+  --color-brand-500: oklch(57.2% 0.158 245);
+  --color-brand-600: oklch(47.8% 0.150 245);
+  --color-brand-700: oklch(38.4% 0.130 245);
+  --color-brand-800: oklch(28.6% 0.092 245);
+  --color-brand-900: oklch(20.4% 0.058 245);
+  --color-brand-950: oklch(13.2% 0.032 245);
+
+  /* ── Neutral / Slate with blue undertone ── */
+  --color-slate-50:  oklch(98.2% 0.006 245);
+  --color-slate-100: oklch(95.6% 0.012 245);
+  --color-slate-200: oklch(90.4% 0.020 245);
+  --color-slate-300: oklch(82.8% 0.030 245);
+  --color-slate-400: oklch(68.6% 0.040 245);
+  --color-slate-500: oklch(55.8% 0.040 245);
+  --color-slate-600: oklch(44.2% 0.036 245);
+  --color-slate-700: oklch(34.6% 0.030 245);
+  --color-slate-800: oklch(24.8% 0.022 245);
+  --color-slate-900: oklch(17.2% 0.016 245);
+  --color-slate-950: oklch(11.4% 0.010 245);
+
+  /* ── Semantic surface tokens ── */
+  --color-surface:        oklch(98.5% 0.008 245);
+  --color-surface-2:      oklch(95.8% 0.014 245);
+  --color-surface-3:      oklch(91.2% 0.022 245);
+  --color-surface-inv:    oklch(14.0% 0.018 245);
+  --color-base-border:         oklch(88.4% 0.024 245);
+  --color-base-border-strong:  oklch(74.6% 0.040 245);
+  --color-base-muted:          oklch(58.2% 0.038 245);
+  --color-base-muted-fg:       oklch(46.8% 0.034 245);
+
+  /* ── Accent / success / warning / danger ── */
+  --color-success: oklch(62% 0.18 145);
+  --color-warning: oklch(78% 0.18 72);
+  --color-danger:  oklch(58% 0.22 20);
+  --color-info:    oklch(62% 0.18 245);
+
+  /* ── Typography ── */
+  --font-sans:  "Inter", system-ui, -apple-system, sans-serif;
+  --font-serif: "Lora", Georgia, "Times New Roman", serif;
+  --font-mono:  "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+
+  /* ── Font sizes ── */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+  --text-6xl:  3.75rem;
+
+  /* ── Spacing extras ── */
+  --spacing-18: 4.5rem;
+  --spacing-88: 22rem;
+  --spacing-112: 28rem;
+  --spacing-128: 32rem;
+
+  /* ── Border radius ── */
+  --radius-sm:  0.25rem;
+  --radius-md:  0.5rem;
+  --radius-lg:  0.75rem;
+  --radius-xl:  1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-sm:  0 1px 3px oklch(20% 0.02 245 / 0.08), 0 1px 2px oklch(20% 0.02 245 / 0.06);
+  --shadow-md:  0 4px 12px oklch(20% 0.02 245 / 0.10), 0 2px 6px oklch(20% 0.02 245 / 0.07);
+  --shadow-lg:  0 10px 30px oklch(20% 0.02 245 / 0.12), 0 4px 12px oklch(20% 0.02 245 / 0.08);
+  --shadow-xl:  0 20px 50px oklch(20% 0.02 245 / 0.15), 0 8px 20px oklch(20% 0.02 245 / 0.10);
+  --shadow-brand: 0 4px 24px oklch(57% 0.158 245 / 0.25);
+  --shadow-glow:  0 0 40px oklch(57% 0.158 245 / 0.20);
+
+  /* ── Transitions ── */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* ── Base styles ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-slate-900);
+  line-height: 1.6;
+  transition: background-color 0.3s var(--ease-smooth), color 0.3s var(--ease-smooth);
+}
+
+/* Dark mode base */
+.dark body {
+  background-color: oklch(22.5% 0.006 264); /* Discord #313338 */
+  color: oklch(88.8% 0.006 264);            /* Discord #dce0e8 */
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-300);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-brand-400); }
+.dark ::-webkit-scrollbar-thumb { background: oklch(32% 0.008 264); }
+
+/* ── Focus styles ── */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ── Selection ── */
+::selection {
+  background: oklch(57% 0.158 245 / 0.2);
+  color: var(--color-brand-900);
+}
+.dark ::selection {
+  background: oklch(57% 0.158 245 / 0.35);
+  color: var(--color-brand-100);
+}
+
+/* ── View transitions ── */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) {
+  animation: 200ms ease-out both fade-out;
+}
+::view-transition-new(root) {
+  animation: 250ms ease-out both fade-in;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Shiki dual-theme (defaultColor: false) ─────────────────────────────
+   With defaultColor:false, Shiki injects NO inline color on spans.
+   Only CSS custom props (--shiki-light, --shiki-dark) are set inline.
+   Our CSS rules are the sole source of truth for which theme displays.
+   ─────────────────────────────────────────────────────────────────── */
+
+/* Light mode — use github-light token colors */
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style, inherit);
+  font-weight: var(--shiki-light-font-weight, inherit);
+  text-decoration: var(--shiki-light-text-decoration, inherit);
+  background-color: transparent;
+}
+
+/* Dark mode — use Monokai token colors */
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style, inherit);
+  font-weight: var(--shiki-dark-font-weight, inherit);
+  text-decoration: var(--shiki-dark-text-decoration, inherit);
+  background-color: transparent !important;
+}
+
+/* ── Code block wrapper ── */
+.shiki {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.dark .shiki {
+}
+
+/* Diff transformers */
+.shiki .diff.add { background: oklch(62% 0.18 145 / 0.12); }
+.shiki .diff.remove { background: oklch(58% 0.22 20 / 0.12); }
+.shiki .highlighted { background: oklch(57% 0.158 245 / 0.08); }
+.shiki .focused { opacity: 0.3; }
+.shiki .focused.highlighted { opacity: 1; }
+
+/* ── Prose (MDX content) ── */
+.prose {
+  max-width: 72ch;
+  color: inherit;
+}
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--color-slate-900);
+}
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4 {
+  color: var(--color-slate-50);
+}
+.prose a {
+  color: var(--color-brand-600);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+.prose a:hover { color: var(--color-brand-500); }
+.dark .prose a { color: var(--color-brand-400); }
+.dark .prose a:hover { color: var(--color-brand-300); }
+.prose code:not(pre code) {
+  background: var(--color-surface-2);
+  color: var(--color-brand-700);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.875em;
+  font-family: var(--font-mono);
+  border: 1px solid var(--color-base-border);
+}
+.dark .prose code:not(pre code) {
+  background: transparent;
+  color: var(--color-brand-300);
+  border-color: var(--color-slate-700);
+}
+.prose blockquote {
+  border-left: 3px solid var(--color-brand-400);
+  padding-left: 1.25rem;
+  color: var(--color-base-muted);
+  font-style: italic;
+  margin: 1.5rem 0;
+}
+.prose hr {
+  border-color: var(--color-base-border);
+  margin: 2.5rem 0;
+}
+
+/* Math block layout fix */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 1rem 0;
+}
+
+/* Anchor links */
+.anchor-link { color: inherit; text-decoration: none; }
+.anchor-link:hover::after {
+  content: ' #';
+  color: var(--color-brand-400);
+  font-weight: 400;
+}
+
+@theme inline {
+  --font-heading:  var(--font-sans);
+  --font-sans:  'Geist Variable', sans-serif;
+  --color-sidebar-ring:  var(--sidebar-ring);
+  --color-sidebar-border:  var(--sidebar-border);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-accent:  var(--sidebar-accent);
+  --color-sidebar-primary-foreground:  var(--sidebar-primary-foreground);
+  --color-sidebar-primary:  var(--sidebar-primary);
+  --color-sidebar-foreground:  var(--sidebar-foreground);
+  --color-sidebar:  var(--sidebar);
+  --color-chart-5:  var(--chart-5);
+  --color-chart-4:  var(--chart-4);
+  --color-chart-3:  var(--chart-3);
+  --color-chart-2:  var(--chart-2);
+  --color-chart-1:  var(--chart-1);
+  --color-ring:  var(--ring);
+  --color-input:  var(--input);
+  --color-border:  var(--border);
+  --color-destructive:  var(--destructive);
+  --color-accent-foreground:  var(--accent-foreground);
+  --color-accent:  var(--accent);
+  --color-muted-foreground:  var(--muted-foreground);
+  --color-muted:  var(--muted);
+  --color-secondary-foreground:  var(--secondary-foreground);
+  --color-secondary:  var(--secondary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-primary:  var(--primary);
+  --color-popover-foreground:  var(--popover-foreground);
+  --color-popover:  var(--popover);
+  --color-card-foreground:  var(--card-foreground);
+  --color-card:  var(--card);
+  --color-foreground:  var(--foreground);
+  --color-background:  var(--background);
+  --radius-sm:  calc(var(--radius) * 0.6);
+  --radius-md:  calc(var(--radius) * 0.8);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) * 1.4);
+  --radius-2xl:  calc(var(--radius) * 1.8);
+  --radius-3xl:  calc(var(--radius) * 2.2);
+  --radius-4xl:  calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: var(--color-surface);
+  --foreground: var(--color-slate-900);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-slate-900);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-slate-900);
+  --primary: var(--color-brand-600);
+  --primary-foreground: var(--color-brand-50);
+  --secondary: var(--color-surface-2);
+  --secondary-foreground: var(--color-slate-900);
+  --muted: var(--color-surface-2);
+  --muted-foreground: var(--color-base-muted-fg);
+  --accent: var(--color-surface-2);
+  --accent-foreground: var(--color-brand-600);
+  --destructive: var(--color-danger);
+  --border: var(--color-base-border);
+  --input: var(--color-base-border);
+  --ring: var(--color-brand-400);
+  
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.5rem;
+  
+  --sidebar: var(--color-surface);
+  --sidebar-foreground: var(--color-slate-900);
+  --sidebar-primary: var(--color-brand-600);
+  --sidebar-primary-foreground: var(--color-brand-50);
+  --sidebar-accent: var(--color-surface-2);
+  --sidebar-accent-foreground: var(--color-slate-900);
+  --sidebar-border: var(--color-base-border);
+  --sidebar-ring: var(--color-brand-400);
+}
+
+.dark {
+  /* ── Discord dark mode surfaces (hue ~264 neutral) ── */
+  --color-surface:    oklch(22.5% 0.006 264); /* #313338 Discord main bg */
+  --color-surface-2:  oklch(19.8% 0.006 264); /* #2b2d31 Discord sidebar bg */
+  --color-surface-3:  oklch(25.2% 0.007 264); /* #383a40 Discord elevated card */
+  --color-base-border:     oklch(27.8% 0.008 264); /* #404249 dividers */
+  --color-base-border-strong: oklch(32.0% 0.010 264);
+  --color-base-muted:      oklch(65.0% 0.008 264); /* mid-tone text */
+  --color-base-muted-fg:   oklch(74.5% 0.005 264); /* #b5bac1 Discord muted text */
+
+  /* ── shadcn / Tailwind semantic tokens ── */
+  --background: oklch(22.5% 0.006 264);           /* #313338 */
+  --foreground: oklch(88.8% 0.006 264);           /* #dce0e8 Discord primary text */
+  --card: oklch(25.2% 0.007 264);                 /* #383a40 elevated surface */
+  --card-foreground: oklch(88.8% 0.006 264);
+  --popover: oklch(19.8% 0.006 264);              /* #2b2d31 */
+  --popover-foreground: oklch(88.8% 0.006 264);
+  --primary: var(--color-brand-400);              /* keep blue brand accent */
+  --primary-foreground: var(--color-brand-950);
+  --secondary: oklch(27.8% 0.008 264);            /* #404249 */
+  --secondary-foreground: oklch(88.8% 0.006 264);
+  --muted: oklch(27.8% 0.008 264);                /* #404249 */
+  --muted-foreground: oklch(74.5% 0.005 264);     /* #b5bac1 */
+  --accent: oklch(27.8% 0.008 264);
+  --accent-foreground: var(--color-brand-400);    /* blue accent on hover */
+  --destructive: var(--color-danger);
+  --border: oklch(27.8% 0.008 264);               /* #404249 */
+  --input: oklch(25.2% 0.007 264);                /* #383a40 input bg */
+  --ring: var(--color-brand-500);                 /* blue focus ring */
+
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  --sidebar: oklch(14.2% 0.005 264);             /* #1e1f22 Discord deepest bg */
+  --sidebar-foreground: oklch(88.8% 0.006 264);
+  --sidebar-primary: var(--color-brand-500);
+  --sidebar-primary-foreground: var(--color-brand-950);
+  --sidebar-accent: oklch(27.8% 0.008 264);
+  --sidebar-accent-foreground: oklch(88.8% 0.006 264);
+  --sidebar-border: oklch(19.8% 0.006 264);
+  --sidebar-ring: var(--color-brand-500);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

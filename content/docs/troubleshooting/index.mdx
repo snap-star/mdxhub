@@ -1,0 +1,41 @@
+---
+title: "Troubleshooting Overview"
+section: "Troubleshooting"
+order: 1
+description: "An index of common problems and how to resolve them in this MDX platform."
+next: "troubleshooting/build-errors"
+---
+
+# Troubleshooting
+
+This section covers the most common issues you may encounter while working with this platform, from local development hiccups to build failures and content not appearing as expected. Use the sidebar to navigate directly to the relevant category.
+
+## Topics Covered
+
+| Page | What It Covers |
+| :--- | :--- |
+| [Build Errors](/docs/troubleshooting/build-errors) | TypeScript, MDX compilation, and Vite plugin failures |
+| [Content & Routing](/docs/troubleshooting/content-routing) | Posts not appearing, 404s, slug mismatches |
+| [Styling & Dark Mode](/docs/troubleshooting/styling-dark-mode) | CSS variable conflicts, dark mode flickering, KaTeX rendering |
+| [Performance](/docs/troubleshooting/performance) | Large bundle sizes, slow HMR, code splitting tips |
+
+<Callout type="tip" title="Quick Self-Check">
+Before diving into specific issues, always try these steps first:
+
+1. `npm install` — ensure all dependencies are up to date
+2. Delete the `dist/` folder and restart `npm run dev`
+3. Check the browser console for specific error messages
+</Callout>
+
+## How to Report a Bug
+
+If you cannot resolve an issue using this guide, open an issue on the project's GitHub repository. Include:
+
+- The **exact error message** from the terminal or browser console
+- Your **Node.js version** (`node -v`) and **npm version** (`npm -v`)
+- The relevant `.mdx` file content (with frontmatter)
+- Steps to reproduce the problem
+
+---
+
+See also the [Installation Guide](/docs/guides/installation) to verify your environment is correctly configured.

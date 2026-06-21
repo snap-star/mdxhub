@@ -1,0 +1,175 @@
+---
+title: "Build Errors"
+section: "Troubleshooting"
+order: 2
+description: "Solutions for TypeScript compilation failures, MDX parsing errors, and Vite plugin issues."
+prev: "troubleshooting"
+next: "troubleshooting/content-routing"
+---
+
+# Build Errors
+
+This page covers errors you may see when running `npm run build` or `npm run dev`.
+
+---
+
+## MDX Compilation Errors
+
+### `Error: Could not parse expression with acorn`
+
+**Cause:** You have curly braces `{}` in your MDX file that are being interpreted as JSX expressions instead of plain text.
+
+```
+Error: Could not parse expression with acorn: Unexpected token (1:7)
+```
+
+**Fix:** Escape curly braces in prose text using HTML entities:
+
+```mdx
+{/* ❌ Will error — MDX treats this as JS */}
+The object is { key: value }
+
+{/* ✅ Correct */}
+The object is &#123;key: value&#125;
+
+{/* ✅ Also correct — use a code span for code content */}
+The object is `{ key: value }`
+```
+
+---
+
+### `Error: Unexpected end of file in expression`
+
+**Cause:** An unclosed JSX component tag inside your MDX file.
+
+**Fix:** Make sure every component tag is properly closed:
+
+```mdx
+{/* ❌ Missing closing tag */}
+<Callout type="note">
+  This callout is never closed.
+
+{/* ✅ Correct */}
+<Callout type="note">
+  This callout is properly closed.
+</Callout>
+```
+
+---
+
+### `Error: Unknown file extension ".mdx"`
+
+**Cause:** The `@mdx-js/rollup` plugin is not correctly configured in `vite.config.ts`, or it is missing the `enforce: 'pre'` directive.
+
+**Fix:** Verify your `vite.config.ts` includes the plugin in the correct order:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  plugins: [
+    tailwindcss(),
+    {
+      enforce: 'pre', // ← This is required!
+      ...mdx({ /* ... */ }),
+    },
+    react({
+      include: /\.(mdx|js|jsx|ts|tsx)$/, // ← Must include .mdx
+    }),
+  ],
+})
+```
+
+---
+
+### Math Rendering Fails During Build
+
+**Cause:** Malformed LaTeX inside `$...$` or `$$...$$` blocks.
+
+**Symptom:** The build exits with a `KaTeX parse error`.
+
+**Fix:** Validate your LaTeX syntax. Common pitfalls:
+
+```mdx
+{/* ❌ Unbalanced braces will cause a parse error */}
+$$\frac{a}{b$$
+
+{/* ✅ Balanced braces */}
+$$\frac{a}{b}$$
+
+{/* ❌ Backslash before a non-command inside MDX */}
+The value is $a \* b$
+
+{/* ✅ Use the proper LaTeX multiply operator */}
+The value is $a \times b$
+```
+
+---
+
+## TypeScript Errors
+
+### `Cannot find module '@/components/...'`
+
+**Cause:** TypeScript path aliases are not configured, or the file does not exist.
+
+**Fix:** Check that `tsconfig.app.json` includes the path alias:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@content/*": ["./content/*"]
+    }
+  }
+}
+```
+
+And verify the same alias exists in `vite.config.ts`:
+
+```ts
+resolve: {
+  alias: {
+    '@': path.resolve(__dirname, './src'),
+    '@content': path.resolve(__dirname, './content'),
+  },
+},
+```
+
+---
+
+### `Module '"lucide-react"' has no exported member 'X'`
+
+**Cause:** The lucide-react version installed does not export that icon name. Icon names change between major versions.
+
+**Fix:** Search for the correct icon name in the installed version:
+
+```bash
+node -e "import('lucide-react').then(m => console.log(Object.keys(m).filter(k => k.toLowerCase().includes('github'))))"
+```
+
+If the icon does not exist, define a small inline SVG component as a fallback instead.
+
+---
+
+## Vite / HMR Issues
+
+### Hot Module Replacement Does Not Update MDX Changes
+
+**Cause:** Vite's HMR sometimes misses changes to `.mdx` files on Windows because of case-insensitive filesystem behavior.
+
+**Fix:**
+1. Save the file twice (or use "Format Document" in VS Code).
+2. If it persists, restart the dev server: `Ctrl+C` then `npm run dev`.
+
+---
+
+### `[PLUGIN_TIMINGS] Your build spent significant time in plugin @mdx-js/rollup`
+
+**Cause:** This is a **warning, not an error**. MDX files are transformed at build time and this is expected for larger content directories.
+
+**Fix:** No fix needed. To reduce build times, consider keeping individual MDX files under ~500 lines and splitting large posts into multiple files.
+
+<Callout type="note">
+If build times exceed 30 seconds, check whether any MDX file contains an extremely large embedded dataset (e.g., a JSON blob). Move such data to a separate `.json` file and import it instead.
+</Callout>

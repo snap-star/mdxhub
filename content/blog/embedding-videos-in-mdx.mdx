@@ -1,0 +1,84 @@
+---
+title: "Embedding Videos in MDX: YouTube, Shorts & More"
+date: "2026-06-21"
+description: "Learn how to embed YouTube videos, Shorts, and any iframe-compatible video directly inside your MDX blog posts using the VideoEmbed component."
+category: "Tutorial"
+tags: ["mdx", "video", "youtube", "components"]
+author: "chigusa-asuha"
+coverImage: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=2670&auto=format&fit=crop"
+---
+
+One of the greatest powers of MDX is the ability to drop interactive React components anywhere inside your Markdown content. The `VideoEmbed` component brings this to life for video content — whether you want to embed a YouTube tutorial, a YouTube Shorts clip, or any other iframe-compatible video source.
+
+---
+
+## How It Works
+
+The `VideoEmbed` component is globally registered in this project's MDX component registry, which means you can use it in **any** blog post or documentation page without needing to import it.
+
+It automatically resolves the following URL formats into a proper iframe embed:
+- ✅ Full YouTube URL: `https://www.youtube.com/watch?v=VIDEO_ID`
+- ✅ Short YouTube URL: `https://youtu.be/VIDEO_ID`
+- ✅ YouTube Shorts: `https://www.youtube.com/shorts/VIDEO_ID`
+- ✅ Raw embed URL: `https://www.youtube.com/embed/VIDEO_ID`
+- ✅ Any `iframe`-compatible URL (Vimeo, Loom, etc.)
+
+---
+
+## Basic Usage
+
+Drop the component directly inside your `.mdx` file:
+
+```mdx
+<VideoEmbed src="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
+```
+
+<VideoEmbed
+  src="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  title="Rick Astley - Never Gonna Give You Up"
+  caption="A classic. The VideoEmbed component automatically resolves this YouTube URL."
+/>
+
+---
+
+## With a Custom Aspect Ratio
+
+By default, videos render at the classic **16:9** widescreen ratio. You can change this with the `aspect` prop. Supported values are `16/9`, `4/3`, `1/1`, and `9/16` (for vertical Shorts-style content).
+
+```mdx
+<VideoEmbed
+  src="https://youtu.be/dQw4w9WgXcQ"
+  aspect="4/3"
+  caption="Using a 4:3 aspect ratio"
+/>
+```
+
+---
+
+## All Supported Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `src` | `string` | — | YouTube URL, youtu.be link, or any iframe URL. **Required.** |
+| `title` | `string` | `"Embedded video"` | Accessibility title for the iframe. |
+| `aspect` | `string` | `"16/9"` | Aspect ratio: `16/9`, `4/3`, `1/1`, or `9/16`. |
+| `caption` | `string` | — | Optional caption displayed below the video. |
+
+---
+
+## Using a youtu.be Short Link
+
+```mdx
+<VideoEmbed
+  src="https://youtu.be/dQw4w9WgXcQ"
+  caption="Short links work too!"
+/>
+```
+
+<Callout type="tip">
+You can copy any YouTube video URL directly from your browser address bar or the YouTube share button — the `VideoEmbed` component will parse it automatically!
+</Callout>
+
+<Callout type="note">
+Videos are loaded **lazily** using `loading="lazy"` on the iframe, so they won't slow down your page load if you have multiple embeds on the same post.
+</Callout>
