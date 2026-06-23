@@ -12,11 +12,23 @@ import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
 import { MDXProvider } from '@mdx-js/react'
 import { MDXComponents } from '@/components/mdx/MDXComponents'
+import { PostPagination } from '@/components/blog/PostPagination'
 
 export default function BlogPost() {
   const { slug } = useParams()
   const allPosts = useContentStore((s) => s.posts)
   const post = React.useMemo(() => allPosts.find((p) => p.slug === slug), [allPosts, slug])
+  
+  const { prevPost, nextPost } = React.useMemo(() => {
+    const currentIndex = allPosts.findIndex((p) => p.slug === slug)
+    if (currentIndex === -1) return { prevPost: undefined, nextPost: undefined }
+    // posts are sorted newest first. Next (newer) is index-1, Prev (older) is index+1.
+    return {
+      nextPost: currentIndex > 0 ? allPosts[currentIndex - 1] : undefined,
+      prevPost: currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : undefined
+    }
+  }, [allPosts, slug])
+
   const [headings, setHeadings] = React.useState<any[]>([])
 
   React.useEffect(() => {
@@ -106,6 +118,8 @@ export default function BlogPost() {
           {frontmatter.cc && (
             <CCLicense code={frontmatter.cc} author={author?.name ?? frontmatter.author} />
           )}
+
+          <PostPagination prevPost={prevPost} nextPost={nextPost} />
         </footer>
       </main>
 
