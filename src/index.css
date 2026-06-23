@@ -234,6 +234,7 @@ body {
   letter-spacing: -0.02em;
   line-height: 1.25;
   color: var(--color-slate-900);
+  scroll-margin-top: 6rem;
 }
 .dark .prose h1,
 .dark .prose h2,
