@@ -33,10 +33,10 @@ export function DocsLayout() {
           className="docs-sidebar-mobile"
           style={{
             position: 'fixed',
-            top: 64,
+            top: 0,
             left: 0,
             width: '280px',
-            height: 'calc(100vh - 64px)',
+            height: '100%',
             zIndex: 50,
             overflowY: 'auto',
             transform: isMobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',

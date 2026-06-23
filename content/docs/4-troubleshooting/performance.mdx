@@ -1,0 +1,140 @@
+---
+title: "Performance"
+section: "Troubleshooting"
+order: 45
+description: "Diagnose and fix large bundle sizes, slow dev server HMR, and build time issues."
+prev: "troubleshooting/styling-dark-mode"
+---
+
+# Performance
+
+---
+
+## Large Bundle Size Warning
+
+### Build warning: "Some chunks are larger than 500 kB"
+
+**Cause:** This is expected and is a **warning, not an error**. The main `index.js` bundle includes the full React runtime, Framer Motion, Fuse.js, and all shared utilities. MDX content files are already automatically code-split into separate chunks.
+
+**Current chunk breakdown:**
+
+| Chunk | What It Contains |
+| :--- | :--- |
+| `index-[hash].js` | React, React Router, Framer Motion, Fuse.js, Zustand |
+| `[slug]-[hash].js` | Individual MDX post or doc page (code-split automatically) |
+| `authors-[hash].js` | The authors YAML data |
+
+**Fix:** The MDX content chunks are already optimally split — each post compiles to its own file. If the main bundle is the concern, you can defer large libraries:
+
+```ts
+// vite.config.ts — split Framer Motion into its own vendor chunk
+build: {
+  rolldownOptions: {
+    output: {
+      manualChunks: {
+        'vendor-motion': ['framer-motion'],
+        'vendor-search': ['fuse.js'],
+      }
+    }
+  }
+}
+```
+
+---
+
+## Slow Dev Server Startup
+
+### `npm run dev` takes more than 10 seconds to start
+
+**Cause:** Vite performs on-demand transforms via the dev server, but the MDX plugin (`@mdx-js/rollup`) transforms all discovered files synchronously during startup discovery. A large number of MDX files will slow this down.
+
+**Benchmarks:**
+
+| MDX File Count | Expected Startup Time |
+| :---: | :--- |
+| < 20 | < 2 seconds |
+| 20–100 | 2–8 seconds |
+| 100+ | 8–20+ seconds |
+
+**Fixes:**
+- Keep your content library under 100 MDX files for optimal dev experience.
+- Move rarely-edited draft posts to a separate folder outside the glob pattern (e.g., `/content/_drafts/`) and set `draft: true` on any that remain in the active path.
+
+---
+
+## Slow Hot Module Replacement (HMR)
+
+### Saving an MDX file takes 3–5+ seconds to reflect in the browser
+
+**Cause:** The MDX Rollup plugin re-processes changed files through the full remark/rehype pipeline, including Shiki syntax highlighting, on every save. Large MDX files with many code blocks are the slowest.
+
+**Fixes:**
+
+1. **Split long posts** — break a 1,000-line post into multiple smaller pages using the `prev`/`next` frontmatter links.
+
+2. **Reduce code block count** — each fenced code block requires a full Shiki tokenization pass. If you have 20+ code blocks in one file, consider using inline code spans for shorter snippets.
+
+3. **Use `// @ts-nocheck` sparingly** — TypeScript checking across the whole project is part of `npm run build`. During `dev`, TS errors are shown as overlays but do not slow down HMR. Avoid disabling type checks globally as it masks real errors.
+
+---
+
+## Images Loading Slowly
+
+### Cover images on blog cards take a long time to appear
+
+**Cause:** External image URLs (e.g., from Unsplash) are not optimized or cached by the project itself. The browser fetches them fresh each time unless the CDN provides caching headers.
+
+**Fixes:**
+
+1. **Use URL parameters for size optimization** on Unsplash images:
+   ```yaml
+   image: "https://images.unsplash.com/photo-xxx?q=75&w=800&auto=format&fit=crop"
+   #                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   #                                                   These reduce file size significantly
+   ```
+
+2. **Self-host images** by placing them in the `public/` folder:
+   ```yaml
+   image: "/images/my-post-cover.jpg"
+   ```
+   Then place the file at `public/images/my-post-cover.jpg`. Vite copies the `public/` folder verbatim into `dist/`.
+
+3. **Use a CDN** — deploy your images to Cloudflare R2, AWS S3, or similar for persistent global caching.
+
+---
+
+## Memory Usage During Build
+
+### `npm run build` crashes with JavaScript heap out of memory
+
+**Cause:** Node.js has a default heap limit (~1.5 GB). Processing hundreds of large MDX files with KaTeX and Shiki can exceed this.
+
+**Fix:** Increase the Node.js memory limit when running the build:
+
+```bash
+# Windows PowerShell
+$env:NODE_OPTIONS="--max-old-space-size=4096"; npm run build
+
+# macOS / Linux
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
+```
+
+Or add it permanently to the `package.json` build script:
+
+```json
+{
+  "scripts": {
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 tsc -b && vite build"
+  }
+}
+```
+
+<Callout type="tip" title="Profiling the Build">
+To identify which MDX file is causing the slowdown, add `--profile` to the Vite build command:
+
+```bash
+npx vite build --profile
+```
+
+This generates a `dist/.vite/` folder with detailed timing information for each plugin and file.
+</Callout>

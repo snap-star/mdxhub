@@ -27,8 +27,8 @@ export function Footer() {
             </p>
             <div className="flex gap-2 mt-4">
               {[
-                { type: 'simple', icon: siGithub, href: 'https://github.com', label: 'GitHub' },
-                { type: 'simple', icon: siX, href: 'https://twitter.com', label: 'Twitter' },
+                { type: 'simple', icon: siGithub, href: 'https://github.com/snap-star/mdxhub', label: 'GitHub' },
+                { type: 'simple', icon: siX, href: 'https://x.com/a0ki_san', label: 'Twitter' },
                 { type: 'lucide', icon: Rss, href: '/rss.xml', label: 'RSS Feed' },
               ].map((item) => (
                 <a
@@ -63,9 +63,10 @@ export function Footer() {
             {
               title: 'Docs',
               links: [
-                { label: 'Introduction', href: '/docs/introduction' },
-                { label: 'Installation', href: '/docs/guides/installation' },
-                { label: 'MDX Authoring', href: '/docs/guides/mdx-authoring' },
+                { label: 'Introduction', href: '/docs/1-introduction' },
+                { label: 'Installation', href: '/docs/2-guides/installation' },
+                { label: 'Deployment', href: '/docs/3-deployment/hosting' },
+                { label: 'MDX Authoring Guide', href: '/blog/creating-posts-guide' },
               ],
             },
             {
@@ -73,7 +74,7 @@ export function Footer() {
               links: [
                 { label: 'Search', href: '/search' },
                 { label: 'Tags', href: '/blog' },
-                { label: 'Authors', href: '/blog' },
+                { label: 'Authors', href: '/about' },
               ],
             },
           ].map(({ title, links }) => (

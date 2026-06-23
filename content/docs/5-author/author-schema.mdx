@@ -1,0 +1,60 @@
+---
+title: "Author Schema"
+section: "Author Schema"
+order: 50
+version: "v1.0"
+description: "Author schema for MDX Hub."
+next: "/getting-started"
+---
+
+You can change `AuthorCard.tsx` badge, that is show on `/blog` page after the content, in here `/content/authors/authors.yaml`<br />
+
+Basic example:
+```yaml
+- id: chigusa-asuha         <--- Author ID
+  name: Chigusa Asuha        <--- Author Name
+  avatar: /snap-star.png      <--- Author Avatar URL
+  bio: Lead Developer & Creative Technologist. Passionate about React, MDX, and building beautiful web experiences. <--- Author Bio
+  twitter: <--- Author Twitter Handle
+  instagram: reirain_exe <--- Author Instagram Handle
+  github: snap-star <--- Author GitHub Handle
+  website: https://mdxhub.vercel.app/ <--- Author Website URL
+```
+
+You can add necessary socialmedia via those yaml.
+
+## Extending Social Media Handles
+You can add any social media icons you want to the author schema.
+change necessary social media icons in the author schema types located in `/src/lib/content/types.ts`.
+```tsx
+export interface Author {
+  id: string
+  name: string
+  avatar: string
+  bio: string
+  twitter?: string
+  instagram?: string
+  linkedin?: string
+  medium?: string
+  youtube?: string
+  twitch?: string
+  discord?: string
+  telegram?: string
+  email?: string
+  phone?: string
+  location?: string
+  company?: string
+  role?: string
+  github?: string
+  website?: string
+}
+```
+Adding icons to `AuthorCard.tsx` badge:
+```tsx
+{author.twitter && (
+<a href={`https://twitter.com/${author.twitter}`} target="_blank" rel="noopener noreferrer"
+    className="flex items-center gap-1.5 text-xs text-primary no-underline hover:underline">
+    <SiX size={14} /> @{author.twitter}
+</a>
+)}
+```

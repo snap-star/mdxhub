@@ -1,0 +1,103 @@
+---
+title: "Installation"
+section: "2. Guides"
+order: 20
+version: "v1.0"
+description: "How to set up ReactMDX locally and configure it for your project."
+---
+
+Follow these steps to get ReactMDX running on your local machine.
+
+## Prerequisites
+
+Before you begin, make sure you have the following installed:
+
+- **Node.js 20+** — [Download here](https://nodejs.org)
+- **npm 10+** or **pnpm 9+**
+
+## Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/reactmdx.git
+cd reactmdx
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Start the development server
+
+```bash
+npm run dev
+```
+
+Your site is now running at `http://localhost:3000`. Vite will automatically hot-reload whenever you change source files **or** content files.
+
+<Callout type="tip">
+Any `.mdx` file you add to `content/blog/` or `content/docs/` will be automatically discovered — no registration or routing config needed!
+</Callout>
+
+## Project Configuration
+
+### Site Config
+
+Open `site.config.json` at the project root to configure the GitHub link that appears in the navbar badge:
+
+```json
+{
+  "githubUrl": "https://github.com/your-username/your-repo"
+}
+```
+
+The version badge next to the GitHub icon is automatically pulled from your `package.json` `version` field.
+
+### Authors Registry
+
+Register content authors by editing `content/authors/authors.yaml`:
+
+```yaml
+- id: your-id             # Used in blog frontmatter
+  name: "Your Full Name"
+  avatar: "/your-avatar.png"   # Can be a local /public path or URL
+  bio: "Short bio."
+  twitter: yourhandle
+  github: yourhandle
+  website: https://yoursite.com
+```
+
+### Adding Your Profile Photo
+
+Place your avatar image inside the `public/` directory. It will be served at the root path. For example, `public/snap-star.png` is accessible as `/snap-star.png`.
+
+## Building for Production
+
+When you're ready to deploy:
+
+```bash
+npm run build
+```
+
+This runs the TypeScript compiler (`tsc`) and then Vite's production bundler. All MDX content is compiled at build time into optimized JavaScript. The output is placed in the `dist/` directory and is fully static — no server required.
+
+```bash
+# Preview the production build locally
+npm run preview
+```
+
+<Callout type="warning">
+Because this is a Single Page Application (SPA), certain hosting providers need special configuration to handle client-side routing. See the [Deployment Guide](/docs/deployment/hosting) for Vercel, Netlify, and GitHub Pages instructions.
+</Callout>
+
+## Key Scripts
+
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Start the Vite dev server with HMR |
+| `npm run build` | Type-check and build for production |
+| `npm run preview` | Serve the `dist/` output locally |
+| `npm run lint` | Run ESLint on all source files |

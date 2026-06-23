@@ -31,6 +31,18 @@ export interface Author {
   avatar: string
   bio: string
   twitter?: string
+  instagram?: string
+  linkedin?: string
+  medium?: string
+  youtube?: string
+  twitch?: string
+  discord?: string
+  telegram?: string
+  email?: string
+  phone?: string
+  location?: string
+  company?: string
+  role?: string
   github?: string
   website?: string
 }

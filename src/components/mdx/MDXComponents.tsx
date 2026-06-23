@@ -4,6 +4,8 @@ import { Callout } from './Callout'
 import { ProfileBadge } from './ProfileBadge'
 import { VideoEmbed } from './VideoEmbed'
 import { CCLicense } from '../blog/CCLicense'
+import { AuthorCard } from '../blog/AuthorCard'
+
 import { Check, Copy } from 'lucide-react'
 
 // Custom CodeBlock to add Copy button and Terminal header
@@ -94,4 +96,5 @@ export const MDXComponents = {
   CCLicense,
   ProfileBadge,
   VideoEmbed,
+  AuthorCard,
 }
