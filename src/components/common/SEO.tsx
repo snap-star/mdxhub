@@ -15,7 +15,7 @@ const siteConfig = {
   description: 'A blazingly fast documentation and blog platform built with React, Vite, and MDX.',
   siteUrl: 'mdxhub.vercel.app', // Use your production URL here
   defaultImage: '/snap-star.png',
-  twitterUsername: '@chigusa',
+  twitterUsername: '@a0ki_san',
 }
 
 export function SEO({ title, description, image, type = 'website' }: SEOProps) {

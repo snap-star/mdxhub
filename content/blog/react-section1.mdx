@@ -1,0 +1,149 @@
+---
+title: "React 19 Complete Level - Section 1"
+description: "Section 1"
+date: "2026-06-23"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 1: Getting Started with React 19
+
+### What is React 19?
+
+React 19 represents a paradigm shift in how we build React applications. Released in late 2024, it introduced several game-changing features:
+
+- **React Compiler** — Automatic memoization without `useMemo`/`useCallback`
+- **Server Components** — Components that render exclusively on the server
+- **Actions** — First-class support for mutations and form submissions
+- **Document Metadata API** — Native `<title>`, `<meta>` support in components
+- **Asset Loading** — Suspense-integrated `<link>` and `<script>` loading
+- **Web Components** — Full support for custom elements
+- **Enhanced Hooks** — `use()` hook for reading promises, context, and more
+
+### Setting Up a React 19 Project
+
+#### Using Vite (Recommended for Learning)
+
+```bash
+# Create a new Vite project with React 19
+npm create vite@latest my-react-app -- --template react
+
+# Navigate and install dependencies
+cd my-react-app
+npm install
+
+# Verify React 19 in package.json
+# Should show: "react": "^19.0.0"
+```
+
+```json
+// package.json
+{
+  "name": "my-react-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^6.0.0"
+  }
+}
+```
+
+#### Using Next.js 15 (Full-Stack Framework)
+
+```bash
+# Create a Next.js 15 project (includes React 19)
+npx create-next-app@latest my-next-app --typescript --tailwind --app
+
+# Next.js 15 uses React 19 Server Components by default
+```
+
+### Project Structure
+
+```
+my-react-app/
+├── public/                 # Static assets
+│   └── vite.svg
+├── src/
+│   ├── assets/            # Images, fonts, icons
+│   ├── components/        # Reusable components
+│   ├── hooks/             # Custom hooks
+│   ├── context/           # Context providers
+│   ├── pages/             # Page components
+│   ├── utils/             # Helper functions
+│   ├── App.jsx            # Root component
+│   └── main.jsx           # Entry point
+├── index.html
+├── vite.config.js
+├── tailwind.config.js     # If using Tailwind
+└── package.json
+```
+
+### Your First React 19 Component
+
+```jsx
+// src/App.jsx — React 19 entry point
+function App() {
+  return (
+    <div className="app">
+      <header>
+        <h1>Welcome to React 19</h1>
+        <p>Server Components, Actions, and more!</p>
+      </header>
+    </div>
+  );
+}
+
+export default App;
+```
+
+```jsx
+// src/main.jsx — Mounting the app
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+// React 19 uses createRoot (same API as React 18)
+const root = createRoot(document.getElementById('root'));
+
+root.render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+```
+
+### Key Differences from React 18
+
+| Feature | React 18 | React 19 |
+|---------|----------|----------|
+| Memoization | Manual (`useMemo`, `useCallback`) | Automatic with React Compiler |
+| Forms | Controlled components + `onSubmit` | Server Actions + `useActionState` |
+| Document head | Third-party library (`react-helmet`) | Native `<title>`/`<meta>` support |
+| Data fetching | `useEffect` + fetch | `use()` hook + Suspense |
+| Async operations | Complex promise handling | `use()` + Actions |
+
+### Quick Start Checklist
+
+- [ ] Install Node.js 18+ (check with `node --version`)
+- [ ] Create project with Vite or Next.js
+- [ ] Verify React 19 in `package.json`
+- [ ] Run `npm run dev` to see the app
+- [ ] Explore the default project structure
+- [ ] Make your first component change

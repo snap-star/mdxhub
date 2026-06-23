@@ -38,20 +38,45 @@ export default function BlogIndex() {
 
   return (
     <div>
-      <SEO title="Blog" description="Read the latest articles, tutorials, and updates." />
-      {/* Hero */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 border-b border-border bg-brand-50/40 dark:bg-brand-950/20 relative overflow-hidden">
-        {/* Subtle decorative background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-brand-400/10 dark:bg-brand-500/5 blur-[100px] pointer-events-none rounded-full" />
-        
-        <div className="max-w-[1200px] mx-auto text-center relative z-10">
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight text-brand-950 dark:text-brand-50">
-            The Blog
-          </h1>
-          <p className="text-base sm:text-[1.1rem] md:text-lg text-brand-800/70 dark:text-brand-200/60 max-w-[600px] mx-auto leading-relaxed">
-            Thoughts, tutorials, and insights on modern web development, React, and MDX.
+      <SEO
+        title="Blog"
+        description="Read the latest articles, tutorials, and updates."
+      />
+      {/* Hero Image Section*/}
+      <section
+        className="relative w-full h-56 md:h-96 overflow-hidden rounded-none group cursor-pointer"
+        // onClick={() => window.open("/hero.png", "self")}
+      >
+        {/* Background Image */}
+        <img
+          src="/hero.png"
+          alt="Chigusa Asuha"
+          className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+        />
+
+        {/* Transparent Gray Overlay */}
+        <div className="absolute inset-0 bg-gray-900/50 dark:bg-gray-500/50 transition-opacity duration-300 group-hover:bg-gray-900/30 dark:group-hover:bg-gray-500/30" />
+
+        {/* Content Container */}
+        <div className="relative z-10 flex flex-col justify-center h-full px-8">
+          <h1 className="text-2xl md:text-4xl font-bold text-accent dark:text-accent mb-4">MDX Hub</h1>
+          <p className="text-sm md:text-lg text-accent dark:text-accent max-w-xl font-mono font-semibold">
+            Thoughts, tutorials, and insights on modern web development, React,
+            and MDX.
           </p>
         </div>
+
+        {/* Credit Badge - Bottom Right */}
+        <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10 bg-black/60 backdrop-blur-sm px-2.5 md:px-3 py-1 md:py-1.5 rounded-md">
+          <span className="text-[10px] md:text-xs text-white font-medium">
+            Image by:
+          </span>
+        </div>
+
+        {/* Click indicator */}
+        {/* <div className="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="text-xs text-white">Click to view fullscreen</span>
+        </div> */}
       </section>
 
       {/* Main Content */}
@@ -61,7 +86,7 @@ export default function BlogIndex() {
             <CategoryFilter categories={categories} />
           </div>
           <PostGrid posts={visiblePosts} />
-          
+
           {visibleCount < posts.length && (
             <div className="mt-12 flex justify-center">
               <button
@@ -97,5 +122,5 @@ export default function BlogIndex() {
         }
       `}</style>
     </div>
-  )
+  );
 }
