@@ -1,0 +1,48 @@
+---
+title: "Full-Stack TypeScript 2026 — React + Zod + tRPC + Zustand"
+description: "End-to-end typesafe full-stack guide"
+date: "2026-06-23"
+readingTime: "6"
+tags: ["TypeScript", "Full Stack", "React"]
+category: "overview"
+coverImage: "https://images.unsplash.com/photo-1776521796613-564c9f7d02e7?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+---
+
+# Full-Stack TypeScript Guide (2026)
+
+A practical, no-fluff guide to building typesafe full-stack apps with **React 19**, **Zod v4**, **tRPC v11**, and **Zustand v5**.
+
+## Stack & versions (as of mid-2026)
+
+| Tool | Version | Role |
+|---|---|---|
+| React | 19.x | UI library |
+| TypeScript | ≥5.7.2 | Language (tRPC v11 requires this min) |
+| Zod | v4 (root `zod` import) | Schema validation + type inference |
+| tRPC | v11.13.x | Typesafe API layer (no codegen) |
+| TanStack Query | v5 | Data fetching/caching (tRPC v11 requires it) |
+| Zustand | v5.0.x | Client state management |
+
+## Files in this guide
+
+1. `01-react-19.mdx` — React 19 fundamentals & new APIs
+2. `02-zod-v4.mdx` — Schema validation with Zod v4
+3. `03-trpc-v11.mdx` — End-to-end typesafe API with tRPC
+4. `04-zustand-v5.mdx` — Client state with Zustand
+5. `05-fullstack-architecture.mdx` — Wiring it all together (monorepo)
+
+## Why this stack in 2026
+
+- **Zero codegen**: types flow from DB → Zod → tRPC → React automatically.
+- **One language**: TypeScript everywhere, no schema duplication.
+- **Small footprint**: Zustand (~1.2KB) + Zod v4 (perf-optimized) keep bundles lean.
+- **Best fit**: TypeScript monorepos (Next.js, SvelteKit, Remix) with a single team.
+- **Skip it if**: you need a public REST/GraphQL API or non-TS clients consume it.
+
+## Prerequisites
+
+- Node.js 20+, pnpm (workspaces)
+- Comfortable with TypeScript generics basics
+- Familiarity with React hooks
