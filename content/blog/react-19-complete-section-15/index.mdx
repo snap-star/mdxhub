@@ -1,0 +1,252 @@
+---
+title: "React 19 Complete Level - Section 15"
+description: "Learn the basics of React 19, including new features and improvements - *Section 15*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Intermediate"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 15: Data Fetching Patterns
+
+### Native fetch with useEffect
+
+```jsx
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchUser() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`/api/users/${userId}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!cancelled) setUser(data);
+      } catch (err) {
+        if (!cancelled) setError(err);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    fetchUser();
+
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  if (isLoading) return <Spinner />;
+  if (error) return <ErrorMessage error={error} />;
+  if (!user) return null;
+
+  return <UserCard user={user} />;
+}
+```
+
+### React Query (TanStack Query) — Recommended
+
+```jsx
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// Query keys are essential for caching and invalidation
+const queryKeys = {
+  users: ['users'],
+  user: (id) => ['users', id],
+  posts: (userId) => ['users', userId, 'posts'],
+};
+
+// Define API functions
+const fetchUsers = () => fetch('/api/users').then(r => r.json());
+const fetchUser = (id) => fetch(`/api/users/${id}`).then(r => r.json());
+const updateUser = ({ id, data }) =>
+  fetch(`/api/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }).then(r => r.json());
+
+// List with caching
+function UserList() {
+  const { data: users, isLoading, error, refetch } = useQuery({
+    queryKey: queryKeys.users,
+    queryFn: fetchUsers,
+    staleTime: 5 * 60 * 1000, // Consider fresh for 5 minutes
+    gcTime: 10 * 60 * 1000,   // Keep in cache for 10 minutes
+  });
+
+  if (isLoading) return <Skeleton count={5} />;
+  if (error) return <ErrorDisplay error={error} retry={refetch} />;
+
+  return (
+    <ul>
+      {users.map(user => (
+        <UserListItem key={user.id} user={user} />
+      ))}
+    </ul>
+  );
+}
+
+// Detail with dependent query
+function UserProfile({ userId }) {
+  const { data: user, isLoading } = useQuery({
+    queryKey: queryKeys.user(userId),
+    queryFn: () => fetchUser(userId),
+    enabled: !!userId, // Only fetch when userId exists
+  });
+
+  // Fetch posts only after user loads
+  const { data: posts } = useQuery({
+    queryKey: queryKeys.posts(userId),
+    queryFn: () => fetch(`/api/users/${userId}/posts`).then(r => r.json()),
+    enabled: !!user,
+  });
+
+  if (isLoading) return <Spinner />;
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <h2>Posts ({posts?.length || 0})</h2>
+      {posts?.map(post => <PostCard key={post.id} post={post} />)}
+    </div>
+  );
+}
+
+// Mutation with optimistic updates
+function UpdateUserForm({ userId }) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: updateUser,
+
+    // Optimistic update
+    onMutate: async ({ id, data }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.user(id) });
+
+      // Snapshot previous value
+      const previousUser = queryClient.getQueryData(queryKeys.user(id));
+
+      // Optimistically update
+      queryClient.setQueryData(queryKeys.user(id), old => ({ ...old, ...data }));
+
+      return { previousUser };
+    },
+
+    // Rollback on error
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(
+        queryKeys.user(variables.id),
+        context.previousUser
+      );
+    },
+
+    // Always refetch after
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.user(variables.id) });
+    },
+  });
+
+  const handleSubmit = (formData) => {
+    mutation.mutate({ id: userId, data: formData });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button type="submit" disabled={mutation.isPending}>
+        {mutation.isPending ? 'Saving...' : 'Save Changes'}
+      </button>
+      {mutation.isError && <p>Error: {mutation.error.message}</p>}
+    </form>
+  );
+}
+```
+
+### React 19: use() Hook with Suspense
+
+```jsx
+import { use, Suspense } from 'react';
+
+// The promise is created outside the component (or passed as a prop)
+const userPromise = fetchUser(1);
+
+function UserProfile() {
+  // use() suspends until the promise resolves
+  const user = use(userPromise);
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.bio}</p>
+    </div>
+  );
+}
+
+// Wrap in Suspense boundary
+function App() {
+  return (
+    <Suspense fallback={<UserSkeleton />}>
+      <UserProfile />
+    </Suspense>
+  );
+}
+```
+
+### React 19: Server Actions for Mutations
+
+```jsx
+// actions.js — Server Action (runs on server)
+'use server';
+
+export async function createTodo(formData) {
+  const title = formData.get('title');
+  
+  const newTodo = await db.todo.create({
+    data: { title, completed: false },
+  });
+
+  // Revalidate path or tag
+  revalidatePath('/todos');
+  return newTodo;
+}
+
+// Client component
+'use client';
+
+import { useActionState } from 'react';
+import { createTodo } from './actions';
+
+function AddTodoForm() {
+  const [result, submitAction, isPending] = useActionState(
+    async (prevState, formData) => {
+      try {
+        const todo = await createTodo(formData);
+        return { success: true, todo };
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    },
+    null // initial state
+  );
+
+  return (
+    <form action={submitAction}>
+      <input name="title" placeholder="New todo..." required />
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Adding...' : 'Add Todo'}
+      </button>
+      {result?.error && <p className="error">{result.error}</p>}
+      {result?.success && <p className="success">Todo added!</p>}
+    </form>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 16](/blog/react-19-complete-section-16)
+</Callout>

@@ -1,0 +1,181 @@
+---
+title: "React 19 Complete Level - Section 19"
+description: "Learn the basics of React 19, including new features and improvements - *Section 19*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Intermediate"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 19: Testing React Components
+
+### Testing with React Testing Library
+
+```jsx
+// Button.test.jsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import Button from './Button';
+
+describe('Button', () => {
+  it('renders with default props', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByRole('button', { name: /click me/i })).toBeInTheDocument();
+  });
+
+  it('calls onClick handler when clicked', () => {
+    const handleClick = vi.fn();
+    render(<Button onClick={handleClick}>Click</Button>);
+
+    fireEvent.click(screen.getByRole('button'));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('is disabled when disabled prop is true', () => {
+    render(<Button disabled>Disabled</Button>);
+    expect(screen.getByRole('button')).toBeDisabled();
+  });
+
+  it('applies variant class correctly', () => {
+    render(<Button variant="danger">Delete</Button>);
+    expect(screen.getByRole('button')).toHaveClass('btn-danger');
+  });
+});
+```
+
+### Testing Hooks with renderHook
+
+```jsx
+// useCounter.test.js
+import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import useCounter from './useCounter';
+
+describe('useCounter', () => {
+  it('initializes with default value', () => {
+    const { result } = renderHook(() => useCounter());
+    expect(result.current.count).toBe(0);
+  });
+
+  it('initializes with provided value', () => {
+    const { result } = renderHook(() => useCounter(10));
+    expect(result.current.count).toBe(10);
+  });
+
+  it('increments count', () => {
+    const { result } = renderHook(() => useCounter());
+
+    act(() => {
+      result.current.increment();
+    });
+
+    expect(result.current.count).toBe(1);
+  });
+
+  it('decrements count', () => {
+    const { result } = renderHook(() => useCounter(5));
+
+    act(() => {
+      result.current.decrement();
+    });
+
+    expect(result.current.count).toBe(4);
+  });
+
+  it('does not go below min value', () => {
+    const { result } = renderHook(() => useCounter(0, { min: 0 }));
+
+    act(() => {
+      result.current.decrement();
+    });
+
+    expect(result.current.count).toBe(0);
+  });
+});
+```
+
+### Testing Async Operations
+
+```jsx
+// UserProfile.test.jsx
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import UserProfile from './UserProfile';
+
+describe('UserProfile', () => {
+  it('displays loading state initially', () => {
+    render(<UserProfile userId={1} />);
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  });
+
+  it('displays user data after loading', async () => {
+    // Mock fetch
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: 1, name: 'Alice' }),
+      })
+    );
+
+    render(<UserProfile userId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+    });
+  });
+
+  it('displays error on failed fetch', async () => {
+    global.fetch = vi.fn(() => Promise.reject(new Error('Network error')));
+
+    render(<UserProfile userId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/error/i)).toBeInTheDocument();
+    });
+  });
+});
+```
+
+### Mocking in Tests
+
+```jsx
+// Mocking a module
+vi.mock('./api', () => ({
+  fetchUser: vi.fn(() => Promise.resolve({ name: 'Mocked User' })),
+  updateUser: vi.fn(),
+}));
+
+// Mocking a hook
+vi.mock('./useAuth', () => ({
+  default: () => ({ user: { id: 1, name: 'Test User' }, isLoading: false }),
+}));
+
+// Mocking timers
+describe('DelayedAction', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shows message after delay', () => {
+    render(<DelayedAction />);
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(screen.getByText('Done!')).toBeInTheDocument();
+  });
+});
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 20](/blog/react-19-complete-section-20)
+</Callout>

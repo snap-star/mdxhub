@@ -1,0 +1,248 @@
+---
+title: "React 19 Complete Level - Section 27"
+description: "Learn the basics of React 19, including new features and improvements - *Section 27*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 27: Core Web Vitals Optimization
+
+### Understanding Core Web Vitals
+
+| Metric | Target | Description |
+|--------|--------|-------------|
+| **TTFB** | < 800ms | Time to First Byte — server response time |
+| **FCP** | < 1.8s | First Contentful Paint — first text/image visible |
+| **LCP** | < 2.5s | Largest Contentful Paint — largest element visible |
+| **INP** | < 200ms | Interaction to Next Paint — input responsiveness |
+| **CLS** | < 0.1 | Cumulative Layout Shift — visual stability |
+
+### Optimizing TTFB (Time to First Byte)
+
+```jsx
+// 1. Use streaming SSR
+import { renderToPipeableStream } from 'react-dom/server';
+
+app.get('/', (req, res) => {
+  const { pipe } = renderToPipeableStream(<App />, {
+    onShellReady() {
+      // Start streaming immediately — don't wait for all data
+      res.statusCode = 200;
+      res.setHeader('content-type', 'text/html');
+      pipe(res);
+    },
+  });
+});
+
+// 2. Edge deployment (Vercel Edge, Cloudflare Workers)
+// Reduces network latency by running close to users
+
+// 3. Use Server Components to reduce data fetching waterfall
+// Instead of: API call (client) → DB query (server)
+// Use: DB query (server component) → render → stream HTML
+```
+
+### Optimizing LCP (Largest Contentful Paint)
+
+```jsx
+// LCP is typically: hero image, large heading, or background
+
+// 1. Preload critical resources
+export default function Head() {
+  return (
+    <>
+      <link rel="preload" as="image" href="/hero.webp" />
+      <link rel="preconnect" href="https://cdn.example.com" />
+    </>
+  );
+}
+
+// 2. Use Next.js Image optimization
+import Image from 'next/image';
+
+function Hero() {
+  return (
+    <Image
+      src="/hero.jpg"
+      alt="Hero"
+      priority      {/* preload this image */}
+      quality={80}
+      sizes="100vw"
+      fill
+      style={{ objectFit: 'cover' }}
+    />
+  );
+}
+
+// 3. Critical CSS inline
+export default function Document() {
+  return (
+    <html>
+      <head>
+        <style>{`/* Critical styles for above-fold content */`}</style>
+      </head>
+      <body>{/* ... */}</body>
+    </html>
+  );
+}
+
+// 4. Avoid render-blocking JavaScript
+// Use async/defer for non-critical scripts
+<script src="/analytics.js" defer />
+```
+
+### Optimizing CLS (Cumulative Layout Shift)
+
+```jsx
+// CLS happens when elements shift after initial render
+
+// 1. Always set image dimensions to reserve space
+import Image from 'next/image';
+
+// Good — dimensions known, space reserved
+<Image src="/photo.jpg" width={800} height={600} alt="Photo" />
+
+// 2. Skeleton loaders maintain layout during loading
+function ProductCard({ product }) {
+  return (
+    <div className="card">
+      <div className="card-image">
+        {product.image ? (
+          <img src={product.image} alt={product.name} />
+        ) : (
+          <div className="image-skeleton" /> /* Same size as image */
+        )}
+      </div>
+      <h3>{product.name || <Skeleton width={200} />}</h3>
+      <p className="price">{product.price || <Skeleton width={80} />}</p>
+    </div>
+  );
+}
+
+// 3. Use CSS aspect-ratio for responsive containers
+function VideoEmbed({ src }) {
+  return (
+    <div style={{ aspectRatio: '16/9', background: '#000' }}>
+      <iframe
+        src={src}
+        style={{ width: '100%', height: '100%', border: 0 }}
+      />
+    </div>
+  );
+}
+
+// 4. Avoid inserting content above existing content
+// Bad: Banner that pushes content down after load
+// Good: Reserve space for dynamic content
+function DynamicBanner({ message }) {
+  return (
+    <div
+      className="banner"
+      style={{
+        minHeight: message ? '50px' : '0',
+        transition: 'min-height 0.3s',
+      }}
+    >
+      {message}
+    </div>
+  );
+}
+```
+
+### Optimizing INP (Interaction to Next Paint)
+
+```jsx
+// INP measures how quickly UI responds to user interactions
+
+// 1. Use startTransition for non-urgent updates
+function Search() {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [, startTransition] = useTransition();
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setQuery(value); // Urgent — update input immediately
+
+    startTransition(() => {
+      setResults(searchItems(value)); // Non-urgent — can be interrupted
+    });
+  };
+
+  return <input value={query} onChange={handleChange} />;
+}
+
+// 2. Debounce expensive operations
+function FilteredList({ items, filter }) {
+  const debouncedFilter = useDebounce(filter, 100);
+
+  const filtered = useMemo(() => {
+    return items.filter(item =>
+      item.name.toLowerCase().includes(debouncedFilter.toLowerCase())
+    );
+  }, [items, debouncedFilter]);
+
+  return <List items={filtered} />;
+}
+
+// 3. Virtualize long lists (avoid rendering 1000s of items)
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+function VirtualList({ items }) {
+  const parentRef = useRef(null);
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50,
+  });
+
+  return (
+    <div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
+      <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
+        {virtualizer.getVirtualItems().map((virtualItem) => (
+          <div
+            key={virtualItem.key}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: `${virtualItem.size}px`,
+              transform: `translateY(${virtualItem.start}px)`,
+            }}
+          >
+            {items[virtualItem.index].name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// 4. Use requestIdleCallback for non-critical work
+useEffect(() => {
+  const handler = () => {
+    // Analytics, non-essential data fetching
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => sendAnalytics());
+    } else {
+      setTimeout(sendAnalytics, 1);
+    }
+  };
+
+  window.addEventListener('load', handler);
+  return () => window.removeEventListener('load', handler);
+}, []);
+```
+
+---
+
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 28](/blog/react-19-complete-section-28)
+</Callout>

@@ -1,0 +1,160 @@
+---
+title: "React 19 Complete Level - Section 29"
+description: "Learn the basics of React 19, including new features and improvements - *Section 29*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 29: Micro-frontends and Module Federation
+
+### Module Federation with webpack
+
+Module Federation enables loading remote modules at runtime — perfect for micro-frontend architectures.
+
+```js
+// Shell app (host) — webpack.config.js
+const { ModuleFederationPlugin } = require('webpack').container;
+
+module.exports = {
+  plugins: [
+    new ModuleFederationPlugin({
+      name: 'shell',
+      remotes: {
+        // Declare remote apps
+        dashboard: 'dashboard@https://dashboard.example.com/remoteEntry.js',
+        profile: 'profile@https://profile.example.com/remoteEntry.js',
+        settings: 'settings@https://settings.example.com/remoteEntry.js',
+      },
+      shared: {
+        react: { singleton: true, requiredVersion: '^19.0.0' },
+        'react-dom': { singleton: true, requiredVersion: '^19.0.0' },
+      },
+    }),
+  ],
+};
+
+// Remote app (dashboard) — webpack.config.js
+module.exports = {
+  plugins: [
+    new ModuleFederationPlugin({
+      name: 'dashboard',
+      filename: 'remoteEntry.js',
+      exposes: {
+        './Dashboard': './src/Dashboard',
+        './Widget': './src/Widget',
+      },
+      shared: {
+        react: { singleton: true, requiredVersion: '^19.0.0' },
+        'react-dom': { singleton: true, requiredVersion: '^19.0.0' },
+      },
+    }),
+  ],
+};
+```
+
+### Loading Remote Components
+
+```jsx
+// Lazy load federated modules
+import { lazy, Suspense } from 'react';
+
+// Dynamic import of remote module
+const Dashboard = lazy(() => import('dashboard/Dashboard'));
+const Widget = lazy(() => import('dashboard/Widget'));
+
+function App() {
+  return (
+    <div className="shell">
+      <header>Shell App</header>
+
+      <Suspense fallback={<div>Loading Dashboard...</div>}>
+        <Dashboard />
+      </Suspense>
+
+      <Suspense fallback={<div>Loading Widget...</div>}>
+        <Widget title="Analytics" />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### Micro-frontend Communication
+
+```jsx
+// Shared event bus for cross-app communication
+class EventBus {
+  constructor() {
+    this.events = new Map();
+  }
+
+  on(event, callback) {
+    if (!this.events.has(event)) {
+      this.events.set(event, new Set());
+    }
+    this.events.get(event).add(callback);
+
+    return () => this.events.get(event)?.delete(callback);
+  }
+
+  emit(event, data) {
+    this.events.get(event)?.forEach(cb => cb(data));
+  }
+}
+
+const eventBus = new EventBus();
+
+// Dashboard app — emits events
+function DashboardMetrics() {
+  const refreshData = async () => {
+    const data = await fetchMetrics();
+    eventBus.emit('metrics:updated', data);
+  };
+
+  return <button onClick={refreshData}>Refresh</button>;
+}
+
+// Profile app — listens to events
+function ProfileStats() {
+  const [metrics, setMetrics] = useState(null);
+
+  useEffect(() => {
+    return eventBus.on('metrics:updated', setMetrics);
+  }, []);
+
+  return metrics ? <StatsDisplay data={metrics} /> : null;
+}
+```
+
+### Independent Deployment Strategy
+
+```yaml
+# CI/CD Pipeline — each micro-frontend deploys independently
+
+# .github/workflows/deploy-dashboard.yml
+name: Deploy Dashboard
+on:
+  push:
+    paths: ['apps/dashboard/**']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run build:dashboard
+      - run: npm run deploy:dashboard
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 30](/blog/react-19-complete-section-30)
+</Callout>

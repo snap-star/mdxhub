@@ -1,0 +1,197 @@
+---
+title: "React 19 Complete Level - Section 22"
+description: "Learn the basics of React 19, including new features and improvements - *Section 22*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 22: Server Components Architecture
+
+### What are Server Components?
+
+React Server Components (RSC) execute exclusively on the server. They can access server resources directly but cannot use browser APIs or React hooks that require client state.
+
+```jsx
+// Server Component (default in Next.js App Router)
+// This runs ONLY on the server — zero client-side JavaScript!
+
+import { db } from './db'; // Server-only module
+
+export default async function ProductList() {
+  // Direct database access — no API layer needed!
+  const products = await db.products.findMany({
+    where: { inStock: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return (
+    <div className="product-list">
+      <h1>Our Products ({products.length})</h1>
+      {products.map(product => (
+        // Server Component can render Client Components
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+}
+```
+
+### Server vs Client Components
+
+| Feature | Server Component | Client Component |
+|---------|-----------------|------------------|
+| Execution | Server only | Browser |
+| Access to DB/FS | Direct | Via API |
+| Bundle size | Zero KB | Downloaded |
+| Hooks (`useState`) | Not allowed | Allowed |
+| Browser APIs | Not allowed | Allowed |
+| `async/await` | Native support | Not directly |
+| SEO | Instant HTML | Hydration needed |
+
+### Creating Client Components
+
+Use the `'use client'` directive at the top of the file:
+
+```jsx
+// InteractiveCounter.jsx
+'use client';
+
+import { useState } from 'react';
+
+export default function InteractiveCounter({ initialCount = 0 }) {
+  const [count, setCount] = useState(initialCount);
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(c => c + 1)}>Increment</button>
+    </div>
+  );
+}
+```
+
+### Composition Pattern: Server + Client
+
+```jsx
+// ProductPage.jsx — Server Component
+import { db } from './db';
+import AddToCartButton from './AddToCartButton'; // Client Component
+
+export default async function ProductPage({ params }) {
+  const product = await db.products.findUnique({
+    where: { slug: params.slug },
+  });
+
+  // Server-rendered content with interactive client parts
+  return (
+    <article>
+      {/* Static content rendered on server */}
+      <h1>{product.name}</h1>
+      <p className="description">{product.description}</p>
+      <div className="price">${product.price}</div>
+      <div className="specs">
+        {product.specs.map(spec => (
+          <SpecRow key={spec.name} spec={spec} />
+        ))}
+      </div>
+
+      {/* Interactive island — client component */}
+      <AddToCartButton productId={product.id} maxQuantity={product.stock} />
+
+      {/* Reviews — another server component */}
+      <ReviewList productId={product.id} />
+    </article>
+  );
+}
+```
+
+```jsx
+// AddToCartButton.jsx — Client Component
+'use client';
+
+import { useState } from 'react';
+import { addToCart } from './cartActions';
+
+export default function AddToCartButton({ productId, maxQuantity }) {
+  const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleAdd = async () => {
+    setIsAdding(true);
+    await addToCart({ productId, quantity });
+    setIsAdding(false);
+  };
+
+  return (
+    <div className="add-to-cart">
+      <input
+        type="number"
+        min={1}
+        max={maxQuantity}
+        value={quantity}
+        onChange={e => setQuantity(Number(e.target.value))}
+      />
+      <button onClick={handleAdd} disabled={isAdding}>
+        {isAdding ? 'Adding...' : 'Add to Cart'}
+      </button>
+    </div>
+  );
+}
+```
+
+### Server Component Caching
+
+```jsx
+// Cache a server component rendering
+import { unstable_cache } from 'next/cache';
+
+const getCachedProducts = unstable_cache(
+  async (category) => {
+    return db.products.findMany({ where: { category } });
+  },
+  ['products'], // Cache key prefix
+  { revalidate: 3600, tags: ['products'] } // Revalidate every hour
+);
+
+export default async function CachedProductList({ category }) {
+  const products = await getCachedProducts(category);
+
+  return (
+    <ul>
+      {products.map(p => <ProductCard key={p.id} product={p} />)}
+    </ul>
+  );
+}
+```
+
+### React 19 Server Directives
+
+```jsx
+// 'use server' — marks a function as a Server Action
+// 'use cache' — caches component output
+// 'use client' — marks component as client-rendered
+
+// Server Action inside a Client Component
+'use client';
+
+import { updateProfile } from './actions'; // 'use server' function
+
+function ProfileForm() {
+  return (
+    <form action={updateProfile}>
+      <input name="name" />
+      <button type="submit">Update</button>
+    </form>
+  );
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 23](/blog/react-19-complete-section-23)
+</Callout>

@@ -1,0 +1,207 @@
+---
+title: "React 19 Complete Level - Section 10"
+description: "Learn the basics of React 19, including new features and improvements - *Section 10*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 10: Styling in React 19
+
+### CSS Modules
+
+CSS Modules scope styles locally to components, preventing naming collisions:
+
+```css
+/* Button.module.css */
+.button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.primary {
+  background: #007bff;
+  color: white;
+}
+
+.secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.large {
+  padding: 15px 30px;
+  font-size: 18px;
+}
+```
+
+```jsx
+// Button.jsx
+import styles from './Button.module.css';
+
+function Button({ variant = 'primary', size = 'medium', children }) {
+  const className = `${styles.button} ${styles[variant]} ${styles[size]}`;
+
+  return <button className={className}>{children}</button>;
+}
+```
+
+### Tailwind CSS
+
+```jsx
+// Tailwind utility-first approach
+function Card({ title, description, image }) {
+  return (
+    <div className="max-w-sm rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-xl transition-shadow duration-300">
+      <img className="w-full h-48 object-cover" src={image} alt={title} />
+      <div className="px-6 py-4">
+        <h3 className="font-bold text-xl mb-2 text-gray-800">{title}</h3>
+        <p className="text-gray-600 text-base">{description}</p>
+      </div>
+      <div className="px-6 py-4">
+        <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-300">
+          Learn More
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+### CSS-in-JS with Styled Components
+
+```jsx
+import styled from 'styled-components';
+
+const StyledButton = styled.button`
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  background: ${props => props.variant === 'primary' ? '#007bff' : '#6c757d'};
+  color: white;
+  opacity: ${props => props.disabled ? 0.6 : 1};
+  pointer-events: ${props => props.disabled ? 'none' : 'auto'};
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+`;
+
+// Usage
+function App() {
+  return (
+    <>
+      <StyledButton variant="primary">Primary</StyledButton>
+      <StyledButton variant="secondary" disabled>
+        Disabled
+      </StyledButton>
+    </>
+  );
+}
+```
+
+### Conditional Styling Patterns
+
+```jsx
+// Using clsx or classnames library
+import clsx from 'clsx';
+
+function Alert({ type, size, outlined, children }) {
+  const classes = clsx(
+    'alert',                          // always applied
+    `alert-${type}`,                  // alert-success, alert-error, etc.
+    `alert-${size}`,                  // alert-sm, alert-lg
+    outlined && 'alert-outlined',     // conditional
+    !outlined && 'alert-solid',       // conditional
+  );
+
+  return <div className={classes}>{children}</div>;
+}
+
+// Usage
+<Alert type="success" size="lg" outlined>Success!</Alert>
+// Classes: "alert alert-success alert-lg alert-outlined"
+```
+
+```jsx
+// Using twin.macro (Tailwind + Styled Components)
+import tw, { styled } from 'twin.macro';
+
+const Button = styled.button(({ variant, isSmall }) => [
+  tw`px-4 py-2 rounded font-semibold transition-all`,
+  variant === 'primary' && tw`bg-blue-500 text-white hover:bg-blue-600`,
+  variant === 'danger' && tw`bg-red-500 text-white hover:bg-red-600`,
+  isSmall ? tw`text-sm` : tw`text-base`,
+]);
+```
+
+### CSS Custom Properties (Variables)
+
+```css
+/* variables.css */
+:root {
+  --primary: #007bff;
+  --secondary: #6c757d;
+  --success: #28a745;
+  --danger: #dc3545;
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --radius: 6px;
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --bg: #1a1a1a;
+  --text: #f0f0f0;
+  --card-bg: #2d2d2d;
+}
+```
+
+```jsx
+function ThemedCard() {
+  return (
+    <div style={{
+      background: 'var(--card-bg)',
+      color: 'var(--text)',
+      borderRadius: 'var(--radius)',
+      boxShadow: 'var(--shadow)',
+    }}>
+      <h2 style={{ color: 'var(--primary)' }}>Card Title</h2>
+      <p>Card content using CSS variables.</p>
+    </div>
+  );
+}
+```
+
+### React 19: Style Precedence
+
+React 19 adds support for `precedence` on `<style>` tags for better CSS loading control:
+
+```jsx
+function Component() {
+  return (
+    <>
+      <style precedence="default">
+        {`
+          .custom-class {
+            color: var(--primary);
+          }
+        `}
+      </style>
+      <div className="custom-class">Styled content</div>
+    </>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 11](/blog/react-19-complete-section-11)
+</Callout>

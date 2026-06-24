@@ -1,0 +1,242 @@
+---
+title: "React 19 Complete Level - Section 2"
+description: "Learn the basics of React 19, including new features and improvements - *Section 2*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 2: JSX Deep Dive
+
+### What is JSX?
+
+JSX (JavaScript XML) is a syntax extension for JavaScript that looks similar to HTML. React components return JSX, which gets compiled into `React.createElement()` calls.
+
+```jsx
+// JSX looks like HTML
+function Greeting() {
+  return <h1>Hello, World!</h1>;
+}
+
+// Compiles to:
+function Greeting() {
+  return React.createElement('h1', null, 'Hello, World!');
+}
+```
+
+### JSX Rules and Syntax
+
+#### 1. Return a Single Root Element
+
+```jsx
+// Valid — single parent wrapper
+function ValidComponent() {
+  return (
+    <div>
+      <h1>Title</h1>
+      <p>Description</p>
+    </div>
+  );
+}
+
+// Valid — React Fragment (no extra DOM node)
+function FragmentComponent() {
+  return (
+    <>
+      <h1>Title</h1>
+      <p>Description</p>
+    </>
+  );
+}
+
+// Valid — named Fragment with key
+function KeyedFragment({ items }) {
+  return (
+    <React.Fragment key={item.id}>
+      {items.map(item => (
+        <React.Fragment key={item.id}>
+          <dt>{item.term}</dt>
+          <dd>{item.definition}</dd>
+        </React.Fragment>
+      ))}
+    </React.Fragment>
+  );
+}
+```
+
+#### 2. Close All Tags
+
+```jsx
+// Self-closing tags must have the slash
+function SelfClosingTags() {
+  return (
+    <div>
+      <img src="photo.jpg" alt="Description" />
+      <input type="text" />
+      <br />
+      <hr />
+    </div>
+  );
+}
+```
+
+#### 3. Use camelCase for Attributes
+
+```jsx
+function Attributes() {
+  return (
+    <div>
+      {/* className instead of class */}
+      <div className="container">Content</div>
+
+      {/* htmlFor instead of for */}
+      <label htmlFor="input">Label</label>
+
+      {/* camelCase event handlers */}
+      <button onClick={handleClick}>Click</button>
+
+      {/* camelCase CSS properties in inline styles */}
+      <div style={{ backgroundColor: 'blue', fontSize: 16 }}>
+        Styled content
+      </div>
+    </div>
+  );
+}
+```
+
+#### 4. Curly Braces for JavaScript Expressions
+
+```jsx
+function Expressions() {
+  const name = 'Alice';
+  const age = 30;
+  const isAdmin = true;
+  const skills = ['React', 'TypeScript', 'Node.js'];
+
+  return (
+    <div>
+      {/* Variable interpolation */}
+      <h1>Hello, {name}!</h1>
+
+      {/* Expressions */}
+      <p>Age in 5 years: {age + 5}</p>
+
+      {/* Ternary operator */}
+      <p>Role: {isAdmin ? 'Administrator' : 'User'}</p>
+
+      {/* Function calls */}
+      <p>Uppercase: {name.toUpperCase()}</p>
+
+      {/* Template literals */}
+      <p>Full name: {`${name} Smith`}</p>
+
+      {/* Mapping arrays */}
+      <ul>
+        {skills.map(skill => (
+          <li key={skill}>{skill}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### Comments in JSX
+
+```jsx
+function Comments() {
+  return (
+    <div>
+      {/* This is a JSX comment */}
+      <h1>Title</h1>
+      {
+        /*
+         Multi-line comment
+         explaining the next section
+        */
+      }
+      <p>Content</p>
+    </div>
+  );
+}
+```
+
+### Spreading Props
+
+```jsx
+function SpreadProps() {
+  const buttonProps = {
+    type: 'submit',
+    disabled: false,
+    className: 'btn-primary',
+    onClick: handleSubmit,
+  };
+
+  return <button {...buttonProps}>Submit</button>;
+
+  // Equivalent to:
+  // <button
+  //   type="submit"
+  //   disabled={false}
+  //   className="btn-primary"
+  //   onClick={handleSubmit}
+  // >
+  //   Submit
+  // </button>
+}
+```
+
+### JSX with Children Prop
+
+```jsx
+function Card({ title, children }) {
+  return (
+    <div className="card">
+      <h2>{title}</h2>
+      <div className="card-body">{children}</div>
+    </div>
+  );
+}
+
+// Usage
+function App() {
+  return (
+    <Card title="Welcome">
+      <p>This is the card content.</p>
+      <button>Action</button>
+    </Card>
+  );
+}
+```
+
+### React 19: Document Metadata in JSX
+
+React 19 allows `<title>`, `<meta>`, and `<link>` tags directly in component JSX — they automatically hoist to the document `<head>`:
+
+```jsx
+// React 19 — Document Metadata API
+function BlogPost({ post }) {
+  return (
+    <>
+      <title>{post.title} — My Blog</title>
+      <meta name="description" content={post.excerpt} />
+      <meta property="og:title" content={post.title} />
+      <link rel="canonical" href={`https://mysite.com/blog/${post.slug}`} />
+
+      <article>
+        <h1>{post.title}</h1>
+        <div>{post.content}</div>
+      </article>
+    </>
+  );
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 3](/blog/react-19-complete-section-3)
+</Callout>

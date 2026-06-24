@@ -1,0 +1,257 @@
+---
+title: "React 19 Complete Level - Section 8"
+description: "Learn the basics of React 19, including new features and improvements - *Section 8*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 8: Forms and Controlled Components
+
+### Basic Controlled Input
+
+A controlled component receives its value from React state and updates via `onChange`:
+
+```jsx
+function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Login:', { email, password });
+    // Submit to API...
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label htmlFor="email">Email:</label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <label htmlFor="password">Password:</label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+        />
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  );
+}
+```
+
+### Multiple Input Handler Pattern
+
+```jsx
+function RegistrationForm() {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    role: 'user',
+    newsletter: false,
+  });
+
+  // Generic handler for all inputs
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Form data:', formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        name="firstName"
+        value={formData.firstName}
+        onChange={handleChange}
+        placeholder="First Name"
+      />
+      <input
+        name="lastName"
+        value={formData.lastName}
+        onChange={handleChange}
+        placeholder="Last Name"
+      />
+      <input
+        name="email"
+        type="email"
+        value={formData.email}
+        onChange={handleChange}
+        placeholder="Email"
+      />
+      <select name="role" value={formData.role} onChange={handleChange}>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+        <option value="editor">Editor</option>
+      </select>
+      <label>
+        <input
+          name="newsletter"
+          type="checkbox"
+          checked={formData.newsletter}
+          onChange={handleChange}
+        />
+        Subscribe to newsletter
+      </label>
+      <button type="submit">Register</button>
+    </form>
+  );
+}
+```
+
+### Form Validation
+
+```jsx
+function ValidatedForm() {
+  const [values, setValues] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
+  const validate = (values) => {
+    const errors = {};
+    if (!values.email) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+      errors.email = 'Email is invalid';
+    }
+    if (!values.password) {
+      errors.password = 'Password is required';
+    } else if (values.password.length < 8) {
+      errors.password = 'Must be at least 8 characters';
+    }
+    return errors;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setValues(prev => ({ ...prev, [name]: value }));
+    // Validate on change only if field was touched
+    if (touched[name]) {
+      setErrors(validate({ ...values, [name]: value }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    setErrors(validate(values));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validate(values);
+    setErrors(validationErrors);
+    setTouched({ email: true, password: true });
+
+    if (Object.keys(validationErrors).length === 0) {
+      console.log('Submit:', values);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} noValidate>
+      <div>
+        <input
+          name="email"
+          type="email"
+          value={values.email}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder="Email"
+          className={errors.email ? 'error' : ''}
+        />
+        {touched.email && errors.email && (
+          <span className="error-message">{errors.email}</span>
+        )}
+      </div>
+      <div>
+        <input
+          name="password"
+          type="password"
+          value={values.password}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder="Password"
+          className={errors.password ? 'error' : ''}
+        />
+        {touched.password && errors.password && (
+          <span className="error-message">{errors.password}</span>
+        )}
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+### File Input Handling
+
+```jsx
+function FileUpload() {
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected) {
+      setFile(selected);
+      // Create preview for images
+      if (selected.type.startsWith('image/')) {
+        setPreview(URL.createObjectURL(selected));
+      }
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+    console.log('Upload result:', result);
+  };
+
+  return (
+    <div>
+      <input type="file" accept="image/*" onChange={handleFileChange} />
+      {preview && <img src={preview} alt="Preview" className="preview" />}
+      <button onClick={handleUpload} disabled={!file}>
+        Upload
+      </button>
+    </div>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 9](/blog/react-19-complete-section-9)
+</Callout>

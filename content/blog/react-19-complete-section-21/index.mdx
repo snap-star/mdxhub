@@ -1,0 +1,173 @@
+---
+title: "React 19 Complete Level - Section 21"
+description: "Learn the basics of React 19, including new features and improvements - *Section 21*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 21: React Compiler and Automatic Memoization
+
+### Understanding the Problem
+
+In React 18 and earlier, preventing unnecessary re-renders required manual optimization:
+
+```jsx
+// React 18 — manual optimization boilerplate
+import { useMemo, useCallback, memo } from 'react';
+
+const ExpensiveChart = memo(function ExpensiveChart({ data, onSelect }) {
+  const processed = useMemo(() => {
+    return data.map(d => ({
+      ...d,
+      normalized: (d.value - d.min) / (d.max - d.min),
+    }));
+  }, [data]);
+
+  const handleClick = useCallback((item) => {
+    onSelect(item.id);
+  }, [onSelect]);
+
+  return <svg>{/* ... */}</svg>;
+});
+```
+
+### React Compiler — The Solution
+
+React Compiler (codenamed "React Forget") automatically memoizes components at compile time:
+
+```bash
+# Install the React Compiler
+npm install -D babel-plugin-react-compiler
+
+# babel.config.js
+module.exports = {
+  plugins: [
+    ['babel-plugin-react-compiler', {
+      // Configuration options
+      target: '19', // React version
+    }],
+  ],
+};
+```
+
+```jsx
+// React 19 with Compiler — NO manual memoization needed!
+function ExpensiveChart({ data, onSelect }) {
+  // Compiler automatically memoizes this transformation
+  const processed = data.map(d => ({
+    ...d,
+    normalized: (d.value - d.min) / (d.max - d.min),
+  }));
+
+  // Compiler automatically memoizes this callback
+  const handleClick = (item) => {
+    onSelect(item.id);
+  };
+
+  return <svg>{/* ... */}</svg>;
+}
+```
+
+### How the Compiler Works
+
+1. **Static Analysis**: The compiler analyzes your component at build time
+2. **Dependency Tracking**: It determines which values depend on which props/state
+3. **Automatic Memoization**: It inserts memoization automatically where beneficial
+4. **Bailout**: If code is too dynamic, it skips compilation for that component
+
+### Configuration and Rules
+
+```js
+// react-compiler.config.js
+module.exports = {
+  // Sources to compile
+  sources: (filename) => {
+    return filename.includes('src/');
+  },
+
+  // Exclude specific files
+  exclude: [
+    'src/vendor/**',
+    'src/**/*.test.js',
+  ],
+
+  // Verbosity
+  logger: {
+    emit: (event) => {
+      if (event.filename) {
+        console.log(`Compiling: ${event.filename}`);
+      }
+    },
+  },
+
+  // Report compilation decisions
+  report: true,
+};
+```
+
+### Migration Strategy
+
+```jsx
+// Step 1: Enable compiler in development only
+// Step 2: Gradually remove manual memoization
+// Step 3: Verify no regressions with tests
+
+// Before (React 18):
+import { memo, useMemo } from 'react';
+
+const UserCard = memo(({ user, onUpdate }) => {
+  const initials = useMemo(() =>
+    user.name.split(' ').map(n => n[0]).join(''),
+    [user.name]
+  );
+
+  return (
+    <div onClick={() => onUpdate(user.id)}>
+      <span>{initials}</span>
+      <span>{user.name}</span>
+    </div>
+  );
+});
+
+// After (React 19 with Compiler):
+function UserCard({ user, onUpdate }) {
+  // Compiler handles all memoization automatically
+  const initials = user.name.split(' ').map(n => n[0]).join('');
+
+  return (
+    <div onClick={() => onUpdate(user.id)}>
+      <span>{initials}</span>
+      <span>{user.name}</span>
+    </div>
+  );
+}
+```
+
+### When You Still Need Manual Memoization
+
+```jsx
+// The compiler handles 95% of cases, but manual memoization
+// is still needed for external integrations:
+
+// 1. Interfacing with non-React libraries
+const chartInstance = useMemo(() => new ChartLib(config), []);
+
+// 2. Referential equality for dependency arrays of other hooks
+const stableConfig = useMemo(() => ({ ...config }), [config.id]);
+useEffect(() => { /* ... */ }, [stableConfig]);
+
+// 3. Heavy computations with complex dependencies
+const result = useMemo(() => {
+  return heavyComputation(a, b, c);
+}, [a, b, c]); // Compiler might not detect all dependencies correctly
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 22](/blog/react-19-complete-section-22)
+</Callout>

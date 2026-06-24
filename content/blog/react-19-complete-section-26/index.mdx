@@ -1,0 +1,226 @@
+---
+title: "React 19 Complete Level - Section 26"
+description: "Learn the basics of React 19, including new features and improvements - *Section 26*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 26: Concurrent Features and Suspense
+
+### Understanding Concurrent React
+
+Concurrent React is a set of features that allow React to prepare multiple versions of the UI simultaneously, enabling smoother user experiences.
+
+### useTransition
+
+Mark non-urgent state updates as transitions to keep the UI responsive:
+
+```jsx
+import { useState, useTransition } from 'react';
+
+function TabContainer() {
+  const [tab, setTab] = useState('home');
+  const [isPending, startTransition] = useTransition();
+
+  const selectTab = (nextTab) => {
+    // Urgent update — immediate feedback
+    // (none needed here, but could update active indicator)
+
+    // Non-urgent update — wrapped in transition
+    startTransition(() => {
+      setTab(nextTab); // This may be interrupted by more urgent updates
+    });
+  };
+
+  return (
+    <div>
+      <div className="tabs">
+        {['home', 'profile', 'settings'].map(t => (
+          <button
+            key={t}
+            className={tab === t ? 'active' : ''}
+            onClick={() => selectTab(t)}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* Show spinner during transition */}
+      {isPending && <div className="spinner" />}
+
+      {/* Old tab stays visible until new tab is ready */}
+      <div className={`tab-content ${isPending ? 'dimmed' : ''}`}>
+        <TabContent tab={tab} />
+      </div>
+    </div>
+  );
+}
+
+function TabContent({ tab }) {
+  // Each tab may have heavy rendering
+  if (tab === 'home') return <HomeTab />;
+  if (tab === 'profile') return <ProfileTab />;
+  if (tab === 'settings') return <SettingsTab />;
+}
+```
+
+### useDeferredValue
+
+Defer updating a value to avoid blocking urgent updates:
+
+```jsx
+import { useState, useDeferredValue, memo } from 'react';
+
+// Memoized child to avoid re-rendering on every keystroke
+const SearchResults = memo(function SearchResults({ query }) {
+  const results = useExpensiveSearch(query);
+  return (
+    <ul>
+      {results.map(r => <li key={r.id}>{r.title}</li>)}
+    </ul>
+  );
+});
+
+function SearchPage() {
+  const [query, setQuery] = useState('');
+
+  // deferredQuery lags behind query during busy periods
+  const deferredQuery = useDeferredValue(query);
+
+  // Check if deferred value is stale
+  const isStale = query !== deferredQuery;
+
+  return (
+    <div>
+      <input
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder="Search..."
+      />
+
+      {/* Results use deferred query — won't block typing */}
+      <div style={{ opacity: isStale ? 0.5 : 1 }}>
+        <SearchResults query={deferredQuery} />
+      </div>
+    </div>
+  );
+}
+```
+
+### Suspense for Data Fetching
+
+```jsx
+import { Suspense, useState } from 'react';
+import { fetchProfileData } from './api';
+
+// Resource wrapper for Suspense integration
+function wrapPromise(promise) {
+  let status = 'pending';
+  let result;
+
+  const suspender = promise.then(
+    (data) => {
+      status = 'success';
+      result = data;
+    },
+    (error) => {
+      status = 'error';
+      result = error;
+    }
+  );
+
+  return {
+    read() {
+      if (status === 'pending') throw suspender;
+      if (status === 'error') throw result;
+      return result;
+    },
+  };
+}
+
+// Component that throws promise (Suspense catches it)
+function ProfileData({ resource }) {
+  const { user, posts } = resource.read();
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <Suspense fallback={<PostsSkeleton />}>
+        <Posts posts={posts} />
+      </Suspense>
+    </div>
+  );
+}
+
+// Orchestration
+function ProfilePage({ userId }) {
+  const [resource, setResource] = useState(() =>
+    wrapPromise(fetchProfileData(userId))
+  );
+
+  return (
+    <Suspense fallback={<ProfileSkeleton />}>
+      <ProfileData resource={resource} />
+    </Suspense>
+  );
+}
+
+// React 19 with use() — much simpler!
+function ProfilePageModern({ userPromise }) {
+  return (
+    <Suspense fallback={<ProfileSkeleton />}>
+      <ProfileData userPromise={userPromise} />
+    </Suspense>
+  );
+}
+
+function ProfileData({ userPromise }) {
+  const user = use(userPromise); // Automatically suspends!
+  return <h1>{user.name}</h1>;
+}
+```
+
+### Nested Suspense Boundaries
+
+```jsx
+function App() {
+  return (
+    <Suspense fallback={<FullPageSpinner />}>
+      <Layout>
+        <Header /> {/* Loads first */}
+
+        {/* Independent loading states */}
+        <Suspense fallback={<SidebarSkeleton />}>
+          <Sidebar />
+        </Suspense>
+
+        <main>
+          <Suspense fallback={<ContentSkeleton />}>
+            <MainContent>
+              {/* Inner content can have its own suspense */}
+              <Suspense fallback={<ChartSkeleton />}>
+                <AnalyticsChart />
+              </Suspense>
+
+              <Suspense fallback={<TableSkeleton />}>
+                <DataTable />
+              </Suspense>
+            </MainContent>
+          </Suspense>
+        </main>
+      </Layout>
+    </Suspense>
+  );
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 27](/blog/react-19-complete-section-27)
+</Callout>

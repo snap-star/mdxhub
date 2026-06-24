@@ -1,0 +1,276 @@
+---
+title: "React 19 Complete Level - Section 12"
+description: "Learn the basics of React 19, including new features and improvements - *Section 12*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Intermediate"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 12: Context API Deep Dive
+
+### Creating and Using Context
+
+Context provides a way to pass data through the component tree without prop drilling.
+
+```jsx
+import { createContext, useContext, useState } from 'react';
+
+// 1. Create the context with a default value
+const ThemeContext = createContext({
+  theme: 'light',
+  toggleTheme: () => {},
+});
+
+// 2. Create a provider component
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  // Value object — will be available to all descendants
+  const value = { theme, toggleTheme };
+
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+// 3. Custom hook for consuming context (best practice)
+function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+}
+
+// 4. Use in any descendant component
+function ThemedButton() {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <button
+      className={theme === 'dark' ? 'btn-dark' : 'btn-light'}
+      onClick={toggleTheme}
+    >
+      Switch to {theme === 'light' ? 'dark' : 'light'} mode
+    </button>
+  );
+}
+
+// 5. Wrap app with provider
+function App() {
+  return (
+    <ThemeProvider>
+      <ThemedButton />
+    </ThemeProvider>
+  );
+}
+```
+
+### Multiple Contexts
+
+```jsx
+// Auth Context
+const AuthContext = createContext(null);
+
+function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const login = (credentials) => api.login(credentials).then(setUser);
+  const logout = () => { setUser(null); api.logout(); };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+}
+
+// Notifications Context
+const NotificationContext = createContext(null);
+
+function NotificationProvider({ children }) {
+  const [notifications, setNotifications] = useState([]);
+
+  const addNotification = (message, type = 'info') => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 5000);
+  };
+
+  return (
+    <NotificationContext.Provider value={{ notifications, addNotification }}>
+      {children}
+    </NotificationContext.Provider>
+  );
+}
+
+function useNotification() {
+  const context = useContext(NotificationContext);
+  if (!context) throw new Error('Missing NotificationProvider');
+  return context;
+}
+
+// Combine providers with a utility
+function AppProviders({ children }) {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          {children}
+        </NotificationProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+```
+
+### Context with useReducer (State Management Pattern)
+
+```jsx
+const CartContext = createContext(null);
+
+const cartReducer = (state, action) => {
+  switch (action.type) {
+    case 'ADD_ITEM': {
+      const existing = state.items.find(i => i.id === action.item.id);
+      if (existing) {
+        return {
+          ...state,
+          items: state.items.map(i =>
+            i.id === action.item.id
+              ? { ...i, quantity: i.quantity + 1 }
+              : i
+          ),
+        };
+      }
+      return { ...state, items: [...state.items, { ...action.item, quantity: 1 }] };
+    }
+    case 'REMOVE_ITEM':
+      return {
+        ...state,
+        items: state.items.filter(i => i.id !== action.id),
+      };
+    case 'UPDATE_QUANTITY':
+      return {
+        ...state,
+        items: state.items.map(i =>
+          i.id === action.id ? { ...i, quantity: action.quantity } : i
+        ),
+      };
+    case 'CLEAR':
+      return { ...state, items: [] };
+    default:
+      return state;
+  }
+};
+
+function CartProvider({ children }) {
+  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+
+  const totalItems = state.items.reduce((sum, i) => sum + i.quantity, 0);
+  const totalPrice = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+  return (
+    <CartContext.Provider value={{ ...state, totalItems, totalPrice, dispatch }}>
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+// Usage in components
+function AddToCartButton({ product }) {
+  const { dispatch } = useContext(CartContext);
+
+  return (
+    <button
+      onClick={() => dispatch({ type: 'ADD_ITEM', item: product })}
+    >
+      Add to Cart
+    </button>
+  );
+}
+
+function CartSummary() {
+  const { totalItems, totalPrice } = useContext(CartContext);
+
+  return (
+    <div className="cart-summary">
+      <span>{totalItems} items</span>
+      <span>${totalPrice.toFixed(2)}</span>
+    </div>
+  );
+}
+```
+
+### Context Performance Optimization
+
+```jsx
+// Problem: All consumers re-render when any context value changes
+// Solution: Split contexts by update frequency
+
+// Split into static and dynamic contexts
+const UserStaticContext = createContext(null);
+const UserDynamicContext = createContext(null);
+
+function OptimizedUserProvider({ userId }) {
+  // Static data — rarely changes
+  const [userProfile] = useState(() => fetchUserProfile(userId));
+
+  // Dynamic data — changes frequently
+  const [userStatus, setUserStatus] = useState('online');
+  const [lastActivity, setLastActivity] = useState(Date.now());
+
+  const staticValue = useMemo(() => ({
+    id: userProfile.id,
+    name: userProfile.name,
+    avatar: userProfile.avatar,
+  }), [userProfile]);
+
+  const dynamicValue = useMemo(() => ({
+    status: userStatus,
+    lastActivity,
+    setStatus: setUserStatus,
+  }), [userStatus, lastActivity]);
+
+  return (
+    <UserStaticContext.Provider value={staticValue}>
+      <UserDynamicContext.Provider value={dynamicValue}>
+        <UserDashboard />
+      </UserDynamicContext.Provider>
+    </UserStaticContext.Provider>
+  );
+}
+
+// Components that only need static data won't re-render on status changes
+function UserAvatar() {
+  const { name, avatar } = useContext(UserStaticContext);
+  return <img src={avatar} alt={name} />;
+}
+
+// Components that need dynamic data
+function UserStatus() {
+  const { status, setStatus } = useContext(UserDynamicContext);
+  return <span className={`status ${status}`}>{status}</span>;
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 13](/blog/react-19-complete-section-13)
+</Callout>

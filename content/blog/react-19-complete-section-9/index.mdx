@@ -1,0 +1,214 @@
+---
+title: "React 19 Complete Level - Section 9"
+description: "Learn the basics of React 19, including new features and improvements - *Section 9*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 9: Effects with useEffect
+
+### Understanding useEffect
+
+`useEffect` runs side effects after rendering. It replaces lifecycle methods from class components.
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function Timer() {
+  const [seconds, setSeconds] = useState(0);
+
+  // Runs after every render (no dependency array)
+  useEffect(() => {
+    console.log('Component rendered or updated');
+  });
+
+  // Runs once after initial render (empty dependency array)
+  useEffect(() => {
+    console.log('Component mounted');
+  }, []);
+
+  // Runs when 'seconds' changes
+  useEffect(() => {
+    console.log(`Seconds changed to: ${seconds}`);
+  }, [seconds]);
+
+  // Cleanup function — runs before re-run or unmount
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setSeconds(s => s + 1);
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId); // Cleanup
+    };
+  }, []);
+
+  return <p>Elapsed: {seconds}s</p>;
+}
+```
+
+### Dependency Array Patterns
+
+```jsx
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+
+  // Effect 1: Fetch user when userId changes
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch(`/api/users/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!cancelled) setUser(data);
+      });
+
+    return () => { cancelled = true; }; // Prevent stale updates
+  }, [userId]); // Only re-run when userId changes
+
+  // Effect 2: Fetch posts when user is loaded
+  useEffect(() => {
+    if (!user) return;
+
+    fetch(`/api/users/${user.id}/posts`)
+      .then(res => res.json())
+      .then(setPosts);
+  }, [user]); // Re-run when user object changes
+
+  // Effect 3: Update document title
+  useEffect(() => {
+    document.title = user ? `${user.name} — Profile` : 'Loading...';
+  }, [user]);
+
+  return (
+    <div>
+      {user && <h1>{user.name}</h1>}
+      {posts.map(post => <p key={post.id}>{post.title}</p>)}
+    </div>
+  );
+}
+```
+
+### Common useEffect Patterns
+
+```jsx
+// 1. Subscribing to events
+function WindowSize() {
+  const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return <p>{size.width} × {size.height}</p>;
+}
+
+// 2. LocalStorage sync
+function useLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : initialValue;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
+// 3. API polling
+function usePolling(fetchFn, interval = 5000) {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const poll = async () => {
+      const result = await fetchFn();
+      setData(result);
+    };
+
+    poll(); // Initial fetch
+    const intervalId = setInterval(poll, interval);
+
+    return () => clearInterval(intervalId);
+  }, [fetchFn, interval]);
+
+  return data;
+}
+
+// 4. Keyboard shortcuts
+function useKeyPress(targetKey, callback) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === targetKey) {
+        callback(event);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [targetKey, callback]);
+}
+
+// 5. Click outside detection
+function useClickOutside(ref, handler) {
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        handler();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [ref, handler]);
+}
+```
+
+### React 19: New Hook — use()
+
+React 19 introduces the `use()` hook for reading resources (Promises, Context) inside components:
+
+```jsx
+import { use, Suspense } from 'react';
+
+// Data fetching with use() — must be inside Suspense boundary
+function UserProfile({ userPromise }) {
+  // use() unwraps the promise — suspends until resolved
+  const user = use(userPromise);
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+
+// Usage with Suspense
+function App() {
+  // Create promise — it starts fetching immediately
+  const userPromise = fetchUser(1);
+
+  return (
+    <Suspense fallback={<div>Loading user...</div>}>
+      <UserProfile userPromise={userPromise} />
+    </Suspense>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 10](/blog/react-19-complete-section-10)
+</Callout>

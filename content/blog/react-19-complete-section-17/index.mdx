@@ -1,0 +1,172 @@
+---
+title: "React 19 Complete Level - Section 17"
+description: "Learn the basics of React 19, including new features and improvements - *Section 17*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Intermediate"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 17: Portals and Advanced JSX
+
+### Portals
+
+Portals render children into a different DOM node — useful for modals, tooltips, and overlays.
+
+```jsx
+import { createPortal } from 'react-dom';
+
+function Modal({ children, onClose, isOpen }) {
+  if (!isOpen) return null;
+
+  // Render into document.body, outside normal component tree
+  return createPortal(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>×</button>
+        {children}
+      </div>
+    </div>,
+    document.body // Target DOM node
+  );
+}
+
+// Usage
+function ConfirmDialog() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <button onClick={() => setIsOpen(true)}>Delete Account</button>
+      
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <h2>Are you sure?</h2>
+        <p>This action cannot be undone.</p>
+        <button onClick={() => setIsOpen(false)}>Cancel</button>
+        <button onClick={handleDelete} className="danger">Delete</button>
+      </Modal>
+    </>
+  );
+}
+```
+
+### Toast Notifications with Portal
+
+```jsx
+// Toast container rendered once at app level
+function ToastContainer() {
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, type = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 3000);
+  };
+
+  // Expose addToast globally
+  useEffect(() => {
+    window.addToast = addToast;
+    return () => delete window.addToast;
+  }, []);
+
+  return createPortal(
+    <div className="toast-container">
+      {toasts.map(toast => (
+        <div key={toast.id} className={`toast toast-${toast.type}`}>
+          {toast.message}
+        </div>
+      ))}
+    </div>,
+    document.body
+  );
+}
+
+// Trigger from anywhere
+window.addToast('Profile updated!', 'success');
+window.addToast('Something went wrong', 'error');
+```
+
+### Render Props Pattern
+
+```jsx
+// A component that shares logic via a function prop
+class MouseTracker extends Component {
+  state = { x: 0, y: 0 };
+
+  handleMouseMove = (e) => {
+    this.setState({ x: e.clientX, y: e.clientY });
+  };
+
+  render() {
+    return (
+      <div onMouseMove={this.handleMouseMove} className="tracker-area">
+        {this.props.render(this.state)}
+      </div>
+    );
+  }
+}
+
+// Usage — different UIs, same logic
+function App() {
+  return (
+    <MouseTracker render={({ x, y }) => (
+      <p>Mouse position: {x}, {y}</p>
+    )} />
+  );
+}
+
+// Another usage
+function DotFollower() {
+  return (
+    <MouseTracker render={({ x, y }) => (
+      <div
+        className="dot"
+        style={{
+          position: 'fixed',
+          left: x - 10,
+          top: y - 10,
+        }}
+      />
+    )} />
+  );
+}
+```
+
+### Higher-Order Components (HOC)
+
+```jsx
+// A function that takes a component and returns an enhanced component
+function withAuth(Component) {
+  return function AuthenticatedComponent(props) {
+    const { user, isLoading } = useAuth();
+
+    if (isLoading) return <Spinner />;
+    if (!user) return <LoginRedirect />;
+
+    return <Component {...props} user={user} />;
+  };
+}
+
+// Usage
+function Dashboard({ user }) {
+  return <div>Welcome, {user.name}</div>;
+}
+
+export default withAuth(Dashboard);
+
+// HOC composition
+export default compose(
+  withAuth,
+  withTheme,
+  withTracking
+)(Dashboard);
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 18](/blog/react-19-complete-section-18)
+</Callout>

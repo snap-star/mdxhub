@@ -1,0 +1,120 @@
+---
+title: "React 19 Fundamentals"
+---
+
+# 01 — React 19
+
+## Setup
+
+```bash
+pnpm create vite my-app --template react-ts
+pnpm add react@19 react-dom@19
+```
+
+## Core concepts (quick recap)
+
+- Components are functions returning JSX.
+- One-way data flow: props down, events up.
+- Hooks must run unconditionally, top-level only.
+
+## What's new in React 19
+
+### 1. Actions (form handling without manual state)
+
+```tsx
+function UpdateName() {
+  const [error, submitAction, isPending] = useActionState(
+    async (prevState: string | null, formData: FormData) => {
+      const name = formData.get("name") as string;
+      const result = await updateName(name);
+      if (result.error) return result.error;
+      return null;
+    },
+    null,
+  );
+
+  return (
+    <form action={submitAction}>
+      <input name="name" />
+      <button disabled={isPending}>Update</button>
+      {error && <p>{error}</p>}
+    </form>
+  );
+}
+```
+
+- Replaces manual `useState` + `onSubmit` + try/catch boilerplate.
+- `isPending` is built in — no extra loading flag.
+
+### 2. `useOptimistic` — instant UI updates
+
+```tsx
+const [optimisticTodos, addOptimisticTodo] = useOptimistic(
+  todos,
+  (state, newTodo: Todo) => [...state, newTodo],
+);
+
+async function formAction(formData: FormData) {
+  const todo = { id: crypto.randomUUID(), text: formData.get("text") as string };
+  addOptimisticTodo(todo);
+  await saveTodo(todo); // reverts automatically on error
+}
+```
+
+### 3. `use()` — read promises/context in render
+
+```tsx
+function Comments({ commentsPromise }: { commentsPromise: Promise<Comment[]> }) {
+  const comments = use(commentsPromise); // suspends until resolved
+  return <ul>{comments.map((c) => <li key={c.id}>{c.text}</li>)}</ul>;
+}
+```
+
+- Can be called conditionally (unlike other hooks).
+- Works with Suspense boundaries for loading states.
+
+### 4. `ref` as a regular prop
+
+```tsx
+// No more forwardRef needed
+function Input({ ref, ...props }: { ref?: React.Ref<HTMLInputElement> } & InputProps) {
+  return <input ref={ref} {...props} />;
+}
+```
+
+### 5. Server Components & Server Actions (Next.js / RSC frameworks)
+
+```tsx
+// app/actions.ts
+"use server";
+export async function createPost(formData: FormData) {
+  const title = formData.get("title") as string;
+  await db.post.create({ data: { title } });
+}
+```
+
+- Server Components: render on server, zero client JS shipped.
+- Server Actions: call server functions directly from forms — no API route needed.
+- tRPC still adds value here for **complex, reusable, client-callable** procedures (see file 03).
+
+### 6. Other notable additions
+
+- `useFormStatus()` — read pending state of nearest parent `<form>`.
+- Document metadata (`<title>`, `<meta>`) can be rendered directly in components.
+- Improved hydration error diffs.
+- `<Suspense>` works better with concurrent data fetching out of the box.
+
+## Patterns to know
+
+| Pattern | Use case |
+|---|---|
+| Lifting state up | Sibling components need shared data |
+| Compound components | Flexible APIs (`<Tabs><Tabs.Item/></Tabs>`) |
+| Custom hooks | Reusable stateful logic |
+| Context | Low-frequency global data (theme, auth) — **not** for high-frequency state (use Zustand) |
+
+## Common pitfalls
+
+- Don't overuse Context for frequently-changing state → causes full re-render trees.
+- Don't fetch data in `useEffect` when Server Components / `use()` can do it.
+- Always give list items stable `key` props (not array index for dynamic lists).

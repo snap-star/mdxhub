@@ -1,0 +1,401 @@
+---
+title: "React 19 Complete Level - Section 30"
+description: "Learn the basics of React 19, including new features and improvements - *Section 30*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 30: Production Patterns and Deployment
+
+### Environment Configuration
+
+```js
+// .env.development
+VITE_API_URL=http://localhost:3001
+VITE_DEBUG=true
+VITE_ANALYTICS_ID=dev-xxx
+
+// .env.production
+VITE_API_URL=https://api.example.com
+VITE_DEBUG=false
+VITE_ANALYTICS_ID=prod-xxx
+
+// Usage in code
+const apiUrl = import.meta.env.VITE_API_URL;
+const isDebug = import.meta.env.VITE_DEBUG === 'true';
+```
+
+### Error Tracking Setup
+
+```jsx
+// Error boundary with Sentry integration
+import * as Sentry from '@sentry/react';
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+  release: import.meta.env.VITE_APP_VERSION,
+
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration({
+      maskAllText: false,
+      blockAllMedia: false,
+    }),
+  ],
+
+  tracesSampleRate: 1.0, // Performance monitoring
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+});
+
+// Wrap your app
+Sentry.withProfiler(App);
+```
+
+### Performance Monitoring
+
+```jsx
+// Custom performance marks
+function usePerformanceMark(name) {
+  useEffect(() => {
+    performance.mark(`${name}-mount`);
+
+    return () => {
+      performance.mark(`${name}-unmount`);
+      performance.measure(
+        name,
+        `${name}-mount`,
+        `${name}-unmount`
+      );
+    };
+  }, [name]);
+}
+
+// Web Vitals reporting
+import { getCLS, getFID, getFCP, getLCP, getTTFB } from 'web-vitals';
+
+function reportWebVitals(metric) {
+  // Send to analytics
+  const body = JSON.stringify(metric);
+
+  // Use navigator.sendBeacon for reliable delivery
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon('/analytics/vitals', body);
+  } else {
+    fetch('/analytics/vitals', { body, method: 'POST', keepalive: true });
+  }
+}
+
+getCLS(reportWebVitals);
+getFID(reportWebVitals);
+getFCP(reportWebVitals);
+getLCP(reportWebVitals);
+getTTFB(reportWebVitals);
+```
+
+### Docker Deployment
+
+```dockerfile
+# Dockerfile — Multi-stage build
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# Stage 2: Production (nginx)
+FROM nginx:alpine
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+```nginx
+# nginx.conf
+server {
+    listen 80;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Gzip compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript;
+
+    # Cache static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # SPA routing
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}
+```
+
+### CI/CD Pipeline
+
+```yaml
+# .github/workflows/production.yml
+name: Production Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit -- --coverage
+      - run: npm run test:e2e
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: production-build
+          path: ./dist
+
+      - name: Deploy to production
+        run: |
+          # Deploy to your hosting provider
+          npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+```
+
+### Feature Flags
+
+```jsx
+// Feature flag provider
+const FeatureContext = createContext({});
+
+function FeatureProvider({ children }) {
+  const [flags, setFlags] = useState({});
+
+  useEffect(() => {
+    // Load flags from your service
+    fetchFeatureFlags().then(setFlags);
+  }, []);
+
+  return (
+    <FeatureContext.Provider value={flags}>
+      {children}
+    </FeatureContext.Provider>
+  );
+}
+
+function useFeature(flagName) {
+  const flags = useContext(FeatureContext);
+  return !!flags[flagName];
+}
+
+// Usage
+function Dashboard() {
+  const showNewAnalytics = useFeature('new-analytics-dashboard');
+  const enableAIInsights = useFeature('ai-insights');
+
+  return (
+    <div>
+      {showNewAnalytics ? <NewAnalytics /> : <LegacyAnalytics />}
+      {enableAIInsights && <AIInsightsPanel />}
+    </div>
+  );
+}
+```
+
+---
+
+## Appendix A: React 19 Migration Guide
+
+### Migrating from React 18
+
+```jsx
+// 1. Upgrade dependencies
+// package.json
+{
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
+
+// 2. Replace forwardRef with regular ref prop
+// Before (React 18):
+const FancyInput = forwardRef((props, ref) => (
+  <input ref={ref} {...props} />
+));
+
+// After (React 19):
+function FancyInput({ ref, ...props }) {
+  return <input ref={ref} {...props} />;
+}
+
+// 3. Replace useFormState with useActionState
+// Before:
+const [state, formAction] = useFormState(action, initialState);
+
+// After:
+const [state, formAction, isPending] = useActionState(action, initialState);
+
+// 4. Adopt Server Components (Next.js / framework-specific)
+// Move data fetching to Server Components
+// Use 'use client' only for interactive components
+
+// 5. Enable React Compiler (optional, gradual)
+// npm install -D babel-plugin-react-compiler
+// Remove manual useMemo/useCallback where compiler handles it
+```
+
+### Common Breaking Changes
+
+| Feature | React 18 | React 19 |
+|---------|----------|----------|
+| `forwardRef` | Required | `ref` is a regular prop |
+| `useFormState` | Available | Renamed to `useActionState` |
+| `act()` | Required import from `react-dom/test-utils` | Exported from `react` |
+| Suspense | Thrown to nearest boundary | Unified behavior for all cases |
+| Stylesheets | Manual loading | Built-in precedence support |
+
+---
+
+## Appendix B: Quick Reference Card
+
+### Hooks Cheat Sheet
+
+| Hook | Purpose | Example |
+|------|---------|---------|
+| `useState` | Component state | `const [count, setCount] = useState(0)` |
+| `useEffect` | Side effects | `useEffect(() => {}, [deps])` |
+| `useContext` | Context consumption | `const value = useContext(MyContext)` |
+| `useReducer` | Complex state | `const [state, dispatch] = useReducer(reducer, init)` |
+| `useRef` | Mutable refs | `const ref = useRef(null)` |
+| `useMemo` | Memoize values | `const result = useMemo(() => compute(), [deps])` |
+| `useCallback` | Memoize functions | `const fn = useCallback(() => {}, [deps])` |
+| `useLayoutEffect` | Sync layout effects | Same API as useEffect, runs synchronously |
+| `useId` | Stable IDs | `const id = useId()` |
+| `useTransition` | Non-urgent updates | `const [isPending, start] = useTransition()` |
+| `useDeferredValue` | Deferred updates | `const deferred = useDeferredValue(value)` |
+| `useActionState` | Form actions | `const [state, action, pending] = useActionState(fn)` |
+| `useOptimistic` | Optimistic UI | `const [opt, add] = useOptimistic(state, fn)` |
+| `use` | Read promises/context | `const data = use(promise)` |
+| `useSyncExternalStore` | External stores | `const state = useSyncExternalStore(sub, get)` |
+
+### JSX Conditionals Quick Reference
+
+```jsx
+// If/else
+{condition ? <A /> : <B />}
+
+// AND (render if true)
+{condition && <Component />}
+
+// OR (fallback)
+{value || <Fallback />}
+
+// Null coalescing
+{value ?? <Default />}
+
+// Optional chaining
+{user?.name}
+
+// Ternary with null
+{condition ? <Component /> : null}
+
+// IIFE for complex logic
+{(() => {
+  if (a) return <A />;
+  if (b) return <B />;
+  return <C />;
+})()}
+```
+
+---
+
+## Learning Path Summary
+
+### Junior Level Checklist
+- [ ] Understand JSX syntax and rules
+- [ ] Create and compose function components
+- [ ] Manage state with `useState`
+- [ ] Handle events and forms
+- [ ] Render lists with proper keys
+- [ ] Conditionally render content
+- [ ] Fetch data with `useEffect`
+- [ ] Style components (CSS Modules, Tailwind)
+
+### Intermediate Level Checklist
+- [ ] Manage complex state with `useReducer`
+- [ ] Share state via Context API
+- [ ] Create and use custom hooks
+- [ ] Access DOM with `useRef`
+- [ ] Optimize with `useMemo` and `useCallback`
+- [ ] Implement error boundaries
+- [ ] Set up client-side routing
+- [ ] Write component tests
+- [ ] Code split with `React.lazy`
+
+### Expert Level Checklist
+- [ ] Configure and use React Compiler
+- [ ] Architect Server Components
+- [ ] Implement SSR and Streaming
+- [ ] Use Server Actions for mutations
+- [ ] Leverage Concurrent Features (`useTransition`, `useDeferredValue`)
+- [ ] Optimize Core Web Vitals
+- [ ] Understand React Fiber internals
+- [ ] Build micro-frontend architectures
+- [ ] Deploy production applications with CI/CD
+- [ ] Implement comprehensive monitoring
+
+---
+
+<Callout type="tip" title="Congratulations!"
+You've just finishing all the guidebook to learn React <br />
+This is the **End of Guide** — This comprehensive guide covers React 19 from beginner fundamentals to expert-level architecture patterns. Practice each section with real projects to solidify your understanding. <br />
+
+> **Recommended Next Steps**: Build a full-stack application using Next.js 15, implement a custom design system, and contribute to open-source React projects.
+</Callout>
+

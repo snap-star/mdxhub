@@ -1,0 +1,178 @@
+---
+title: "React 19 Complete Level - Section 6"
+description: "Learn the basics of React 19, including new features and improvements - *Section 6*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 6: Conditional Rendering
+
+### If/Else with Early Return
+
+```jsx
+function Greeting({ isLoggedIn, username }) {
+  // Early return for simple conditions
+  if (!isLoggedIn) {
+    return <p>Please log in to continue.</p>;
+  }
+
+  return <p>Welcome back, {username}!</p>;
+}
+
+// Loading state pattern
+function UserProfile({ user, isLoading, error }) {
+  if (isLoading) {
+    return <div className="spinner">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="error">Error: {error.message}</div>;
+  }
+
+  if (!user) {
+    return <div>No user data available.</div>;
+  }
+
+  return (
+    <div className="profile">
+      <h2>{user.name}</h2>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+```
+
+### Ternary Operator
+
+```jsx
+function StatusBadge({ status }) {
+  return (
+    <span className={`badge ${status === 'active' ? 'badge-green' : 'badge-gray'}`}>
+      {status === 'active' ? 'Online' : 'Offline'}
+    </span>
+  );
+}
+
+// Nested ternary (use sparingly — can hurt readability)
+function PriorityLabel({ priority }) {
+  return (
+    <div className={`label ${
+      priority === 'high' ? 'label-red' :
+      priority === 'medium' ? 'label-yellow' :
+      'label-blue'
+    }`}>
+      {priority === 'high' ? 'High Priority' :
+       priority === 'medium' ? 'Medium Priority' :
+       'Low Priority'}
+    </div>
+  );
+}
+```
+
+### Short-Circuit Evaluation (&& and ||)
+
+```jsx
+function UserCard({ user }) {
+  return (
+    <div className="card">
+      {/* Render only if condition is true */}
+      {user.isAdmin && <span className="badge admin">Admin</span>}
+
+      {/* Common pitfall: 0 is falsy and renders! */}
+      {/* Wrong: {items.length && <List items={items} />} */}
+      {/* This renders "0" when array is empty */}
+
+      {/* Correct: Use ternary or !! */}
+      {items.length > 0 ? <List items={items} /> : null}
+      {!!items.length && <List items={items} />}
+      {items.length > 0 && <List items={items} />}
+
+      {/* Fallback with || */}
+      <p>{user.bio || 'No bio provided.'}</p>
+
+      {/* Multiple conditions */}
+      {user.isActive && user.hasPermission && (
+        <button>Edit</button>
+      )}
+    </div>
+  );
+}
+```
+
+### Switch Pattern with Component Map
+
+```jsx
+function NotificationIcon({ type }) {
+  // Map-based conditional rendering (clean and scalable)
+  const iconMap = {
+    success: <CheckCircleIcon className="text-green" />,
+    error: <ErrorIcon className="text-red" />,
+    warning: <WarningIcon className="text-yellow" />,
+    info: <InfoIcon className="text-blue" />,
+  };
+
+  return iconMap[type] || <BellIcon />;
+}
+
+// Page routing with switch pattern
+function PageContent({ page }) {
+  const pages = {
+    home: <HomePage />,
+    about: <AboutPage />,
+    contact: <ContactPage />,
+    dashboard: <DashboardPage />,
+  };
+
+  return (
+    <main>
+      {pages[page] || <NotFoundPage />}
+    </main>
+  );
+}
+```
+
+### Conditional Wrapper Pattern
+
+```jsx
+function ConditionalWrapper({ condition, wrapper, children }) {
+  // Conditionally wrap children in a component
+  return condition ? wrapper(children) : children;
+}
+
+// Usage — add a link wrapper only when href exists
+function Card({ title, href }) {
+  return (
+    <ConditionalWrapper
+      condition={!!href}
+      wrapper={(children) => <a href={href}>{children}</a>}
+    >
+      <div className="card">
+        <h3>{title}</h3>
+      </div>
+    </ConditionalWrapper>
+  );
+}
+
+// Usage — wrap in tooltip only when tooltip text exists
+function IconButton({ icon, onClick, tooltip }) {
+  return (
+    <ConditionalWrapper
+      condition={!!tooltip}
+      wrapper={(children) => (
+        <Tooltip content={tooltip}>{children}</Tooltip>
+      )}
+    >
+      <button onClick={onClick}>{icon}</button>
+    </ConditionalWrapper>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 7](/blog/react-19-complete-section-7)
+</Callout>
