@@ -1,0 +1,169 @@
+---
+title: "React 19 Complete Level - Section 28"
+description: "Learn the basics of React 19, including new features and improvements - *Section 28*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 28: React Internals and Reconciliation
+
+### The Fiber Architecture
+
+React's reconciler (Fiber) is a complete rewrite of the original stack reconciler, enabling features like Concurrent Mode and Suspense.
+
+```
+// Fiber Tree Structure (simplified)
+// Each component = one Fiber node
+
+<FiberNode>
+  type: 'div' | MyComponent | null (fragment)
+  key: 'unique-key'
+  stateNode: DOMNode | ComponentInstance
+  child: <first child Fiber>
+  sibling: <next sibling Fiber>
+  return: <parent Fiber>
+  
+  // Work-in-progress (double buffering)
+  alternate: <current Fiber | work-in-progress Fiber>
+  
+  // Update queue
+  pendingProps: { className: 'active' }
+  memoizedProps: { className: '' }
+  memoizedState: <hook state>
+  
+  // Priority
+  lanes: <update priority>
+</FiberNode>
+```
+
+### Reconciliation Process
+
+```jsx
+// When state/props change, React follows this process:
+
+// 1. Render Phase (can be interrupted)
+//    - Build a new Fiber tree (work-in-progress)
+//    - Compare with current tree (diffing algorithm)
+//    - Mark changes needed (effects to run)
+
+// 2. Commit Phase (synchronous, cannot be interrupted)
+//    - Apply all DOM changes
+//    - Run side effects (useEffect, useLayoutEffect)
+//    - Update refs
+
+// The diffing algorithm:
+// - Same type at same position → update props
+// - Different type → unmount old, mount new
+// - Different key → unmount old, mount new
+// - Keys help identify items that moved
+
+// This is why keys are critical for lists!
+function ListExample() {
+  // Without keys: React can't track items efficiently
+  // items.map(item => <Item data={item} />)
+
+  // With keys: React tracks items by stable ID
+  // items.map(item => <Item key={item.id} data={item} />)
+}
+```
+
+### Understanding Priority Lanes
+
+```jsx
+// React assigns priorities to updates:
+// - Sync Lane: Urgent (input, click, key press)
+// - Default Lane: Regular updates
+// - Transition Lane: Low priority (useTransition)
+// - Idle Lane: Background work
+
+// React processes work from highest to lowest priority
+// If a higher priority update arrives, lower priority work is interrupted
+
+// You can see this in action:
+function PriorityDemo() {
+  const [urgent, setUrgent] = useState('');
+  const [deferred, setDeferred] = useState('');
+  const [, startTransition] = useTransition();
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+
+    // Sync update — highest priority
+    setUrgent(value);
+
+    // Transition — lower priority, can be interrupted
+    startTransition(() => {
+      // This might be skipped if more urgent updates arrive
+      setDeferred(value);
+    });
+  };
+
+  return <input value={urgent} onChange={handleChange} />;
+}
+```
+
+### Custom Reconciler (Advanced)
+
+```jsx
+// Building a custom React renderer
+import Reconciler from 'react-reconciler';
+
+const hostConfig = {
+  // Create DOM element equivalent
+  createInstance(type, props) {
+    return { type, props, children: [] };
+  },
+
+  // Create text node
+  createTextInstance(text) {
+    return { type: 'text', text };
+  },
+
+  // Append child
+  appendChild(parent, child) {
+    parent.children.push(child);
+  },
+
+  // Insert before another child
+  insertBefore(parent, child, beforeChild) {
+    const index = parent.children.indexOf(beforeChild);
+    parent.children.splice(index, 0, child);
+  },
+
+  // Remove child
+  removeChild(parent, child) {
+    parent.children = parent.children.filter(c => c !== child);
+  },
+
+  // Update properties
+  commitUpdate(instance, updatePayload, type, oldProps, newProps) {
+    instance.props = newProps;
+  },
+
+  // Scheduling
+  scheduleTimeout: setTimeout,
+  cancelTimeout: clearTimeout,
+  noTimeout: -1,
+  isPrimaryRenderer: true,
+  supportsMutation: true,
+  supportsPersistence: false,
+  supportsHydration: false,
+};
+
+const CustomRenderer = Reconciler(hostConfig);
+
+export function render(element, container) {
+  const root = CustomRenderer.createContainer(container, 0, false, null);
+  CustomRenderer.updateContainer(element, root, null, () => {});
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 29](/blog/react-19-complete-section-29)
+</Callout>

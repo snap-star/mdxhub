@@ -1,0 +1,235 @@
+---
+title: "React 19 Complete Level - Section 11"
+description: "Learn the basics of React 19, including new features and improvements - *Section 11*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Intermediate"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 11: Complex State with useReducer
+
+### When to Use useReducer
+
+Use `useReducer` when state logic becomes complex — multiple sub-values, depends on previous state, or has interdependent fields.
+
+```jsx
+import { useReducer } from 'react';
+
+// Define action types
+const ACTIONS = {
+  INCREMENT: 'INCREMENT',
+  DECREMENT: 'DECREMENT',
+  RESET: 'RESET',
+  SET_VALUE: 'SET_VALUE',
+};
+
+// Reducer function: (state, action) => newState
+function counterReducer(state, action) {
+  switch (action.type) {
+    case ACTIONS.INCREMENT:
+      return { ...state, count: state.count + (action.payload || 1) };
+    case ACTIONS.DECREMENT:
+      return { ...state, count: state.count - (action.payload || 1) };
+    case ACTIONS.RESET:
+      return { ...state, count: 0 };
+    case ACTIONS.SET_VALUE:
+      return { ...state, count: action.payload };
+    default:
+      throw new Error(`Unknown action: ${action.type}`);
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(counterReducer, { count: 0 });
+
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: ACTIONS.INCREMENT })}>
+        +1
+      </button>
+      <button onClick={() => dispatch({ type: ACTIONS.DECREMENT })}>
+        -1
+      </button>
+      <button onClick={() => dispatch({ type: ACTIONS.INCREMENT, payload: 5 })}>
+        +5
+      </button>
+      <button onClick={() => dispatch({ type: ACTIONS.RESET })}>
+        Reset
+      </button>
+    </div>
+  );
+}
+```
+
+### Complex Form State with useReducer
+
+```jsx
+const initialState = {
+  values: { username: '', email: '', password: '' },
+  errors: {},
+  isSubmitting: false,
+  isValid: false,
+};
+
+function formReducer(state, action) {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return {
+        ...state,
+        values: { ...state.values, [action.field]: action.value },
+        errors: { ...state.errors, [action.field]: null },
+      };
+
+    case 'SET_ERRORS':
+      return { ...state, errors: action.errors, isValid: false };
+
+    case 'SUBMIT_START':
+      return { ...state, isSubmitting: true };
+
+    case 'SUBMIT_SUCCESS':
+      return { ...initialState };
+
+    case 'SUBMIT_FAILURE':
+      return { ...state, isSubmitting: false, errors: action.errors };
+
+    case 'VALIDATE':
+      return { ...state, isValid: action.isValid };
+
+    default:
+      return state;
+  }
+}
+
+function RegistrationForm() {
+  const [state, dispatch] = useReducer(formReducer, initialState);
+
+  const handleChange = (e) => {
+    dispatch({
+      type: 'SET_FIELD',
+      field: e.target.name,
+      value: e.target.value,
+    });
+  };
+
+  const validate = () => {
+    const errors = {};
+    if (!state.values.username) errors.username = 'Required';
+    if (!state.values.email.includes('@')) errors.email = 'Invalid email';
+    if (state.values.password.length < 8) errors.password = 'Too short';
+
+    dispatch({ type: 'SET_ERRORS', errors });
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    dispatch({ type: 'SUBMIT_START' });
+    try {
+      await api.register(state.values);
+      dispatch({ type: 'SUBMIT_SUCCESS' });
+    } catch (error) {
+      dispatch({ type: 'SUBMIT_FAILURE', errors: { form: error.message } });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        name="username"
+        value={state.values.username}
+        onChange={handleChange}
+      />
+      {state.errors.username && <span>{state.errors.username}</span>}
+
+      <input
+        name="email"
+        value={state.values.email}
+        onChange={handleChange}
+      />
+      {state.errors.email && <span>{state.errors.email}</span>}
+
+      <input
+        name="password"
+        type="password"
+        value={state.values.password}
+        onChange={handleChange}
+      />
+      {state.errors.password && <span>{state.errors.password}</span>}
+
+      <button type="submit" disabled={state.isSubmitting}>
+        {state.isSubmitting ? 'Registering...' : 'Register'}
+      </button>
+    </form>
+  );
+}
+```
+
+### State Machine Pattern
+
+```jsx
+// Traffic light state machine
+const STATES = {
+  GREEN: 'GREEN',
+  YELLOW: 'YELLOW',
+  RED: 'RED',
+};
+
+const TRANSITIONS = {
+  [STATES.GREEN]: { NEXT: STATES.YELLOW },
+  [STATES.YELLOW]: { NEXT: STATES.RED },
+  [STATES.RED]: { NEXT: STATES.GREEN },
+};
+
+function trafficLightReducer(state, action) {
+  const nextState = TRANSITIONS[state.current]?.[action.type];
+  return nextState ? { current: nextState } : state;
+}
+
+function TrafficLight() {
+  const [state, dispatch] = useReducer(trafficLightReducer, {
+    current: STATES.RED,
+  });
+
+  useEffect(() => {
+    const timers = {
+      [STATES.GREEN]: 5000,
+      [STATES.YELLOW]: 2000,
+      [STATES.RED]: 4000,
+    };
+
+    const timeout = setTimeout(() => {
+      dispatch({ type: 'NEXT' });
+    }, timers[state.current]);
+
+    return () => clearTimeout(timeout);
+  }, [state.current]);
+
+  const colors = {
+    [STATES.GREEN]: 'bg-green-500',
+    [STATES.YELLOW]: 'bg-yellow-500',
+    [STATES.RED]: 'bg-red-500',
+  };
+
+  return (
+    <div className="traffic-light">
+      {Object.values(STATES).map(stateName => (
+        <div
+          key={stateName}
+          className={`light ${state.current === stateName ? colors[stateName] : 'bg-gray-300'}`}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 12](/blog/react-19-complete-section-12)
+</Callout>

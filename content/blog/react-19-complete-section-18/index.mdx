@@ -1,0 +1,236 @@
+---
+title: "React 19 Complete Level - Section 18"
+description: "Learn the basics of React 19, including new features and improvements - *Section 18*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Intermediate"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 18: Performance Optimization
+
+### React.memo — Prevent Unnecessary Re-renders
+
+```jsx
+import { memo, useState } from 'react';
+
+// Child re-renders only when props change
+const ExpensiveList = memo(function ExpensiveList({ items }) {
+  console.log('Rendering list with', items.length, 'items');
+  return (
+    <ul>
+      {items.map(item => (
+        <li key={item.id}>{item.name}</li>
+      ))}
+    </ul>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison (optional)
+  return prevProps.items.length === nextProps.items.length;
+});
+
+// Parent updates frequently but list stays the same
+function App() {
+  const [count, setCount] = useState(0);
+  const [items] = useState(generateLargeList());
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(c => c + 1)}>Increment</button>
+      {/* ExpensiveList won't re-render when count changes */}
+      <ExpensiveList items={items} />
+    </div>
+  );
+}
+```
+
+### useMemo — Memoize Expensive Computations
+
+```jsx
+import { useMemo } from 'react';
+
+function ProductList({ products, filter, sortBy }) {
+  // Expensive filtering and sorting — only recalculate when deps change
+  const processedProducts = useMemo(() => {
+    console.log('Processing', products.length, 'products');
+
+    let result = products;
+
+    if (filter) {
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(filter.toLowerCase())
+      );
+    }
+
+    if (sortBy === 'price') {
+      result = [...result].sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'name') {
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return result;
+  }, [products, filter, sortBy]); // Only re-run when these change
+
+  return (
+    <ul>
+      {processedProducts.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </ul>
+  );
+}
+```
+
+### useCallback — Memoize Function References
+
+```jsx
+import { useCallback, useState, memo } from 'react';
+
+const ListItem = memo(function ListItem({ item, onDelete }) {
+  console.log('Rendering item', item.id);
+  return (
+    <li>
+      {item.name}
+      <button onClick={() => onDelete(item.id)}>Delete</button>
+    </li>
+  );
+});
+
+function TodoList({ todos }) {
+  const [filter, setFilter] = useState('');
+
+  // Without useCallback: new function reference on every render
+  // With useCallback: same function reference unless deps change
+  const handleDelete = useCallback((id) => {
+    console.log('Deleting', id);
+    // deleteTodo(id);
+  }, []); // Empty deps — function never changes
+
+  return (
+    <div>
+      <input
+        value={filter}
+        onChange={e => setFilter(e.target.value)}
+        placeholder="Filter todos..."
+      />
+      <ul>
+        {todos.map(todo => (
+          <ListItem key={todo.id} item={todo} onDelete={handleDelete} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### Code Splitting with React.lazy
+
+```jsx
+import { lazy, Suspense } from 'react';
+
+// Dynamic imports — loaded only when needed
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Reports = lazy(() => import('./pages/Reports'));
+
+function App() {
+  return (
+    <Router>
+      <Suspense fallback={<PageSkeleton />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/reports" element={<Reports />} />
+        </Routes>
+      </Suspense>
+    </Router>
+  );
+}
+```
+
+### Virtualization for Long Lists
+
+```jsx
+import { useRef, useState, useMemo } from 'react';
+
+function VirtualList({ items, itemHeight = 50, containerHeight = 400 }) {
+  const [scrollTop, setScrollTop] = useState(0);
+  const containerRef = useRef(null);
+
+  // Calculate visible range
+  const totalHeight = items.length * itemHeight;
+  const startIndex = Math.floor(scrollTop / itemHeight);
+  const visibleCount = Math.ceil(containerHeight / itemHeight);
+  const endIndex = Math.min(startIndex + visibleCount + 1, items.length);
+
+  // Only render visible items
+  const visibleItems = useMemo(() =>
+    items.slice(startIndex, endIndex).map((item, index) => ({
+      ...item,
+      index: startIndex + index,
+    })),
+    [items, startIndex, endIndex]
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      style={{ height: containerHeight, overflow: 'auto' }}
+      onScroll={e => setScrollTop(e.currentTarget.scrollTop)}
+    >
+      {/* Spacer div maintains scroll height */}
+      <div style={{ height: totalHeight, position: 'relative' }}>
+        {visibleItems.map(item => (
+          <div
+            key={item.id}
+            style={{
+              position: 'absolute',
+              top: item.index * itemHeight,
+              height: itemHeight,
+              width: '100%',
+            }}
+          >
+            {item.content}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### React 19: Automatic Memoization
+
+With React Compiler (React 19+), manual memoization becomes unnecessary:
+
+```jsx
+// React 18 — manual memoization required
+const MemoizedComponent = React.memo(({ data, onUpdate }) => {
+  const processed = useMemo(() => heavyCalculation(data), [data]);
+  const handleClick = useCallback(() => onUpdate(processed), [processed, onUpdate]);
+
+  return <button onClick={handleClick}>{processed}</button>;
+});
+
+// React 19 with React Compiler — automatic memoization!
+// No manual useMemo/useCallback/React.memo needed
+function AutomaticMemoization({ data, onUpdate }) {
+  // Compiler automatically memoizes this calculation
+  const processed = heavyCalculation(data);
+
+  // Compiler automatically memoizes this function
+  const handleClick = () => onUpdate(processed);
+
+  return <button onClick={handleClick}>{processed}</button>;
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 19](/blog/react-19-complete-section-19)
+</Callout>

@@ -1,0 +1,202 @@
+---
+title: "React 19 Complete Level - Section 13"
+description: "Learn the basics of React 19, including new features and improvements - *Section 13*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Intermediate"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 13: Refs and DOM Access
+
+### useRef Hook
+
+Refs provide a way to access DOM nodes or persist mutable values without causing re-renders.
+
+```jsx
+import { useRef } from 'react';
+
+function TextInputWithFocus() {
+  // Create a ref
+  const inputRef = useRef(null);
+
+  const handleFocus = () => {
+    // Access DOM node via .current
+    inputRef.current?.focus();
+  };
+
+  const handleGetValue = () => {
+    alert(inputRef.current?.value);
+  };
+
+  return (
+    <div>
+      <input ref={inputRef} type="text" placeholder="Type something..." />
+      <button onClick={handleFocus}>Focus Input</button>
+      <button onClick={handleGetValue}>Get Value</button>
+    </div>
+  );
+}
+```
+
+### Storing Mutable Values with useRef
+
+```jsx
+function Stopwatch() {
+  const [time, setTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const intervalRef = useRef(null); // Store interval ID without re-rendering
+
+  const start = () => {
+    if (isRunning) return;
+    setIsRunning(true);
+    intervalRef.current = setInterval(() => {
+      setTime(t => t + 1);
+    }, 1000);
+  };
+
+  const stop = () => {
+    clearInterval(intervalRef.current);
+    setIsRunning(false);
+  };
+
+  const reset = () => {
+    clearInterval(intervalRef.current);
+    setIsRunning(false);
+    setTime(0);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => clearInterval(intervalRef.current);
+  }, []);
+
+  return (
+    <div>
+      <p>Time: {time}s</p>
+      <button onClick={start}>Start</button>
+      <button onClick={stop}>Stop</button>
+      <button onClick={reset}>Reset</button>
+    </div>
+  );
+}
+```
+
+### Tracking Previous Values
+
+```jsx
+function usePrevious(value) {
+  const ref = useRef();
+
+  useEffect(() => {
+    ref.current = value; // Update ref after render
+  }, [value]);
+
+  return ref.current; // Return previous value
+}
+
+// Usage
+function Counter() {
+  const [count, setCount] = useState(0);
+  const previousCount = usePrevious(count);
+
+  return (
+    <div>
+      <p>Current: {count}</p>
+      <p>Previous: {previousCount}</p>
+      <button onClick={() => setCount(c => c + 1)}>Increment</button>
+    </div>
+  );
+}
+```
+
+### Refs in React 19 (No forwardRef Required)
+
+React 19 simplifies ref handling significantly:
+
+```jsx
+// React 19 — ref is just a regular prop!
+function CustomInput({ label, ref, error, ...props }) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <input
+        ref={ref}
+        className={error ? 'input-error' : 'input'}
+        {...props}
+      />
+      {error && <span className="error">{error}</span>}
+    </div>
+  );
+}
+
+// Usage — clean and simple
+function Form() {
+  const nameRef = useRef(null);
+  const emailRef = useRef(null);
+
+  const handleSubmit = () => {
+    const name = nameRef.current?.value;
+    const email = emailRef.current?.value;
+    console.log({ name, email });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <CustomInput ref={nameRef} label="Name" placeholder="Your name" />
+      <CustomInput ref={emailRef} label="Email" type="email" placeholder="Your email" />
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+### useImperativeHandle
+
+Expose custom methods from a child component to its parent via ref:
+
+```jsx
+import { useRef, useImperativeHandle } from 'react';
+
+function FancyInput({ label, ref, ...props }) {
+  const inputRef = useRef(null);
+
+  // Expose specific methods to parent
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+    clear: () => { if (inputRef.current) inputRef.current.value = ''; },
+    getValue: () => inputRef.current?.value,
+    setValue: (value) => { if (inputRef.current) inputRef.current.value = value; },
+  }), []);
+
+  return (
+    <div>
+      <label>{label}</label>
+      <input ref={inputRef} {...props} />
+    </div>
+  );
+}
+
+// Parent usage
+function Parent() {
+  const fancyRef = useRef(null);
+
+  return (
+    <div>
+      <FancyInput ref={fancyRef} label="Username" />
+      <button onClick={() => fancyRef.current?.focus()}>Focus</button>
+      <button onClick={() => fancyRef.current?.clear()}>Clear</button>
+      <button onClick={() => alert(fancyRef.current?.getValue())}>
+        Get Value
+      </button>
+    </div>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 14](/blog/react-19-complete-section-14)
+</Callout>

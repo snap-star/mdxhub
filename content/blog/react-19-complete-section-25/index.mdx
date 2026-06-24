@@ -1,0 +1,239 @@
+---
+title: "React 19 Complete Level - Section 25"
+description: "Learn the basics of React 19, including new features and improvements - *Section 25*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 25: Advanced Custom Hooks
+
+### use — React 19's New Hook
+
+The `use()` hook can read promises and context inside components, enabling Suspense integration:
+
+```jsx
+import { use, Suspense } from 'react';
+
+// Create a promise (outside component or in cache)
+const fetchUser = cache((id) =>
+  fetch(`/api/users/${id}`).then(r => r.json())
+);
+
+// Component that "uses" a promise
+function UserProfile({ userId }) {
+  // Suspends until promise resolves
+  const user = use(fetchUser(userId));
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.bio}</p>
+    </div>
+  );
+}
+
+// Context reading with use()
+const ThemeContext = createContext('light');
+
+function ThemedComponent() {
+  const theme = use(ThemeContext); // Works conditionally!
+
+  return <div className={theme}>Themed content</div>;
+}
+```
+
+### Advanced Async Hook Patterns
+
+```jsx
+// useAsync — comprehensive async state management
+import { useState, useEffect, useCallback, useRef } from 'react';
+
+function useAsync(asyncFunction, immediate = true) {
+  const [status, setStatus] = useState('idle');
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const isMounted = useRef(true);
+
+  const execute = useCallback(async (...params) => {
+    if (!isMounted.current) return;
+
+    setStatus('pending');
+    setData(null);
+    setError(null);
+
+    try {
+      const response = await asyncFunction(...params);
+      if (isMounted.current) {
+        setData(response);
+        setStatus('success');
+      }
+      return response;
+    } catch (error) {
+      if (isMounted.current) {
+        setError(error);
+        setStatus('error');
+      }
+      throw error;
+    }
+  }, [asyncFunction]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    if (immediate) execute();
+    return () => { isMounted.current = false; };
+  }, [execute, immediate]);
+
+  return { execute, status, data, error, isLoading: status === 'pending' };
+}
+
+// Usage
+function SearchResults({ query }) {
+  const { execute, data: results, isLoading, error } = useAsync(
+    useCallback((q) => fetchSearchResults(q), []),
+    false // Don't run immediately
+  );
+
+  useEffect(() => {
+    if (query) execute(query);
+  }, [query, execute]);
+
+  if (isLoading) return <Skeleton />;
+  if (error) return <ErrorMessage error={error} />;
+
+  return <ResultsList results={results || []} />;
+}
+```
+
+### Synchronization Hooks
+
+```jsx
+// useSyncExternalStore — subscribe to external stores
+import { useSyncExternalStore } from 'react';
+
+// Browser online status
+function useOnlineStatus() {
+  return useSyncExternalStore(
+    // Subscribe function
+    (callback) => {
+      window.addEventListener('online', callback);
+      window.addEventListener('offline', callback);
+      return () => {
+        window.removeEventListener('online', callback);
+        window.removeEventListener('offline', callback);
+      };
+    },
+    // Get snapshot (client)
+    () => navigator.onLine,
+    // Get snapshot (server — must match hydrate)
+    () => true
+  );
+}
+
+// Usage
+function ConnectionStatus() {
+  const isOnline = useOnlineStatus();
+
+  return (
+    <div className={isOnline ? 'online' : 'offline'}>
+      {isOnline ? 'Connected' : 'Offline — changes will sync when reconnected'}
+    </div>
+  );
+}
+```
+
+```jsx
+// useEventListener — declarative event handling
+function useEventListener(eventName, handler, element = window, options) {
+  const savedHandler = useRef(handler);
+
+  useEffect(() => {
+    savedHandler.current = handler;
+  }, [handler]);
+
+  useEffect(() => {
+    const targetElement = element?.current || element;
+    if (!targetElement?.addEventListener) return;
+
+    const eventListener = (event) => savedHandler.current(event);
+    targetElement.addEventListener(eventName, eventListener, options);
+
+    return () => {
+      targetElement.removeEventListener(eventName, eventListener, options);
+    };
+  }, [eventName, element, options]);
+}
+
+// Usage
+function KeyboardShortcuts() {
+  useEventListener('keydown', (e) => {
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      openCommandPalette();
+    }
+  });
+
+  return <div />;
+}
+```
+
+### External Store Integration
+
+```jsx
+// Custom store outside React
+class TodoStore {
+  constructor() {
+    this.todos = [];
+    this.listeners = new Set();
+  }
+
+  subscribe(listener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  getSnapshot() {
+    return this.todos;
+  }
+
+  addTodo(todo) {
+    this.todos = [...this.todos, todo];
+    this.emit();
+  }
+
+  emit() {
+    this.listeners.forEach(l => l());
+  }
+}
+
+const todoStore = new TodoStore();
+
+// React hook to use the store
+function useTodos() {
+  return useSyncExternalStore(
+    (callback) => todoStore.subscribe(callback),
+    () => todoStore.getSnapshot(),
+    () => [] // Server snapshot
+  );
+}
+
+// Component
+function TodoList() {
+  const todos = useTodos();
+
+  return (
+    <ul>
+      {todos.map(todo => <li key={todo.id}>{todo.text}</li>)}
+    </ul>
+  );
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 26](/blog/react-19-complete-section-26)
+</Callout>

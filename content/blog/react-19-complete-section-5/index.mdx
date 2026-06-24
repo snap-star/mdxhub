@@ -1,0 +1,172 @@
+---
+title: "React 19 Complete Level - Section 5"
+description: "Learn the basics of React 19, including new features and improvements - *Section 5*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 5: Event Handling in React
+
+### Basic Event Handling
+
+React uses synthetic events — cross-browser wrappers around native events:
+
+```jsx
+function ClickHandler() {
+  // Named function handler (preferred for readability)
+  function handleClick() {
+    alert('Button clicked!');
+  }
+
+  return <button onClick={handleClick}>Click me</button>;
+
+  // Arrow function inline (for simple cases)
+  // return <button onClick={() => alert('Clicked!')}>Click me</button>;
+}
+```
+
+### Event Object and Parameters
+
+```jsx
+function FormEvents() {
+  const handleChange = (event) => {
+    // event.target — the DOM element that triggered the event
+    console.log('Value:', event.target.value);
+    console.log('Name:', event.target.name);
+    console.log('Type:', event.target.type);
+  };
+
+  const handleClick = (itemId, event) => {
+    // Access both the item and the event
+    console.log('Item ID:', itemId);
+    console.log('Event type:', event.type);
+  };
+
+  return (
+    <div>
+      <input name="username" onChange={handleChange} />
+      
+      {/* Passing parameters — wrap in arrow function */}
+      <button onClick={(e) => handleClick(123, e)}>
+        Delete Item 123
+      </button>
+    </div>
+  );
+}
+```
+
+### Common Event Types
+
+```jsx
+function EventExamples() {
+  // Mouse events
+  const handleMouseEnter = () => console.log('Mouse entered');
+  const handleMouseLeave = () => console.log('Mouse left');
+  const handleDoubleClick = () => console.log('Double clicked');
+
+  // Keyboard events
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      console.log('Enter pressed');
+    }
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault(); // Prevent browser save dialog
+      console.log('Ctrl+S detected');
+    }
+  };
+
+  // Focus events
+  const handleFocus = () => console.log('Input focused');
+  const handleBlur = (e) => console.log('Input blurred, value:', e.target.value);
+
+  // Form events
+  const handleSubmit = (e) => {
+    e.preventDefault(); // Prevent page reload
+    console.log('Form submitted');
+  };
+
+  // Clipboard events
+  const handleCopy = (e) => {
+    e.preventDefault();
+    console.log('Copy disabled');
+  };
+
+  return (
+    <div>
+      {/* Mouse events */}
+      <div 
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onDoubleClick={handleDoubleClick}
+      >
+        Hover and double-click me
+      </div>
+
+      {/* Keyboard events */}
+      <input onKeyDown={handleKeyDown} placeholder="Press Enter or Ctrl+S" />
+
+      {/* Focus events */}
+      <input onFocus={handleFocus} onBlur={handleBlur} placeholder="Focus me" />
+
+      {/* Form submission */}
+      <form onSubmit={handleSubmit}>
+        <button type="submit">Submit</button>
+      </form>
+
+      {/* Clipboard */}
+      <p onCopy={handleCopy}>Try to copy this text</p>
+    </div>
+  );
+}
+```
+
+### Event Delegation Pattern
+
+```jsx
+function TodoList({ todos, onToggle, onDelete }) {
+  // Single handler on parent — determine action from data attributes
+  const handleClick = (e) => {
+    const button = e.target.closest('[data-action]');
+    if (!button) return;
+
+    const { action, id } = button.dataset;
+    const todoId = parseInt(id, 10);
+
+    switch (action) {
+      case 'toggle':
+        onToggle(todoId);
+        break;
+      case 'delete':
+        onDelete(todoId);
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    <ul onClick={handleClick}>
+      {todos.map(todo => (
+        <li key={todo.id}>
+          <span>{todo.text}</span>
+          <button data-action="toggle" data-id={todo.id}>
+            {todo.completed ? 'Undo' : 'Complete'}
+          </button>
+          <button data-action="delete" data-id={todo.id}>
+            Delete
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 6](/blog/react-19-complete-section-6)
+</Callout>

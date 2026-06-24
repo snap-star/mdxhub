@@ -1,0 +1,280 @@
+---
+title: "React 19 Complete Level - Section 3"
+description: "Learn the basics of React 19, including new features and improvements - *Section 3*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 3: Components and Props
+
+### Function Components
+
+Components are the building blocks of React applications. In React 19, function components are the standard (class components are legacy).
+
+```jsx
+// Simple function component
+function Welcome({ name }) {
+  return <h1>Hello, {name}!</h1>;
+}
+
+// Arrow function (common convention)
+const Welcome = ({ name }) => {
+  return <h1>Hello, {name}!</h1>;
+};
+
+// Implicit return (for simple components)
+const Welcome = ({ name }) => <h1>Hello, {name}!</h1>;
+```
+
+### Understanding Props
+
+Props (properties) are read-only inputs passed to components.
+
+```jsx
+// Parent component passing props
+function App() {
+  return (
+    <div>
+      <Welcome name="Alice" age={30} isAdmin={true} />
+      <Welcome name="Bob" age={25} isAdmin={false} />
+    </div>
+  );
+}
+
+// Child component receiving and using props
+function Welcome({ name, age, isAdmin }) {
+  return (
+    <div className="user-card">
+      <h2>{name}</h2>
+      <p>Age: {age}</p>
+      {isAdmin && <span className="badge">Admin</span>}
+    </div>
+  );
+}
+```
+
+### Prop Destructuring Patterns
+
+```jsx
+// Inline destructuring
+function User({ name, email, avatar }) {
+  return (
+    <div>
+      <img src={avatar} alt={name} />
+      <h3>{name}</h3>
+      <p>{email}</p>
+    </div>
+  );
+}
+
+// Destructuring with defaults
+function Button({ 
+  type = 'button', 
+  variant = 'primary', 
+  disabled = false, 
+  children 
+}) {
+  return (
+    <button 
+      type={type} 
+      className={`btn btn-${variant}`}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Usage with defaults
+<Button>Click me</Button>                    {/* primary, not disabled */}
+<Button variant="danger">Delete</Button>     {/* danger variant */}
+<Button disabled={true}>Loading...</Button>   {/* disabled */}
+
+// Nested destructuring
+function UserCard({ user: { name, address: { city } } }) {
+  return (
+    <div>
+      <h3>{name}</h3>
+      <p>{city}</p>
+    </div>
+  );
+}
+```
+
+### Props with Objects and Arrays
+
+```jsx
+// Passing objects as props
+function App() {
+  const user = {
+    id: 1,
+    name: 'Alice Johnson',
+    email: 'alice@example.com',
+    roles: ['admin', 'editor'],
+    profile: {
+      bio: 'Full-stack developer',
+      website: 'https://alice.dev',
+    },
+  };
+
+  return <UserProfile user={user} />;
+}
+
+function UserProfile({ user }) {
+  const { name, email, roles, profile } = user;
+
+  return (
+    <div className="profile">
+      <h2>{name}</h2>
+      <p>{email}</p>
+      <div className="roles">
+        {roles.map(role => (
+          <span key={role} className={`role ${role}`}>
+            {role}
+          </span>
+        ))}
+      </div>
+      <p>{profile.bio}</p>
+      <a href={profile.website}>Website</a>
+    </div>
+  );
+}
+```
+
+### Component Composition
+
+```jsx
+// Layout component with slots
+function Layout({ header, sidebar, children, footer }) {
+  return (
+    <div className="layout">
+      <header className="header">{header}</header>
+      <aside className="sidebar">{sidebar}</aside>
+      <main className="main">{children}</main>
+      <footer className="footer">{footer}</footer>
+    </div>
+  );
+}
+
+// Using composition
+function App() {
+  return (
+    <Layout
+      header={<Navigation />}
+      sidebar={<SidebarMenu />}
+      footer={<FooterLinks />}
+    >
+      <Dashboard />
+    </Layout>
+  );
+}
+```
+
+### PropTypes vs TypeScript
+
+```jsx
+// Runtime validation with prop-types
+import PropTypes from 'prop-types';
+
+function UserCard({ name, age, email, isActive, tags }) {
+  return (
+    <div className={`card ${isActive ? 'active' : ''}`}>
+      <h3>{name}</h3>
+      <p>Age: {age}</p>
+      <p>{email}</p>
+      <div>
+        {tags.map(tag => <span key={tag}>{tag}</span>)}
+      </div>
+    </div>
+  );
+}
+
+UserCard.propTypes = {
+  name: PropTypes.string.isRequired,
+  age: PropTypes.number,
+  email: PropTypes.string,
+  isActive: PropTypes.bool,
+  tags: PropTypes.arrayOf(PropTypes.string),
+};
+
+UserCard.defaultProps = {
+  age: 0,
+  isActive: false,
+  tags: [],
+};
+```
+
+```tsx
+// TypeScript (recommended for production)
+interface UserCardProps {
+  name: string;
+  age?: number;
+  email?: string;
+  isActive?: boolean;
+  tags?: string[];
+}
+
+function UserCard({ 
+  name, 
+  age = 0, 
+  email, 
+  isActive = false, 
+  tags = [] 
+}: UserCardProps) {
+  return (
+    <div className={`card ${isActive ? 'active' : ''}`}>
+      <h3>{name}</h3>
+      <p>Age: {age}</p>
+      <p>{email}</p>
+      <div>
+        {tags.map(tag => <span key={tag}>{tag}</span>)}
+      </div>
+    </div>
+  );
+}
+```
+
+### React 19: Ref as a Prop (No More forwardRef)
+
+React 19 simplifies ref forwarding — `ref` is now a regular prop:
+
+```jsx
+// React 19 — ref is just another prop
+function InputField({ label, ref, ...props }) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <input ref={ref} {...props} />
+    </div>
+  );
+}
+
+// Usage — no forwardRef needed!
+function Form() {
+  const inputRef = useRef(null);
+
+  const focusInput = () => {
+    inputRef.current?.focus();
+  };
+
+  return (
+    <>
+      <InputField 
+        ref={inputRef} 
+        label="Username" 
+        placeholder="Enter username" 
+      />
+      <button onClick={focusInput}>Focus Input</button>
+    </>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 4](/blog/react-19-complete-section-4)
+</Callout>

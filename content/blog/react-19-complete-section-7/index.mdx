@@ -1,0 +1,178 @@
+---
+title: "React 19 Complete Level - Section 7"
+description: "Learn the basics of React 19, including new features and improvements - *Section 7*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Junior"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 7: Lists and Keys
+
+### Rendering Lists with map()
+
+```jsx
+function TodoList({ todos }) {
+  return (
+    <ul className="todo-list">
+      {todos.map((todo) => (
+        <li key={todo.id} className={todo.completed ? 'done' : ''}>
+          <input type="checkbox" checked={todo.completed} />
+          <span>{todo.text}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### The Key Prop — Rules and Best Practices
+
+Keys help React identify which items changed, were added, or removed. They must be **unique and stable**.
+
+```jsx
+// Good — unique stable ID from data
+function UserList({ users }) {
+  return (
+    <ul>
+      {users.map(user => (
+        <UserCard key={user.id} user={user} />
+      ))}
+    </ul>
+  );
+}
+
+// Bad — array index as key (causes bugs with reordering/filtering)
+function BadExample({ items }) {
+  return (
+    <ul>
+      {items.map((item, index) => (
+        // Don't do this unless items never change order or are never filtered
+        <li key={index}>{item.name}</li>
+      ))}
+    </ul>
+  );
+}
+
+// Good — index only acceptable for static lists
+function StaticList() {
+  const steps = ['Install', 'Configure', 'Run', 'Deploy'];
+  return (
+    <ol>
+      {steps.map((step, index) => (
+        <li key={index}>{step}</li> /* OK — static, never reorders */
+      ))}
+    </ol>
+  );
+}
+```
+
+### Common List Patterns
+
+```jsx
+// Filtered list
+function ActiveUsers({ users }) {
+  const activeUsers = users.filter(u => u.isActive);
+
+  return (
+    <div>
+      <h2>Active Users ({activeUsers.length})</h2>
+      {activeUsers.length === 0 ? (
+        <p>No active users found.</p>
+      ) : (
+        <ul>
+          {activeUsers.map(user => (
+            <li key={user.id}>{user.name}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Sorted list
+function Leaderboard({ scores }) {
+  const sortedScores = [...scores].sort((a, b) => b.score - a.score);
+
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sortedScores.map((entry, index) => (
+          <tr key={entry.playerId}>
+            <td>{index + 1}</td>
+            <td>{entry.playerName}</td>
+            <td>{entry.score}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+// Grouped list
+function ContactList({ contacts }) {
+  // Group by first letter
+  const grouped = contacts.reduce((acc, contact) => {
+    const letter = contact.name[0].toUpperCase();
+    acc[letter] = acc[letter] || [];
+    acc[letter].push(contact);
+    return acc;
+  }, {});
+
+  return (
+    <div>
+      {Object.entries(grouped).map(([letter, group]) => (
+        <div key={letter}>
+          <h3>{letter}</h3>
+          <ul>
+            {group.map(contact => (
+              <li key={contact.id}>{contact.name}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### List Component with Selection
+
+```jsx
+function SelectableList({ items, onSelect }) {
+  const [selectedId, setSelectedId] = useState(null);
+
+  const handleSelect = (id) => {
+    setSelectedId(id);
+    onSelect?.(id);
+  };
+
+  return (
+    <ul className="selectable-list">
+      {items.map(item => (
+        <li
+          key={item.id}
+          className={selectedId === item.id ? 'selected' : ''}
+          onClick={() => handleSelect(item.id)}
+        >
+          {item.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+---
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 8](/blog/react-19-complete-section-8)
+</Callout>

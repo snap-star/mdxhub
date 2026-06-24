@@ -1,0 +1,218 @@
+---
+title: "React 19 Complete Level - Section 24"
+description: "Learn the basics of React 19, including new features and improvements - *Section 24*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 24: Server Actions and Mutations
+
+### Server Actions Fundamentals
+
+Server Actions are asynchronous functions that execute on the server. They can be called directly from components.
+
+```jsx
+// actions.js
+'use server';
+
+import { revalidatePath } from 'next/cache';
+import { db } from './db';
+
+// Server Action with validation
+export async function createTodo(prevState, formData) {
+  // Get form data
+  const title = formData.get('title');
+  const description = formData.get('description');
+
+  // Server-side validation
+  const errors = {};
+  if (!title || title.length < 3) {
+    errors.title = 'Title must be at least 3 characters';
+  }
+  if (Object.keys(errors).length > 0) {
+    return { success: false, errors };
+  }
+
+  // Insert into database
+  try {
+    const todo = await db.todo.create({
+      data: { title, description, completed: false },
+    });
+
+    // Revalidate the page to show new data
+    revalidatePath('/todos');
+
+    return { success: true, todo };
+  } catch (error) {
+    return { success: false, error: 'Failed to create todo' };
+  }
+}
+
+export async function toggleTodo(formData) {
+  const id = Number(formData.get('id'));
+  const todo = await db.todo.findUnique({ where: { id } });
+
+  await db.todo.update({
+    where: { id },
+    data: { completed: !todo.completed },
+  });
+
+  revalidatePath('/todos');
+}
+
+export async function deleteTodo(formData) {
+  const id = Number(formData.get('id'));
+  await db.todo.delete({ where: { id } });
+  revalidatePath('/todos');
+}
+```
+
+### useActionState Hook (React 19)
+
+```jsx
+// React 19 — useActionState replaces useFormState
+'use client';
+
+import { useActionState } from 'react';
+import { createTodo } from './actions';
+
+export default function TodoForm() {
+  const [state, submitAction, isPending] = useActionState(
+    createTodo,
+    { success: false, errors: {} } // Initial state
+  );
+
+  return (
+    <form action={submitAction}>
+      <div>
+        <input
+          name="title"
+          placeholder="Todo title..."
+          disabled={isPending}
+        />
+        {state.errors?.title && (
+          <span className="error">{state.errors.title}</span>
+        )}
+      </div>
+
+      <textarea
+        name="description"
+        placeholder="Description (optional)"
+        disabled={isPending}
+      />
+
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Creating...' : 'Create Todo'}
+      </button>
+
+      {state.success && <p className="success">Todo created!</p>}
+    </form>
+  );
+}
+```
+
+### Optimistic Updates with useOptimistic
+
+```jsx
+// React 19 — useOptimistic for instant UI feedback
+'use client';
+
+import { useOptimistic, useRef } from 'react';
+import { sendMessage } from './actions';
+
+export default function ChatRoom({ messages }) {
+  const [optimisticMessages, addOptimisticMessage] = useOptimistic(
+    messages,
+    (state, newMessage) => [...state, { ...newMessage, sending: true }]
+  );
+
+  async function handleSubmit(formData) {
+    const message = {
+      id: crypto.randomUUID(),
+      text: formData.get('text'),
+      timestamp: Date.now(),
+    };
+
+    // Instantly add to UI (optimistic)
+    addOptimisticMessage(message);
+
+    // Actually send to server
+    await sendMessage(formData);
+  }
+
+  return (
+    <div>
+      <div className="messages">
+        {optimisticMessages.map(msg => (
+          <div
+            key={msg.id}
+            className={`message ${msg.sending ? 'sending' : ''}`}
+          >
+            <p>{msg.text}</p>
+            {msg.sending && <span className="status">Sending...</span>}
+          </div>
+        ))}
+      </div>
+
+      <form action={handleSubmit}>
+        <input name="text" required />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  );
+}
+```
+
+### Advanced Server Action Patterns
+
+```jsx
+// Progressive enhancement — form works without JavaScript!
+export default function ProgressiveForm() {
+  return (
+    {/* Works with JS disabled — falls back to native form submission */}
+    <form action={createTodo}>
+      <input name="title" required />
+      <button type="submit">Create</button>
+    </form>
+  );
+}
+
+// Server Action with bind (for passing additional params)
+function DeleteButton({ todoId }) {
+  // Create a bound action with the todoId
+  const deleteTodoWithId = deleteTodo.bind(null, todoId);
+
+  return (
+    <form action={deleteTodoWithId}>
+      <button type="submit">Delete</button>
+    </form>
+  );
+}
+
+// Inline Server Action (defined in component)
+export default function Page() {
+  async function handleSubmit(formData) {
+    'use server';
+    // This runs on the server!
+    await db.someTable.create({ data: Object.fromEntries(formData) });
+    revalidatePath('/');
+  }
+
+  return (
+    <form action={handleSubmit}>
+      <input name="name" />
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 25](/blog/react-19-complete-section-25)
+</Callout>

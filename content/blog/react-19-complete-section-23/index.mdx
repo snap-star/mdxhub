@@ -1,0 +1,184 @@
+---
+title: "React 19 Complete Level - Section 23"
+description: "Learn the basics of React 19, including new features and improvements - *Section 23*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Expert"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 23: SSR, Streaming, and Partial Prerendering
+
+### Server-Side Rendering (SSR) Fundamentals
+
+SSR renders React components on the server, sending HTML to the browser for faster initial paint and better SEO.
+
+```jsx
+// Express server with React SSR
+import express from 'express';
+import { renderToPipeableStream } from 'react-dom/server';
+import App from './App';
+
+const app = express();
+
+app.get('/', (req, res) => {
+  const { pipe } = renderToPipeableStream(
+    <App url={req.url} />,
+    {
+      bootstrapScripts: ['/main.js'],
+      onShellReady() {
+        res.statusCode = 200;
+        res.setHeader('Content-type', 'text/html');
+        pipe(res);
+      },
+      onError(error) {
+        console.error('SSR Error:', error);
+        res.statusCode = 500;
+      },
+    }
+  );
+});
+```
+
+### Streaming SSR
+
+React 18+ streams HTML progressively, showing content as it renders rather than waiting for everything:
+
+```jsx
+// Streaming — content appears as it's ready
+import { Suspense } from 'react';
+import { renderToPipeableStream } from 'react-dom/server';
+
+function App() {
+  return (
+    <html>
+      <head><title>My App</title></head>
+      <body>
+        {/* Static content — streams immediately */}
+        <Header />
+
+        {/* Suspense boundaries stream as they resolve */}
+        <Suspense fallback={<Spinner />}>
+          <SlowProductList />
+        </Suspense>
+
+        <Suspense fallback={<ReviewsSkeleton />}>
+          <SlowReviews />
+        </Suspense>
+
+        <Footer />
+      </body>
+    </html>
+  );
+}
+
+// Server entry point
+app.get('/', (req, res) => {
+  const { pipe } = renderToPipeableStream(<App />, {
+    bootstrapScripts: ['/client.js'],
+    onShellReady() {
+      // Starts streaming immediately
+      // Suspense fallbacks appear first, then real content streams in
+      res.statusCode = 200;
+      res.setHeader('content-type', 'text/html');
+      pipe(res);
+    },
+  });
+});
+```
+
+### Partial Prerendering (PPR) — Next.js 15
+
+PPR combines static and dynamic rendering in the same page:
+
+```jsx
+// Next.js 15 with PPR
+// Most of the page is prerendered at build time
+// Dynamic parts stream in at request time
+
+import { Suspense } from 'react';
+import { ProductList } from './ProductList'; // Static — prerendered
+import { PersonalizedRecommendations } from './Recommendations'; // Dynamic
+
+// Enable PPR for this route
+export const experimental_ppr = true;
+
+export default function ProductPage() {
+  return (
+    <div>
+      {/* Static: Rendered at build time */}
+      <StaticHeader />
+      <ProductList />
+      <StaticFooter />
+
+      {/* Dynamic: Streams at request time */}
+      <Suspense fallback={<RecommendationsSkeleton />}>
+        <PersonalizedRecommendations />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### Selective Hydration
+
+React hydrates interactive components progressively, not all at once:
+
+```jsx
+// React hydrates components as they become interactive
+// Priority: user interactions > visible content > below-fold content
+
+import { Suspense } from 'react';
+
+function App() {
+  return (
+    <div>
+      {/* High priority — hydrates first */}
+      <Navigation />
+      <HeroSection />
+
+      {/* Medium priority — hydrates when visible */}
+      <Suspense fallback={<Placeholder />}>
+        <ProductGrid />
+      </Suspense>
+
+      {/* Low priority — hydrates on interaction or when idle */}
+      <Suspense fallback={null}>
+        <Footer />
+        <LiveChatWidget />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### Hydration Best Practices
+
+```jsx
+// Avoid hydration mismatches
+function Component() {
+  // Bad: Different output on server vs client
+  const random = Math.random(); // Different on each render!
+
+  // Good: Use useEffect for client-only values
+  const [random, setRandom] = useState(null);
+  useEffect(() => {
+    setRandom(Math.random());
+  }, []);
+
+  // Good: Use suppressHydrationWarning for unavoidable differences
+  return (
+    <time suppressHydrationWarning>
+      {new Date().toLocaleTimeString()}
+    </time>
+  );
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 24](/blog/react-19-complete-section-24)
+</Callout>

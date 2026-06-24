@@ -1,0 +1,143 @@
+---
+title: "Full-Stack Architecture — Wiring It Together"
+---
+
+# 05 — Full-Stack Architecture (pnpm monorepo, 2026)
+
+## Type flow (the whole point of this stack)
+
+```
+Database (Prisma)
+   → Zod schema (validation + inference)
+      → tRPC procedure (.input/.output)
+         → AppRouter type (exported, zero codegen)
+            → React client (trpc.x.useQuery — fully typed)
+               → Zustand (client-only UI state, separate from server cache)
+```
+
+One change to a DB field propagates a type error all the way to the component using it — no manual sync.
+
+## Monorepo layout
+
+```
+my-app/
+├── apps/
+│   ├── web/                 # React 19 + Vite or Next.js
+│   │   ├── src/
+│   │   │   ├── stores/      # Zustand stores
+│   │   │   ├── trpc.ts      # tRPC client
+│   │   │   └── ...
+│   └── server/               # tRPC server (or Next.js API routes)
+│       ├── src/
+│       │   ├── routers/
+│       │   ├── schemas/      # Zod schemas (shared validation)
+│       │   ├── trpc.ts
+│       │   └── root.ts
+├── packages/
+│   ├── db/                   # Prisma schema + client
+│   └── shared/                # Shared Zod schemas/types used by both apps
+├── pnpm-workspace.yaml
+└── package.json
+```
+
+```yaml
+# pnpm-workspace.yaml
+packages:
+  - "apps/*"
+  - "packages/*"
+```
+
+## Shared Zod schemas (single source of truth)
+
+```ts
+// packages/shared/src/schemas/post.ts
+import { z } from "zod";
+
+export const CreatePostSchema = z.object({
+  title: z.string().min(1).max(200),
+  content: z.string(),
+});
+export type CreatePostInput = z.infer<typeof CreatePostSchema>;
+```
+
+Used identically on:
+- **Server**: `.input(CreatePostSchema)` in the tRPC procedure.
+- **Client**: validating a form before calling `create.mutate()`.
+
+## Server entrypoint (standalone or Next.js)
+
+```ts
+// apps/server/src/index.ts
+import { createHTTPServer } from "@trpc/server/adapters/standalone";
+import { appRouter } from "./root";
+import { createContext } from "./trpc";
+
+createHTTPServer({ router: appRouter, createContext }).listen(3001);
+```
+
+Or inside Next.js App Router: `apps/web/src/app/api/trpc/[trpc]/route.ts` using the fetch adapter.
+
+## Client wiring (React 19 + tRPC + React Query + Zustand)
+
+```tsx
+// apps/web/src/providers.tsx
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { httpBatchLink } from "@trpc/client";
+import { trpc } from "./trpc";
+
+const queryClient = new QueryClient();
+const trpcClient = trpc.createClient({
+  links: [httpBatchLink({ url: "http://localhost:3001" })],
+});
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+```
+
+```tsx
+// Component combining server state (tRPC) + client state (Zustand)
+function PostEditor() {
+  const draftTitle = useEditorStore((s) => s.draftTitle);   // Zustand: unsaved draft
+  const setDraftTitle = useEditorStore((s) => s.setDraftTitle);
+  const create = trpc.posts.create.useMutation();            // tRPC: server mutation
+
+  return (
+    <input
+      value={draftTitle}
+      onChange={(e) => setDraftTitle(e.target.value)}
+      onBlur={() => create.mutate({ title: draftTitle, content: "" })}
+    />
+  );
+}
+```
+
+## Responsibility split (avoid common confusion)
+
+| Layer | Owns |
+|---|---|
+| Prisma | DB schema, migrations, queries |
+| Zod | Runtime validation + type inference, shared client/server |
+| tRPC | API contract, procedures, auth middleware |
+| React Query (via tRPC) | Server-state caching, refetching, invalidation |
+| Zustand | Client-only UI state (modals, drafts, theme, wizard steps) |
+| React 19 | Rendering, Actions for simple forms, Suspense for loading states |
+
+## Build order for a new feature (top-down)
+
+1. Add/update Prisma model → migrate.
+2. Write Zod schema in `packages/shared`.
+3. Add tRPC procedure using that schema (`.input()` for mutations, optionally `.output()`).
+4. Consume in React with `trpc.x.useQuery`/`useMutation`.
+5. Add Zustand store only if you need client-only state alongside it (e.g. optimistic draft, modal open state).
+
+## Common mistakes to avoid
+
+- Don't store server data (fetched via tRPC) inside Zustand — let React Query cache own it.
+- Don't skip `.output()` validation on procedures returning sensitive data — strips extra fields.
+- Don't import server-only code (DB client) into `packages/shared` — keep it client-safe.
+- Pin `@trpc/*` packages to the same version across the monorepo to avoid type mismatches.

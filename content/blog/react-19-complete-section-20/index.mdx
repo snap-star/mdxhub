@@ -1,0 +1,222 @@
+---
+title: "React 19 Complete Level - Section 20"
+description: "Learn the basics of React 19, including new features and improvements - *Section 20*"
+date: "2026-06-24"
+tags: ["React", "Typescript", "Intermediate"]
+category: "React"
+author: "chigusa-asuha"
+cc: "CC-BY-4.0"
+draft: false
+---
+
+## Section 20: React Router v7
+
+### Basic Routing Setup
+
+```jsx
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+
+// Route definitions with nested routes
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />, // Parent layout with <Outlet />
+    errorElement: <ErrorPage />, // Error boundary for this route
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: 'about',
+        element: <About />,
+      },
+      {
+        path: 'users',
+        element: <UsersLayout />,
+        children: [
+          {
+            index: true,
+            element: <UsersList />,
+            loader: usersLoader, // Data loader
+          },
+          {
+            path: ':userId',
+            element: <UserProfile />,
+            loader: userLoader,
+            action: userAction, // Form action handler
+          },
+        ],
+      },
+    ],
+  },
+]);
+
+function App() {
+  return <RouterProvider router={router} />;
+}
+```
+
+### Layout Pattern with Outlet
+
+```jsx
+// Layout.jsx
+import { Outlet, NavLink } from 'react-router-dom';
+
+function Layout() {
+  return (
+    <div className="app">
+      <nav>
+        <NavLink to="/" end>Home</NavLink>
+        <NavLink to="/about">About</NavLink>
+        <NavLink to="/users">Users</NavLink>
+      </nav>
+
+      <main>
+        {/* Child routes render here */}
+        <Outlet />
+      </main>
+
+      <footer>© 2026</footer>
+    </div>
+  );
+}
+```
+
+### Data Loaders
+
+```jsx
+// loaders.js
+export async function usersLoader() {
+  const response = await fetch('/api/users');
+  if (!response.ok) throw new Error('Failed to load users');
+  return response.json(); // Returned data is available via useLoaderData
+}
+
+export async function userLoader({ params }) {
+  const response = await fetch(`/api/users/${params.userId}`);
+  if (!response.ok) throw new Response('Not Found', { status: 404 });
+  return response.json();
+}
+
+// UserProfile.jsx
+import { useLoaderData, useRouteError } from 'react-router-dom';
+
+function UserProfile() {
+  const user = useLoaderData(); // Data from loader
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+
+export function UserErrorBoundary() {
+  const error = useRouteError();
+  return <div>Error loading user: {error.message}</div>;
+}
+```
+
+### Form Actions
+
+```jsx
+// Action handler
+export async function contactAction({ request }) {
+  const formData = await request.formData();
+  const contact = {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    message: formData.get('message'),
+  };
+
+  const response = await fetch('/api/contact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(contact),
+  });
+
+  if (!response.ok) {
+    return { error: 'Failed to send message' };
+  }
+
+  return { success: true };
+}
+
+// Component with form
+import { useActionData, Form, useNavigation } from 'react-router-dom';
+
+function ContactForm() {
+  const actionData = useActionData();
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'submitting';
+
+  return (
+    <Form method="post">
+      <input name="name" placeholder="Name" required />
+      <input name="email" type="email" placeholder="Email" required />
+      <textarea name="message" placeholder="Message" required />
+      
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Sending...' : 'Send'}
+      </button>
+
+      {actionData?.error && <p className="error">{actionData.error}</p>}
+      {actionData?.success && <p className="success">Message sent!</p>}
+    </Form>
+  );
+}
+```
+
+### Navigation and Programmatic Routing
+
+```jsx
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+
+function ProductFilters() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const category = searchParams.get('category') || 'all';
+  const sort = searchParams.get('sort') || 'name';
+
+  const handleCategoryChange = (newCategory) => {
+    // Update URL search params
+    setSearchParams(prev => {
+      prev.set('category', newCategory);
+      return prev;
+    });
+  };
+
+  const handleProductClick = (productId) => {
+    // Programmatic navigation
+    navigate(`/products/${productId}`, {
+      state: { from: location.pathname }, // Pass state
+    });
+  };
+
+  return (
+    <div>
+      <select
+        value={category}
+        onChange={e => handleCategoryChange(e.target.value)}
+      >
+        <option value="all">All Categories</option>
+        <option value="electronics">Electronics</option>
+        <option value="clothing">Clothing</option>
+      </select>
+
+      <button onClick={() => navigate(-1)}>Go Back</button>
+      <button onClick={() => navigate('/')}>Go Home</button>
+    </div>
+  );
+}
+```
+
+---
+
+<Callout type="info" title="Next Section">
+You can go to the next chapter in here [Section 21](/blog/react-19-complete-section-21)
+</Callout>
