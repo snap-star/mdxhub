@@ -5,7 +5,7 @@ import { SEO } from '@/components/common/SEO'
 import { VersionBadge } from '@/components/docs/VersionBadge'
 import { PrevNextNav } from '@/components/docs/PrevNextNav'
 import { TableOfContents, useActiveHeading } from '@/components/blog/TableOfContents'
-import { extractHeadingsFromHtml } from '@/lib/utils'
+import { extractHeadingsFromHtml, type HeadingItem } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 
 export default function DocPage() {
@@ -14,7 +14,7 @@ export default function DocPage() {
   const docs = useContentStore((s) => s.docs)
   const doc = React.useMemo(() => docs.find((d) => d.slug === fullSlug), [docs, fullSlug])
   
-  const [headings, setHeadings] = React.useState<any[]>([])
+  const [headings, setHeadings] = React.useState<HeadingItem[]>([])
 
   React.useEffect(() => {
     if (!doc) return

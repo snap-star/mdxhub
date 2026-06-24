@@ -4,6 +4,10 @@
   bio: Senior Frontend Engineer and React enthusiast. Writing about modern web development.
   twitter: janedoe
   github: janedoe
+  linkedin: janedoe
+  facebook: janedoe
+  bluesky: janedoe.bsky.social
+  devto: janedoe
 
 - id: john-smith
   name: John Smith
@@ -11,12 +15,16 @@
   bio: Open source contributor, MDX maintainer, and design system architect.
   github: johnsmith
   website: https://example.com
+  mastodon: "@johnsmith@mastodon.social"
+  reddit: johnsmith
+  stackoverflow: "1234567/johnsmith"
 
 - id: chigusa-asuha
   name: Chigusa Asuha
   avatar: /snap-star.png
   bio: Lead Developer & Creative Technologist. Passionate about React, MDX, and building beautiful web experiences.
-  twitter: 
   instagram: reirain_exe
   github: snap-star
   website: https://mdxhub.vercel.app/
+  tiktok: "@reirain_exe"
+  threads: "@reirain_exe"

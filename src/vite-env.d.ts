@@ -1,12 +1,12 @@
 /// <reference types="vite/client" />
 
 declare module '*.yaml' {
-  const content: any
+  const content: Record<string, unknown>[]
   export default content
 }
 
 declare module '*.mdx' {
-  const content: any
-  export const frontmatter: any
+  const content: React.ComponentType
+  export const frontmatter: Record<string, unknown>
   export default content
 }

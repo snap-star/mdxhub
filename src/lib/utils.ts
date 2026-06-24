@@ -49,11 +49,34 @@ export function timeAgo(dateStr: string): string {
   }
 }
 
-// ─── Reading time estimator ────────────────────────────────────────────────
 export function estimateReadingTime(content: string): number {
-  const wordsPerMinute = 200
-  const wordCount = content.trim().split(/\s+/).length
-  return Math.max(1, Math.ceil(wordCount / wordsPerMinute))
+  // Strip frontmatter
+  const withoutFrontmatter = content.replace(/^---[\s\S]*?---/, '')
+  // Strip import statements
+  const withoutImports = withoutFrontmatter.replace(/^import\s+.*$/gm, '')
+  // Extract code blocks for separate counting
+  const codeBlocks = withoutImports.match(/```[\s\S]*?```/g) ?? []
+  const codeWordCount = codeBlocks.join(' ').replace(/```\w*/g, '').trim().split(/\s+/).length
+  // Strip code blocks and JSX/HTML tags
+  const prose = withoutImports
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+  // Count images
+  const imageCount = (content.match(/!\[.*?\]\(.*?\)/g) ?? []).length
+    + (content.match(/<img\s/gi) ?? []).length
+  // Split CJK vs Latin words
+  const cjkChars = (prose.match(/[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g) ?? []).length
+  const latinWords = prose.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g, '')
+    .trim().split(/\s+/).filter(Boolean).length
+  // Calculate time
+  const proseMinutes = latinWords / 238 + cjkChars / 500
+  const codeMinutes = codeWordCount * 0.4 / 238
+  const imageMinutes = imageCount > 0
+    ? (12 + Math.max(0, imageCount - 1) * 3) / 60
+    : 0
+  const total = proseMinutes + codeMinutes + imageMinutes
+  return Math.max(1, Math.round(total * 2) / 2) // round to 0.5
 }
 
 // ─── CC License helpers ────────────────────────────────────────────────────
@@ -124,10 +147,25 @@ export function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T
   )
 }
 
-// ─── Sort posts by date desc ───────────────────────────────────────────────
 export function sortByDate<T extends { frontmatter: { date: string } }>(arr: T[]): T[] {
   return [...arr].sort(
     (a, b) =>
       new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime(),
   )
+}
+
+// ─── Sort posts by order then date desc ────────────────────────────────────
+export function sortPosts<T extends { frontmatter: { date: string; order?: number } }>(
+  arr: T[]
+): T[] {
+  return [...arr].sort((a, b) => {
+    const aOrder = a.frontmatter.order
+    const bOrder = b.frontmatter.order
+    // Posts with explicit order come first, sorted by order ascending
+    if (aOrder != null && bOrder != null) return aOrder - bOrder
+    if (aOrder != null) return -1
+    if (bOrder != null) return 1
+    // Otherwise sort by date descending
+    return new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime()
+  })
 }
