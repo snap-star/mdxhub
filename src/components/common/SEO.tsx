@@ -13,8 +13,8 @@ const siteConfig = {
   title: 'MDXHub',
   titleTemplate: '%s | MDXHub',
   description: 'A blazingly fast documentation and blog platform built with React, Vite, and MDX.',
-  siteUrl: 'https://mdxhub.vercel.app', // Use your production URL here
-  defaultImage: '/public/mdxhub.png',
+  siteUrl: 'mdxhub.vercel.app', // Use your production URL here
+  defaultImage: '/mdxhub.png',
   twitterUsername: 'snap-star',
 }
 
