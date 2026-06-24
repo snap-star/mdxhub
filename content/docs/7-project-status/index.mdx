@@ -1,0 +1,44 @@
+---
+title: "Project Status"
+section: "7. Project Status"
+order: 70
+description: "Current project limitations, newly implemented features, and known bugs."
+---
+
+Welcome to the **Project Status** page. Here you'll find an up-to-date log of newly implemented features, inherent project limitations, and known bugs that you should be aware of when building with MDXHub.
+
+## ✨ Newly Implemented Features
+
+We've recently rolled out a major enhancement update focusing on type safety, UX/UI, and data handling:
+
+- **Strict Type Safety**: The codebase has been thoroughly audited. We completely eliminated `any` types across `MDXComponents.tsx`, route configurations, and the Vite environment definitions.
+- **Extended Social Icons**: The `Author` schema now supports an expanded list of platforms including Facebook, TikTok, Bluesky, Threads, Reddit, Mastodon, StackOverflow, and DevTo. These are mapped dynamically using `react-simple-icons`.
+- **Advanced Post Indexing & Sorting**: 
+  - Posts can now be explicitly sorted using an `order` property in the frontmatter.
+  - New frontmatter metadata for `featured`, `lastEdited`, and `updatedAt`.
+  - The `contentStore` automatically sorts content globally.
+- **Redesigned Glassmorphic Sidebar**: We introduced a new `SidebarWidget` component that wraps Categories, Tags, and Featured Posts in a beautiful, collapsible, and animated glass-styled UI.
+- **Interactive Tag Cloud**: The tags widget now includes inline search filtering, dynamic sizing based on post count, and auto-generated hover colors based on tag string hashing.
+- **Enhanced Reading Time Estimator**: A new reading time algorithm calculates time by parsing out frontmatter/imports, separating code blocks, counting images, and appropriately splitting CJK (Chinese/Japanese/Korean) vs Latin characters.
+
+## 🚧 Project Limitations
+
+Due to the architectural choices (Vite + MDX SPA), there are a few built-in limitations:
+
+1. **Client-Side Search Scaling**: The `Fuse.js` search implementation runs entirely on the client. If your blog scales to thousands of posts, loading the entire index into the browser memory could impact initial load performance.
+2. **No Built-in CMS or Database**: All content is managed via flat files (`.mdx`). There is no backend dashboard to write posts—you must use a code editor and commit changes to the repository.
+3. **No Native Comments or Auth**: MDXHub focuses purely on content delivery. If you need user comments, you'll need to integrate a third-party service like Giscus, Disqus, or Supabase.
+
+## 🐛 Known Bugs & Quirks
+
+While we strive for perfection, a few minor quirks currently exist:
+
+- **MDX Raw Content Loading**: Because Vite's `import.meta.glob` compiles MDX directly into React components during the build step, the raw Markdown string isn't easily accessible inside `contentStore.ts`. 
+  - *Impact*: The auto-generated reading time falls back to processing the URL `slug` if no raw text is provided. 
+  - *Workaround*: Explicitly define `readingTime` in your post's frontmatter, or use a custom Vite/Remark plugin to inject raw content into the frontmatter at build time.
+- **LinkedIn Icon Fallback**: The installed version of `@icons-pack/react-simple-icons` is missing the `SiLinkedin` icon. 
+  - *Impact*: The `AuthorCard` currently falls back to using the `Globe` icon from `lucide-react` for LinkedIn profiles.
+
+<Callout type="info">
+If you encounter any additional bugs, feel free to open an issue or contribute a pull request to the repository!
+</Callout>

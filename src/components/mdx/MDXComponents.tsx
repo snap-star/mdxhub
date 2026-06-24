@@ -9,7 +9,7 @@ import { AuthorCard } from '../blog/AuthorCard'
 import { Check, Copy } from 'lucide-react'
 
 // Custom CodeBlock to add Copy button and Terminal header
-function CodeBlock(props: any) {
+function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { className?: string; children?: React.ReactElement; style?: React.CSSProperties }) {
   const [copied, setCopied] = React.useState(false)
   const codeRef = React.useRef<HTMLPreElement>(null)
 
@@ -24,7 +24,9 @@ function CodeBlock(props: any) {
 
   // Find language class from either <pre> or inner <code>
   const preClassName = typeof props.className === 'string' ? props.className : ''
-  const codeClassName = typeof props.children?.props?.className === 'string' ? props.children.props.className : ''
+  const child = props.children
+  const childProps = (child && typeof child === 'object' && 'props' in child) ? (child as any).props : {}
+  const codeClassName = typeof childProps.className === 'string' ? childProps.className : ''
   const combinedClasses = `${preClassName} ${codeClassName}`
   
   // Match 'language-js', 'language-c++', 'language-typescript', etc.
@@ -58,39 +60,39 @@ function CodeBlock(props: any) {
 }
 
 export const MDXComponents = {
-  h1: (props: any) => <h1 className="text-4xl font-bold mt-10 mb-6" {...props} />,
-  h2: (props: any) => <h2 className="text-2xl font-bold mt-10 mb-4" {...props} />,
-  h3: (props: any) => <h3 className="text-xl font-bold mt-8 mb-3" {...props} />,
-  h4: (props: any) => <h4 className="text-lg font-bold mt-6 mb-2" {...props} />,
-  p: (props: any) => <p className="mb-4 leading-relaxed" {...props} />,
-  a: (props: any) => {
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 className="text-4xl font-bold mt-10 mb-6" {...props} />,
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 className="text-2xl font-bold mt-10 mb-4" {...props} />,
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 className="text-xl font-bold mt-8 mb-3" {...props} />,
+  h4: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h4 className="text-lg font-bold mt-6 mb-2" {...props} />,
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => <p className="mb-4 leading-relaxed" {...props} />,
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
     const isInternal = props.href?.startsWith('/') || props.href?.startsWith('#')
     if (isInternal) {
-      return <Link to={props.href} {...props} />
+      return <Link to={props.href!} {...props as any} />
     }
     return <a target="_blank" rel="noopener noreferrer" {...props} />
   },
-  ul: (props: any) => <ul className="list-disc pl-6 mb-4 space-y-1" {...props} />,
-  ol: (props: any) => <ol className="list-decimal pl-6 mb-4 space-y-1" {...props} />,
-  li: (props: any) => <li {...props} />,
-  blockquote: (props: any) => <blockquote className="border-l-4 border-brand-400 pl-4 italic text-muted my-6" {...props} />,
-  hr: (props: any) => <hr className="my-8 border-border" {...props} />,
-  img: (props: any) => (
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul className="list-disc pl-6 mb-4 space-y-1" {...props} />,
+  ol: (props: React.HTMLAttributes<HTMLOListElement>) => <ol className="list-decimal pl-6 mb-4 space-y-1" {...props} />,
+  li: (props: React.HTMLAttributes<HTMLLIElement>) => <li {...props} />,
+  blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => <blockquote className="border-l-4 border-brand-400 pl-4 italic text-muted my-6" {...props} />,
+  hr: (props: React.HTMLAttributes<HTMLHRElement>) => <hr className="my-8 border-border" {...props} />,
+  img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
     <figure className="my-6">
       <img className="rounded-lg border border-border w-full object-cover max-h-[500px]" loading="lazy" {...props} />
       {props.alt && <figcaption className="text-center text-sm text-muted mt-2">{props.alt}</figcaption>}
     </figure>
   ),
-  table: (props: any) => (
+  table: (props: React.HTMLAttributes<HTMLTableElement>) => (
     <div className="my-6 w-full overflow-y-auto rounded-lg border border-border">
       <table className="w-full border-collapse text-sm" {...props} />
     </div>
   ),
-  thead: (props: any) => <thead className="border-b border-border bg-muted/50" {...props} />,
-  tbody: (props: any) => <tbody className="divide-y divide-border" {...props} />,
-  tr: (props: any) => <tr className="transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted" {...props} />,
-  th: (props: any) => <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground" {...props} />,
-  td: (props: any) => <td className="p-4 align-middle" {...props} />,
+  thead: (props: React.HTMLAttributes<HTMLTableSectionElement>) => <thead className="border-b border-border bg-muted/50" {...props} />,
+  tbody: (props: React.HTMLAttributes<HTMLTableSectionElement>) => <tbody className="divide-y divide-border" {...props} />,
+  tr: (props: React.HTMLAttributes<HTMLTableRowElement>) => <tr className="transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted" {...props} />,
+  th: (props: React.ThHTMLAttributes<HTMLTableCellElement>) => <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground" {...props} />,
+  td: (props: React.TdHTMLAttributes<HTMLTableCellElement>) => <td className="p-4 align-middle" {...props} />,
   pre: CodeBlock,
   Callout,
   CCLicense,

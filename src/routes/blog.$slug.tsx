@@ -6,7 +6,7 @@ import { AuthorCard } from '@/components/blog/AuthorCard'
 import { CCLicense } from '@/components/blog/CCLicense'
 import { ReadingTime } from '@/components/blog/ReadingTime'
 import { TableOfContents, useActiveHeading } from '@/components/blog/TableOfContents'
-import { extractHeadingsFromHtml, formatDate } from '@/lib/utils'
+import { extractHeadingsFromHtml, formatDate, type HeadingItem } from '@/lib/utils'
 import { Calendar, Tag } from 'lucide-react'
 import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
@@ -29,7 +29,7 @@ export default function BlogPost() {
     }
   }, [allPosts, slug])
 
-  const [headings, setHeadings] = React.useState<any[]>([])
+  const [headings, setHeadings] = React.useState<HeadingItem[]>([])
 
   React.useEffect(() => {
     if (!post) return
@@ -80,6 +80,12 @@ export default function BlogPost() {
             <div className="flex items-center gap-1.5">
               <Calendar size={14} /> {formatDate(frontmatter.date)}
             </div>
+            {(frontmatter.lastEdited || frontmatter.updatedAt) && (
+              <div className="flex items-center gap-1.5" title="Last Updated">
+                <Calendar size={14} className="opacity-70" /> 
+                Updated: {formatDate(frontmatter.lastEdited || frontmatter.updatedAt!)}
+              </div>
+            )}
             <ReadingTime minutes={readingTime} />
             <div className="flex items-center gap-1.5">
               <Tag size={14} /> {frontmatter.category}

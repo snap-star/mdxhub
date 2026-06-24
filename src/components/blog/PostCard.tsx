@@ -46,11 +46,21 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
           {frontmatter.coverImage && (
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
           )}
-          <div className="absolute top-4 left-4 z-10">
-            <span className="category-badge bg-white/25 text-white border-white/30 backdrop-blur-sm">
+          <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+            <span className="category-badge bg-white/25 text-white border-white/30 backdrop-blur-sm shadow-sm">
               {frontmatter.category}
             </span>
           </div>
+          {frontmatter.featured && (
+            <div className="absolute top-4 right-4 z-10">
+              <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-[0.7rem] px-2.5 py-1 rounded-full shadow-lg border border-white/20 backdrop-blur-md">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="drop-shadow-sm">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                Featured
+              </span>
+            </div>
+          )}
         </div>
       </Link>
 

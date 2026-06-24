@@ -14,7 +14,15 @@ export interface BlogFrontmatter extends FrontmatterBase {
   cc?: string           // e.g. "CC-BY-4.0"
   coverImage?: string
   readingTime?: number  // auto-computed if not set
+  order?: number
+  featured?: boolean
+  lastEdited?: string
+  updatedAt?: string
+  series?: string
+  seriesOrder?: number
 }
+
+export type SortMode = 'date' | 'order' | 'title' | 'readingTime'
 
 export interface DocFrontmatter extends FrontmatterBase {
   section: string
@@ -33,9 +41,17 @@ export interface Author {
   twitter?: string
   instagram?: string
   linkedin?: string
-  medium?: string
+  facebook?: string
+  tiktok?: string
+  bluesky?: string
+  threads?: string
+  reddit?: string
+  mastodon?: string
   youtube?: string
   twitch?: string
+  medium?: string
+  stackoverflow?: string
+  devto?: string
   discord?: string
   telegram?: string
   email?: string

@@ -101,6 +101,41 @@ export default function BlogIndex() {
 
         <aside className="blog-index-aside">
           <div className="sticky top-[100px] flex flex-col gap-2">
+            
+            {/* Featured Posts Widget */}
+            {posts.filter(p => p.frontmatter.featured).length > 0 && (
+              <div className="mb-6 rounded-2xl border border-border bg-card/80 backdrop-blur-md shadow-sm overflow-hidden p-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 m-0 mb-4">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  Featured Posts
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {posts.filter(p => p.frontmatter.featured).slice(0, 3).map(post => (
+                    <div key={post.slug} className="group relative">
+                      <a href={`/blog/${post.slug}`} className="absolute inset-0 z-10" aria-label={`Read ${post.frontmatter.title}`}></a>
+                      <div className="flex gap-3 items-center p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors">
+                        {post.frontmatter.coverImage ? (
+                          <img src={post.frontmatter.coverImage} alt="" className="w-12 h-12 rounded-md object-cover flex-shrink-0" loading="lazy" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-md bg-gradient-to-br from-muted to-muted/50 flex-shrink-0"></div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold text-foreground leading-tight truncate group-hover:text-primary transition-colors">
+                            {post.frontmatter.title}
+                          </h4>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            {post.frontmatter.category}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <SidebarCategories categoryCounts={categoryCounts} />
             <TagCloud tags={tags} tagCounts={tagCounts} />
             <SponsorCard />
