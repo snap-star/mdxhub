@@ -12,6 +12,7 @@ export default function DocPage() {
   const params = useParams()
   const fullSlug = params['*']
   const docs = useContentStore((s) => s.docs)
+  const status = useContentStore((s) => s.status)
   const doc = React.useMemo(() => docs.find((d) => d.slug === fullSlug), [docs, fullSlug])
   
   const [headings, setHeadings] = React.useState<HeadingItem[]>([])
@@ -26,6 +27,17 @@ export default function DocPage() {
 
   const headingIds = React.useMemo(() => headings.map((h) => h.id), [headings])
   const activeId = useActiveHeading(headingIds)
+
+  if (status === 'loading' || status === 'idle') {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-muted-foreground">Loading documentation...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!doc) {
     throw new Response("Not Found", { status: 404, statusText: "The requested documentation page could not be found." })

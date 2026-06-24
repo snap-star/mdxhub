@@ -13,10 +13,12 @@ import { SEO } from '@/components/common/SEO'
 import { MDXProvider } from '@mdx-js/react'
 import { MDXComponents } from '@/components/mdx/MDXComponents'
 import { PostPagination } from '@/components/blog/PostPagination'
+import { ShareButtons } from '@/components/blog/ShareButtons'
 
 export default function BlogPost() {
   const { slug } = useParams()
   const allPosts = useContentStore((s) => s.posts)
+  const status = useContentStore((s) => s.status)
   const post = React.useMemo(() => allPosts.find((p) => p.slug === slug), [allPosts, slug])
   
   const { prevPost, nextPost } = React.useMemo(() => {
@@ -45,6 +47,17 @@ export default function BlogPost() {
 
   const headingIds = React.useMemo(() => headings.map((h) => h.id), [headings])
   const activeId = useActiveHeading(headingIds)
+
+  if (status === 'loading' || status === 'idle') {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-muted-foreground">Loading content...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!post) {
     throw new Response("Not Found", { status: 404, statusText: "The requested blog post could not be found." })
@@ -107,13 +120,15 @@ export default function BlogPost() {
 
         <footer className="mt-16 pt-8 border-t border-border">
           {frontmatter.tags && frontmatter.tags.length > 0 && (
-            <div className="flex gap-2 flex-wrap mb-12">
+            <div className="flex gap-2 flex-wrap mb-8">
               <span className="text-sm font-semibold text-foreground mr-2">Tags:</span>
               {frontmatter.tags.map(tag => (
                 <a key={tag} href={`/blog/tag/${tag}`} className="tag-pill">#{tag}</a>
               ))}
             </div>
           )}
+
+          <ShareButtons title={frontmatter.title} slug={post.slug} />
 
           {author && (
             <div className="mb-12">
