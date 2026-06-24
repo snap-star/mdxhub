@@ -1,4 +1,6 @@
 # MDX Hub ✍️
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub?ref=badge_shield)
+
 
 A blazingly fast, highly interactive, and beautiful MDX-powered platform for building blogs and documentation sites. Built from the ground up to provide a world-class developer and authoring experience.
 
@@ -105,3 +107,6 @@ npm run preview
 
 ## 📜 License
 MIT License. Created with ❤️
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub?ref=badge_large)
