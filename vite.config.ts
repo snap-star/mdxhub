@@ -59,7 +59,7 @@ export default defineConfig({
       }),
     },
     react({
-      include: /\.(mdx|js|jsx|ts|tsx)$/,
+      include: /\.(md|mdx|js|jsx|ts|tsx)$/,
     }),
     yaml(),
   ],

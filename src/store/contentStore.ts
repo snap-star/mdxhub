@@ -18,8 +18,8 @@ async function loadAuthors(): Promise<Record<string, Author>> {
 }
 
 // ─── Glob imports ──────────────────────────────────────────────────────────
-const blogModules = import.meta.glob<MDXBlogModule>('/content/blog/**/*.mdx')
-const docModules = import.meta.glob<MDXDocModule>('/content/docs/**/*.mdx')
+const blogModules = import.meta.glob<MDXBlogModule>('/content/blog/**/*.{md,mdx}')
+const docModules = import.meta.glob<MDXDocModule>('/content/docs/**/*.{md,mdx}')
 
 // ─── Store State ──────────────────────────────────────────────────────────
 interface ContentStore {

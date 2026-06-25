@@ -20,8 +20,8 @@ import { SeriesNav } from '@/components/blog/SeriesNav'
 import { BookOpen, ChevronRight } from 'lucide-react'
 
 export default function BlogPost() {
-  const { slug } = useParams()
-  const currentSlug = slug ?? ''
+  const params = useParams()
+  const currentSlug = [params.slug, params['*']].filter(Boolean).join('/')
   const allPosts = useContentStore((s) => s.posts)
   const status = useContentStore((s) => s.status)
   const post = React.useMemo(() => allPosts.find((p) => matchesSlugOrFilename(p.slug, currentSlug)), [allPosts, currentSlug])
@@ -45,7 +45,7 @@ export default function BlogPost() {
       nextPost: currentIndex > 0 ? allPosts[currentIndex - 1] : undefined,
       prevPost: currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : undefined
     }
-  }, [allPosts, slug])
+  }, [allPosts, currentSlug])
 
   const [headings, setHeadings] = React.useState<HeadingItem[]>([])
 
