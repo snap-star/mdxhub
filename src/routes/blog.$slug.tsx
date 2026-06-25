@@ -21,9 +21,10 @@ import { BookOpen, ChevronRight } from 'lucide-react'
 
 export default function BlogPost() {
   const { slug } = useParams()
+  const currentSlug = slug ?? ''
   const allPosts = useContentStore((s) => s.posts)
   const status = useContentStore((s) => s.status)
-  const post = React.useMemo(() => allPosts.find((p) => matchesSlugOrFilename(p.slug, slug)), [allPosts, slug])
+  const post = React.useMemo(() => allPosts.find((p) => matchesSlugOrFilename(p.slug, currentSlug)), [allPosts, currentSlug])
   
   // Series data for the top-of-post notice
   const seriesPosts = React.useMemo(
@@ -34,10 +35,10 @@ export default function BlogPost() {
     () => [...seriesPosts].sort((a, b) => (a.frontmatter.seriesOrder ?? 0) - (b.frontmatter.seriesOrder ?? 0)),
     [seriesPosts],
   )
-  const currentSeriesIndex = sortedSeriesPosts.findIndex((p) => matchesSlugOrFilename(p.slug, slug))
+  const currentSeriesIndex = sortedSeriesPosts.findIndex((p) => matchesSlugOrFilename(p.slug, currentSlug))
 
   const { prevPost, nextPost } = React.useMemo(() => {
-    const currentIndex = allPosts.findIndex((p) => matchesSlugOrFilename(p.slug, slug))
+    const currentIndex = allPosts.findIndex((p) => matchesSlugOrFilename(p.slug, currentSlug))
     if (currentIndex === -1) return { prevPost: undefined, nextPost: undefined }
     // posts are sorted newest first. Next (newer) is index-1, Prev (older) is index+1.
     return {
