@@ -5,6 +5,7 @@ import type { BlogPost } from '@/lib/content/types'
 import { formatDateShort } from '@/lib/utils'
 import { Clock, Calendar, ChevronRight, MessageCircle } from 'lucide-react'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
+import { SeriesBadge } from '@/components/blog/SeriesBadge'
 
 interface PostCardProps {
   post: BlogPost
@@ -51,6 +52,12 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
             <span className="category-badge bg-white/25 text-white border-white/30 backdrop-blur-sm shadow-sm">
               {frontmatter.category}
             </span>
+            {frontmatter.series && (
+              <SeriesBadge
+                seriesName={frontmatter.series}
+                seriesOrder={frontmatter.seriesOrder}
+              />
+            )}
           </div>
           {frontmatter.featured && (
             <div className="absolute top-4 right-4 z-10">

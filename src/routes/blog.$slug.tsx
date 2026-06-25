@@ -1,5 +1,5 @@
 import React from 'react'
-import { useParams, Navigate } from 'react-router'
+import { useParams, Navigate, Link } from 'react-router'
 import { useContentStore } from '@/store/contentStore'
 import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
 import { AuthorCard } from '@/components/blog/AuthorCard'
@@ -16,6 +16,8 @@ import { PostPagination } from '@/components/blog/PostPagination'
 import { ShareButtons } from '@/components/blog/ShareButtons'
 import { DisqusComments } from '@/components/blog/DisqusComments'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
+import { SeriesNav } from '@/components/blog/SeriesNav'
+import { BookOpen, ChevronRight } from 'lucide-react'
 
 export default function BlogPost() {
   const { slug } = useParams()
@@ -23,6 +25,17 @@ export default function BlogPost() {
   const status = useContentStore((s) => s.status)
   const post = React.useMemo(() => allPosts.find((p) => p.slug === slug), [allPosts, slug])
   
+  // Series data for the top-of-post notice
+  const seriesPosts = React.useMemo(
+    () => allPosts.filter((p) => p.frontmatter.series === post?.frontmatter.series),
+    [allPosts, post?.frontmatter.series],
+  )
+  const sortedSeriesPosts = React.useMemo(
+    () => [...seriesPosts].sort((a, b) => (a.frontmatter.seriesOrder ?? 0) - (b.frontmatter.seriesOrder ?? 0)),
+    [seriesPosts],
+  )
+  const currentSeriesIndex = sortedSeriesPosts.findIndex((p) => p.slug === slug)
+
   const { prevPost, nextPost } = React.useMemo(() => {
     const currentIndex = allPosts.findIndex((p) => p.slug === slug)
     if (currentIndex === -1) return { prevPost: undefined, nextPost: undefined }
@@ -86,6 +99,23 @@ export default function BlogPost() {
         </div>
 
         <header className="mb-8 sm:mb-12">
+          {/* Compact series notice — top of post */}
+          {frontmatter.series && sortedSeriesPosts.length > 0 && (
+            <div className="mb-5">
+              <Link
+                to={`/blog/${sortedSeriesPosts[0].slug}`}
+                className="inline-flex items-center gap-1.5 text-[0.8rem] font-medium text-muted-foreground hover:text-primary transition-colors no-underline group"
+              >
+                <BookOpen size={13} className="shrink-0 text-primary/70" />
+                <span className="truncate max-w-[200px]">{frontmatter.series}</span>
+                <span className="text-[0.7rem] opacity-60 whitespace-nowrap">
+                  · Part {currentSeriesIndex + 1} of {sortedSeriesPosts.length}
+                </span>
+                <ChevronRight size={13} className="opacity-40 group-hover:translate-x-0.5 transition-transform shrink-0" />
+              </Link>
+            </div>
+          )}
+
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold leading-tight tracking-tight mb-4 sm:mb-6">
             {frontmatter.title}
           </h1>
@@ -139,6 +169,15 @@ export default function BlogPost() {
               ))}
             </div>
           )}
+          {/* Series Navigation */}
+          {frontmatter.series && (
+            <SeriesNav
+              seriesName={frontmatter.series}
+              posts={allPosts.filter((p) => p.frontmatter.series === frontmatter.series)}
+              currentSlug={post.slug}
+            />
+          )}
+
           {/* Share buttons */}
           <ShareButtons title={frontmatter.title} slug={post.slug} />
           {/* Author info */}
