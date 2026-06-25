@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
 import Fuse from 'fuse.js'
 import type { BlogPost, DocPage, Author, MDXBlogModule, MDXDocModule, SearchResult } from '@/lib/content/types'
-import { pathToSlug, estimateReadingTime, sortPosts } from '@/lib/utils'
+import { pathToSlug, estimateReadingTime, matchesSlugOrFilename, sortPosts } from '@/lib/utils'
 
 // ─── Author registry (loaded from YAML via import) ─────────────────────────
 let authorRegistry: Record<string, Author> = {}
@@ -137,7 +137,7 @@ export const useContentStore = create<ContentStore>((set, get) => ({
     }
   },
 
-  getPostBySlug: (slug) => get().posts.find((p) => p.slug === slug),
+  getPostBySlug: (slug) => get().posts.find((p) => matchesSlugOrFilename(p.slug, slug)),
   getDocBySlug: (slug) => get().docs.find((d) => d.slug === slug),
   getPostsByCategory: (category) =>
     get().posts.filter((p) => p.frontmatter.category === category), // Already sorted!

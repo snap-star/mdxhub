@@ -6,7 +6,7 @@ import { AuthorCard } from '@/components/blog/AuthorCard'
 import { CCLicense } from '@/components/blog/CCLicense'
 import { ReadingTime } from '@/components/blog/ReadingTime'
 import { TableOfContents, useActiveHeading } from '@/components/blog/TableOfContents'
-import { extractHeadingsFromHtml, formatDate, type HeadingItem } from '@/lib/utils'
+import { extractHeadingsFromHtml, formatDate, matchesSlugOrFilename, type HeadingItem } from '@/lib/utils'
 import { Calendar, MessageCircle, Tag } from 'lucide-react'
 import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
@@ -23,7 +23,7 @@ export default function BlogPost() {
   const { slug } = useParams()
   const allPosts = useContentStore((s) => s.posts)
   const status = useContentStore((s) => s.status)
-  const post = React.useMemo(() => allPosts.find((p) => p.slug === slug), [allPosts, slug])
+  const post = React.useMemo(() => allPosts.find((p) => matchesSlugOrFilename(p.slug, slug)), [allPosts, slug])
   
   // Series data for the top-of-post notice
   const seriesPosts = React.useMemo(
@@ -34,10 +34,10 @@ export default function BlogPost() {
     () => [...seriesPosts].sort((a, b) => (a.frontmatter.seriesOrder ?? 0) - (b.frontmatter.seriesOrder ?? 0)),
     [seriesPosts],
   )
-  const currentSeriesIndex = sortedSeriesPosts.findIndex((p) => p.slug === slug)
+  const currentSeriesIndex = sortedSeriesPosts.findIndex((p) => matchesSlugOrFilename(p.slug, slug))
 
   const { prevPost, nextPost } = React.useMemo(() => {
-    const currentIndex = allPosts.findIndex((p) => p.slug === slug)
+    const currentIndex = allPosts.findIndex((p) => matchesSlugOrFilename(p.slug, slug))
     if (currentIndex === -1) return { prevPost: undefined, nextPost: undefined }
     // posts are sorted newest first. Next (newer) is index-1, Prev (older) is index+1.
     return {

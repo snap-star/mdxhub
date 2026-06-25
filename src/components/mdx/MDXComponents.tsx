@@ -1,10 +1,11 @@
 import React from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { Callout } from './Callout'
 import { ProfileBadge } from './ProfileBadge'
 import { VideoEmbed } from './VideoEmbed'
 import { CCLicense } from '../blog/CCLicense'
 import { AuthorCard } from '../blog/AuthorCard'
+import { resolveContentAssetUrl } from '@/lib/utils'
 
 import { Check, Copy } from 'lucide-react'
 
@@ -77,12 +78,37 @@ export const MDXComponents = {
   li: (props: React.HTMLAttributes<HTMLLIElement>) => <li {...props} />,
   blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => <blockquote className="border-l-4 border-brand-400 pl-4 italic text-muted my-6" {...props} />,
   hr: (props: React.HTMLAttributes<HTMLHRElement>) => <hr className="my-8 border-border" {...props} />,
-  img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    <figure className="my-6">
-      <img className="rounded-lg border border-border w-full object-cover max-h-[500px]" loading="lazy" {...props} />
-      {props.alt && <figcaption className="text-center text-sm text-muted mt-2">{props.alt}</figcaption>}
-    </figure>
-  ),
+  img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    const location = useLocation()
+    const src = props.src
+    let resolvedSrc = src
+
+    if (src && !src.startsWith('/') && !src.startsWith('http') && !src.startsWith('//') && !src.startsWith('#')) {
+      const contentAssetUrl = resolveContentAssetUrl(location.pathname, src)
+      if (contentAssetUrl) {
+        resolvedSrc = contentAssetUrl
+      } else {
+        const basePath = location.pathname.endsWith('/') ? location.pathname : `${location.pathname}/`
+        try {
+          resolvedSrc = new URL(src, `${window.location.origin}${basePath}`).pathname
+        } catch {
+          resolvedSrc = `${basePath}${src}`
+        }
+      }
+    }
+
+    return (
+      <figure className="my-6">
+        <img
+          className="rounded-lg border border-border w-full object-cover max-h-[500px]"
+          loading="lazy"
+          {...props}
+          src={resolvedSrc}
+        />
+        {props.alt && <figcaption className="text-center text-sm text-muted mt-2">{props.alt}</figcaption>}
+      </figure>
+    )
+  },
   table: (props: React.HTMLAttributes<HTMLTableElement>) => (
     <div className="my-6 w-full overflow-y-auto rounded-lg border border-border">
       <table className="w-full border-collapse text-sm" {...props} />

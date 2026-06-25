@@ -24,6 +24,40 @@ export function pathToSlug(filePath: string, base: string): string {
     .replace(/^\//, '')
 }
 
+export function getSlugFilename(slug: string): string {
+  return slug.split('/').filter(Boolean).pop() ?? slug
+}
+
+export function matchesSlugOrFilename(slug: string, currentSlug: string): boolean {
+  return slug === currentSlug || getSlugFilename(slug) === currentSlug
+}
+
+const contentAssetModules = import.meta.glob('../../content/**/*.{png,jpg,jpeg,gif,svg,webp}', {
+  as: 'url',
+  eager: true,
+}) as Record<string, string>
+
+const contentAssetMap: Record<string, string> = Object.fromEntries(
+  Object.entries(contentAssetModules).map(([filePath, url]) => {
+    const normalizedPath = filePath.replace(/\\/g, '/').replace(/^.*\/content\//, '')
+    return [normalizedPath, url]
+  }),
+)
+
+export function resolveContentAssetUrl(currentPath: string, src: string): string | null {
+  if (!src || src.startsWith('/') || src.startsWith('http') || src.startsWith('//') || src.startsWith('#')) {
+    return null
+  }
+
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  const currentRoute = currentPath.endsWith('/') ? currentPath : `${currentPath}/`
+  const resolvedPath = new URL(src, `${window.location.origin}${currentRoute}`).pathname.replace(/^\//, '')
+  return contentAssetMap[resolvedPath] ?? null
+}
+
 // ─── Date utilities ────────────────────────────────────────────────────────
 export function formatDate(dateStr: string): string {
   try {

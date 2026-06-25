@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, BookOpen, ChevronDown, ChevronUp, List } from 'lucide-react'
+import { matchesSlugOrFilename } from '@/lib/utils'
 import type { BlogPost } from '@/lib/content/types'
 
 interface SeriesNavProps {
@@ -18,7 +19,7 @@ export function SeriesNav({ seriesName, posts, currentSlug }: SeriesNavProps) {
     [posts],
   )
 
-  const currentIndex = sortedPosts.findIndex((p) => p.slug === currentSlug)
+  const currentIndex = sortedPosts.findIndex((p) => matchesSlugOrFilename(p.slug, currentSlug))
   const currentPost = sortedPosts[currentIndex]
   const totalParts = sortedPosts.length
 
@@ -130,7 +131,7 @@ export function SeriesNav({ seriesName, posts, currentSlug }: SeriesNavProps) {
               >
                 <div className="divide-y divide-border/50">
                   {sortedPosts.map((post, idx) => {
-                    const isCurrent = post.slug === currentSlug
+                    const isCurrent = matchesSlugOrFilename(post.slug, currentSlug)
                     return (
                       <Link
                         key={post.slug}
