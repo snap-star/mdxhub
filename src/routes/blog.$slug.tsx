@@ -131,7 +131,7 @@ export default function BlogPost() {
         </article>
 
         {frontmatter.comments !== false && (
-          <div className="mt-16">
+          <div className="mt-16 overflow-auto">
             <DisqusComments
               identifier={`blog:${post.slug}`}
               title={frontmatter.title}
