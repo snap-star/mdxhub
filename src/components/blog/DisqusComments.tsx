@@ -65,5 +65,9 @@ export function DisqusComments({ identifier, title, url }: DisqusCommentsProps) 
 
   if (!shortname) return null
 
-  return <div id="disqus_thread" />
+  return (
+    <div className="disqus-thread-scope rounded-2xl">
+      <div id="disqus_thread" />
+    </div>
+  )
 }
