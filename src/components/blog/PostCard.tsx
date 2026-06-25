@@ -3,7 +3,8 @@ import { Link } from 'react-router'
 import { motion } from 'framer-motion'
 import type { BlogPost } from '@/lib/content/types'
 import { formatDateShort } from '@/lib/utils'
-import { Clock, Calendar, ChevronRight } from 'lucide-react'
+import { Clock, Calendar, ChevronRight, MessageCircle } from 'lucide-react'
+import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
 
 interface PostCardProps {
   post: BlogPost
@@ -117,6 +118,16 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
               <Clock size={12} />
               {readingTime} min
             </span>
+            {frontmatter.comments !== false && (
+              <span className="reading-time flex items-center gap-1 text-[0.75rem] text-muted-foreground">
+                <MessageCircle size={12} />
+                <DisqusCommentCount
+                  identifier={`blog:${slug}`}
+                  href={`/blog/${slug}#disqus_thread`}
+                  className="hover:text-primary transition-colors"
+                />
+              </span>
+            )}
           </div>
         </div>
 

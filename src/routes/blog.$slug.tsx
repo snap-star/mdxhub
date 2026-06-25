@@ -7,7 +7,7 @@ import { CCLicense } from '@/components/blog/CCLicense'
 import { ReadingTime } from '@/components/blog/ReadingTime'
 import { TableOfContents, useActiveHeading } from '@/components/blog/TableOfContents'
 import { extractHeadingsFromHtml, formatDate, type HeadingItem } from '@/lib/utils'
-import { Calendar, Tag } from 'lucide-react'
+import { Calendar, MessageCircle, Tag } from 'lucide-react'
 import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
 import { MDXProvider } from '@mdx-js/react'
@@ -15,6 +15,7 @@ import { MDXComponents } from '@/components/mdx/MDXComponents'
 import { PostPagination } from '@/components/blog/PostPagination'
 import { ShareButtons } from '@/components/blog/ShareButtons'
 import { DisqusComments } from '@/components/blog/DisqusComments'
+import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
 
 export default function BlogPost() {
   const { slug } = useParams()
@@ -104,6 +105,16 @@ export default function BlogPost() {
             <div className="flex items-center gap-1.5">
               <Tag size={14} /> {frontmatter.category}
             </div>
+            {frontmatter.comments !== false && (
+              <div className="flex items-center gap-1.5">
+                <MessageCircle size={14} />
+                <DisqusCommentCount
+                  identifier={`blog:${post.slug}`}
+                  href="#disqus_thread"
+                  className="hover:text-primary transition-colors"
+                />
+              </div>
+            )}
           </div>
 
           {frontmatter.coverImage && (
