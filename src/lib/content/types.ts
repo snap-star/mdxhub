@@ -11,6 +11,7 @@ export interface BlogFrontmatter extends FrontmatterBase {
   author: string        // key into authors.yaml
   category: string
   tags: string[]
+  comments?: boolean
   cc?: string           // e.g. "CC-BY-4.0"
   coverImage?: string
   readingTime?: number  // auto-computed if not set
