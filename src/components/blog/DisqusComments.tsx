@@ -66,7 +66,7 @@ export function DisqusComments({ identifier, title, url }: DisqusCommentsProps) 
   if (!shortname) return null
 
   return (
-    <div className="disqus-thread-scope rounded-2xl">
+    <div className="disqus-thread-scope rounded-2xl px-4 py-2 text-foreground dark:text-foreground">
       <div id="disqus_thread" />
     </div>
   )
