@@ -23,6 +23,13 @@ export function DisqusCommentCount({
   const location = useLocation()
   const shortname = (import.meta.env.VITE_DISQUS_SHORTNAME as string | undefined)?.trim()
 
+  const disqusUrl = React.useMemo(() => {
+    if (!href || typeof window === 'undefined') return undefined
+    if (/^https?:\/\//.test(href)) return href
+    if (href.startsWith('/')) return `${window.location.origin}${href}`
+    return undefined
+  }, [href])
+
   React.useEffect(() => {
     if (!shortname) return
 
@@ -47,7 +54,8 @@ export function DisqusCommentCount({
     <a
       href={href}
       data-disqus-identifier={identifier}
-      className={className}
+      data-disqus-url={disqusUrl}
+      className={`${className ? `${className} ` : ''}disqus-comment-count`}
     >
       Comments
     </a>

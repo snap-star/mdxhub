@@ -129,16 +129,7 @@ export default function BlogPost() {
         <article className="prose" style={{ maxWidth: '100%' }}>
           <Component />
         </article>
-
-        {frontmatter.comments !== false && (
-          <div className="mt-16 overflow-auto">
-            <DisqusComments
-              identifier={`blog:${post.slug}`}
-              title={frontmatter.title}
-            />
-          </div>
-        )}
-
+        {/* blog post footer | tags */}
         <footer className="mt-16 pt-8 border-t border-border">
           {frontmatter.tags && frontmatter.tags.length > 0 && (
             <div className="flex gap-2 flex-wrap mb-8">
@@ -148,9 +139,9 @@ export default function BlogPost() {
               ))}
             </div>
           )}
-
+          {/* Share buttons */}
           <ShareButtons title={frontmatter.title} slug={post.slug} />
-
+          {/* Author info */}
           {author && (
             <div className="mb-12">
               <AuthorCard author={author} />
@@ -160,6 +151,16 @@ export default function BlogPost() {
           {frontmatter.cc && (
             <CCLicense code={frontmatter.cc} author={author?.name ?? frontmatter.author} />
           )}
+
+          {/* Disqus comments */}
+        {frontmatter.comments !== false && (
+          <div className="mt-12 overflow-auto border rounded-2xl dark:rounded-2xl border-gray-200 dark:border-0">
+            <DisqusComments
+              identifier={`blog:${post.slug}`}
+              title={frontmatter.title}
+            />
+          </div>
+        )}
 
           <PostPagination prevPost={prevPost} nextPost={nextPost} />
         </footer>
