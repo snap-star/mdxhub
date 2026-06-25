@@ -14,6 +14,7 @@ import { MDXProvider } from '@mdx-js/react'
 import { MDXComponents } from '@/components/mdx/MDXComponents'
 import { PostPagination } from '@/components/blog/PostPagination'
 import { ShareButtons } from '@/components/blog/ShareButtons'
+import { DisqusComments } from '@/components/blog/DisqusComments'
 
 export default function BlogPost() {
   const { slug } = useParams()
@@ -117,6 +118,15 @@ export default function BlogPost() {
         <article className="prose" style={{ maxWidth: '100%' }}>
           <Component />
         </article>
+
+        {frontmatter.comments !== false && (
+          <div className="mt-16">
+            <DisqusComments
+              identifier={`blog:${post.slug}`}
+              title={frontmatter.title}
+            />
+          </div>
+        )}
 
         <footer className="mt-16 pt-8 border-t border-border">
           {frontmatter.tags && frontmatter.tags.length > 0 && (
