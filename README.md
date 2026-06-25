@@ -76,6 +76,8 @@ npm run dev
 
 To create a new blog post, simply create a new `.mdx` file in `content/blog/` with the following YAML frontmatter at the top:
 
+### Basic syntax
+
 ```yaml
 ---
 title: "My Awesome Post"
@@ -85,6 +87,24 @@ category: "Tutorial"
 tags: ["react", "mdx", "vite"]
 description: "A short summary for the post card and SEO meta description."
 coverImage: "https://images.unsplash.com/..." # Used for thumbnail and OpenGraph preview
+---
+
+Your content goes here...
+```
+
+### Series Syntax
+
+```yaml
+---
+title: "My Awesome Post" #your blog post title
+date: "2026-06-21" # Format date YYYY-MM-DD
+author: "chigusa-asuha" #author profile badge
+category: "Tutorial"
+tags: ["react", "mdx", "vite"] # An array tags.
+description: "A short summary for the post card and SEO meta description."
+coverImage: "https://images.unsplash.com/..." # Used for thumbnail and OpenGraph preview support local image byPath Location and url.
+series: seriesName #Your Series Name used for series title in series nav and postcard badge
+seriesOrder: seriesNumber (e.g: 1,2,3) # Used to sort the series ordering
 ---
 
 Your content goes here...
