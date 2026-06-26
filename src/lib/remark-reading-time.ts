@@ -1,12 +1,21 @@
 // ─── Remark Plugin: Compute Reading Time ──────────────────────────────────
 // Runs at build time (once per file), injects readingTime into YAML frontmatter
 // so it's available as mod.frontmatter.readingTime with zero runtime cost.
+// Uses minimal types to avoid import resolution issues.
 
-import type { Plugin } from 'unified'
-import type { Root } from 'mdast'
+interface YamlNode {
+  type: 'yaml'
+  value: string
+}
 
-export const remarkReadingTime: Plugin<[], Root> = () => {
-  return (tree, file) => {
+/**
+ * Remark plugin that calculates an estimated reading time from the MDX body
+ * and injects it as `readingTime` into the YAML frontmatter.
+ *
+ * Factored for reading speeds: ~238 wpm Latin, ~500 cpm CJK, code ~40% speed.
+ */
+export function remarkReadingTime() {
+  return (tree: { children: unknown[] }, file: { value: string | Buffer }) => {
     const content = String(file.value)
 
     // Skip if readingTime is already explicitly set in frontmatter
@@ -45,16 +54,15 @@ export const remarkReadingTime: Plugin<[], Root> = () => {
       .split(/\s+/)
       .filter(Boolean).length
 
-    // Approximate reading speeds: 238 wpm Latin, 500 cpm CJK, code is ~40% speed of prose
-    const minutes =
-      latinWords / 238 + cjkChars / 500 + (codeWords * 0.4) / 238
-
+    // Approximate reading speeds
+    const minutes = latinWords / 238 + cjkChars / 500 + (codeWords * 0.4) / 238
     const readingTime = Math.max(1, Math.round(minutes * 2) / 2) // round to 0.5
 
     // Inject into the YAML node so remarkMdxFrontmatter picks it up
     const yamlNode = tree.children.find(
-      (n): n is { type: 'yaml'; value: string } => n.type === 'yaml',
-    )
+      (n): n is YamlNode => (n as YamlNode).type === 'yaml',
+    ) as YamlNode | undefined
+
     if (yamlNode) {
       yamlNode.value = yamlNode.value.trimEnd() + `\nreadingTime: ${readingTime}`
     }

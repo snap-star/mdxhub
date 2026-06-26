@@ -7,6 +7,7 @@ import { PrevNextNav } from '@/components/docs/PrevNextNav'
 import { TableOfContents, useActiveHeading } from '@/components/blog/TableOfContents'
 import { extractHeadingsFromHtml, type HeadingItem } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
+import { MobileTocSheet, setTocData } from '@/components/blog/MobileTocSheet'
 
 export default function DocPage() {
   const params = useParams()
@@ -27,6 +28,15 @@ export default function DocPage() {
 
   const headingIds = React.useMemo(() => headings.map((h) => h.id), [headings])
   const activeId = useActiveHeading(headingIds)
+
+  // Push heading data to the shared MobileTocSheet store
+  // Respect frontmatter.toc — hide when explicitly disabled
+  // Use doc?.frontmatter?.toc instead of destructured frontmatter (which is declared later)
+  React.useEffect(() => {
+    if (doc?.frontmatter?.toc === false) return
+    setTocData(headings, activeId)
+    return () => setTocData([], '')
+  }, [headings, activeId, doc?.frontmatter?.toc])
 
   if (status === 'loading' || status === 'idle') {
     return (
@@ -94,6 +104,8 @@ export default function DocPage() {
           <TableOfContents items={headings} activeId={activeId} />
         </div>
       )}
+
+      <MobileTocSheet />
     </>
   )
 }

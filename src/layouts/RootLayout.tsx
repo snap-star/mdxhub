@@ -10,6 +10,7 @@ import { Footer } from '@/components/common/Footer'
 import { SearchCommand } from '@/components/search/SearchCommand'
 import { PageTransition } from '@/components/transitions/PageTransition'
 import { SEO } from '@/components/common/SEO'
+import { ImageLightbox } from '@/components/mdx/ImageLightbox'
 
 export function RootLayout() {
   const location = useLocation()
@@ -35,6 +36,7 @@ export function RootLayout() {
           </PageTransition>
         </AnimatePresence>
         <Footer />
+        <ImageLightbox />
       </div>
     </MDXProvider>
   )

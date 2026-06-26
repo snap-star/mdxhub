@@ -330,6 +330,69 @@ Add a license badge at the end of a post using the `cc` frontmatter key, or inli
 | `CC-BY-NC-4.0` | Creative Commons Attribution-NonCommercial 4.0 |
 | `CC0-1.0` | Creative Commons Zero (Public Domain) |
 
+### Badge
+
+The `<Badge>` component renders a small, colorful pill perfect for tags, labels, status indicators, and metadata. Supports 22+ Tailwind color names, semantic admonition variants, and 40+ built-in icons.
+
+```mdx
+{/* Semantic variants */}
+<Badge variant="tip">Tip</Badge>
+<Badge variant="warning">Caution</Badge>
+<Badge variant="danger">Danger</Badge>
+
+{/* Direct Tailwind colors */}
+<Badge variant="emerald">Emerald</Badge>
+<Badge variant="violet">Violet</Badge>
+<Badge variant="rose">Rose</Badge>
+
+{/* With icons */}
+<Badge variant="success" icon="check">Completed</Badge>
+<Badge variant="warning" icon="zap">Requires Attention</Badge>
+<Badge variant="info" icon="book">Documentation</Badge>
+
+{/* Inline with text */}
+Run <Badge variant="warning" icon="zap">npm install</Badge> before starting.
+```
+
+**Admonition-style variants:** `note` (slate), `tip` (emerald), `info` (blue), `success` (green), `warning` (amber), `danger` (red), `destructive` (red)
+
+**Available icon names:** `check`, `copy`, `info`, `warning`, `danger`, `star`, `heart`, `zap`, `shield`, `clock`, `calendar`, `book`, `file`, `tag`, `hash`, `mail`, `link`, `sun`, `moon`, `cloud`, `download`, `upload`, `refresh`, `plus`, `minus`, `close`, `search`, `settings`, `user`, `home`, `arrow`, `external`, `github`, `globe`, `bulb`, `rocket`, `sparkles`, `target`, `flag`
+
+### Tooltip
+
+The `<Tooltip>` component shows a floating label when the user hovers or focuses the wrapped text. The trigger appears with a dotted underline to indicate interactivity.
+
+```mdx
+<Tooltip content="Server Components that run on the server">RSC</Tooltip>
+enables efficient data fetching.
+
+{/* Placement control */}
+<Tooltip content="Appears below" side="bottom">Hover me</Tooltip>
+<Tooltip content="Appears to the right" side="right">Me too</Tooltip>
+
+{/* Combined with Badge */}
+<Badge variant="blue" icon="shield">
+  <Tooltip content="Application Programming Interface">API</Tooltip>
+</Badge>
+```
+
+**Props:** `content` (string, required), `side` (`"top"` | `"bottom"` | `"left"` | `"right"`, default `"top"`)
+
+### Image Lightbox
+
+**No component needed.** Every image rendered through the standard `img` tag is automatically clickable and opens in a full-screen lightbox viewer with zoom, rotate, and close-on-Escape controls.
+
+Simply use standard Markdown image syntax:
+
+```mdx
+![Descriptive alt text](./diagram.png)
+```
+
+Clicking the image opens a full-screen overlay with:
+- Zoom in/out (25%–400%) and rotate (90° increments) via the bottom toolbar
+- **Escape** key or clicking outside the image to dismiss
+- **Alt text** displayed as a caption in the overlay
+
 ---
 
 ## Part 6: SEO
@@ -359,6 +422,8 @@ No manual configuration is needed — it works automatically.
 | `description` | string | ❌ | — | Short excerpt for cards & SEO |
 | `coverImage` | string | ❌ | — | Thumbnail URL for card & OG image |
 | `cc` | string | ❌ | — | CC license code |
+| `series` | string | ❌ | — | Series name for grouping |
+| `seriesOrder` | number | ❌ | — | Sort order within a series |
 | `readingTime` | number | ❌ | auto | Minutes override |
 | `draft` | boolean | ❌ | `false` | Hides from feed |
 

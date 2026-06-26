@@ -4,9 +4,11 @@ import { Badge } from './Badge'
 import { Callout } from './Callout'
 import { ProfileBadge } from './ProfileBadge'
 import { VideoEmbed } from './VideoEmbed'
+import { Tooltip } from './Tooltip'
 import { CCLicense } from '../blog/CCLicense'
 import { AuthorCard } from '../blog/AuthorCard'
 import { resolveContentAssetUrl } from '@/lib/utils'
+import { openLightbox } from './ImageLightbox'
 
 import { Check, Copy } from 'lucide-react'
 
@@ -100,12 +102,18 @@ export const MDXComponents = {
 
     return (
       <figure className="my-6">
-        <img
-          className="rounded-lg border border-border w-full object-cover max-h-[500px]"
-          loading="lazy"
-          {...props}
-          src={resolvedSrc}
-        />
+        <button
+          onClick={() => openLightbox(resolvedSrc ?? '', props.alt ?? '')}
+          className="block w-full p-0 border-0 bg-transparent cursor-zoom-in"
+          aria-label={props.alt ? `View image: ${props.alt}` : 'View image'}
+        >
+          <img
+            className="rounded-lg border border-border w-full object-cover max-h-[500px] transition-transform duration-200 hover:scale-[1.01]"
+            loading="lazy"
+            {...props}
+            src={resolvedSrc}
+          />
+        </button>
         {props.alt && <figcaption className="text-center text-sm italic text-muted mt-2 dark:text-muted-foreground">{props.alt}</figcaption>}
       </figure>
     )
@@ -123,6 +131,7 @@ export const MDXComponents = {
   pre: CodeBlock,
   Badge,
   Callout,
+  Tooltip,
   CCLicense,
   ProfileBadge,
   VideoEmbed,

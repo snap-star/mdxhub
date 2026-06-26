@@ -12,12 +12,14 @@ import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
 import { MDXProvider } from '@mdx-js/react'
 import { MDXComponents } from '@/components/mdx/MDXComponents'
+import { openLightbox } from '@/components/mdx/ImageLightbox'
 import { PostPagination } from '@/components/blog/PostPagination'
 import { ShareButtons } from '@/components/blog/ShareButtons'
 import { DisqusComments } from '@/components/blog/DisqusComments'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
 import { SeriesNav } from '@/components/blog/SeriesNav'
 import { BookOpen, ChevronRight } from 'lucide-react'
+import { MobileTocSheet, setTocData } from '@/components/blog/MobileTocSheet'
 
 export default function BlogPost() {
   const params = useParams()
@@ -63,6 +65,12 @@ export default function BlogPost() {
 
   const headingIds = React.useMemo(() => headings.map((h) => h.id), [headings])
   const activeId = useActiveHeading(headingIds)
+
+  // Push heading data to the shared MobileTocSheet store (rendered via portal in route page)
+  React.useEffect(() => {
+    setTocData(headings, activeId)
+    return () => setTocData([], '')
+  }, [headings, activeId])
 
   if (status === 'loading' || status === 'idle') {
     return (
@@ -149,11 +157,17 @@ export default function BlogPost() {
           </div>
 
           {frontmatter.coverImage && (
-            <img
-              src={frontmatter.coverImage}
-              alt=""
-              className="w-full h-auto rounded-xl mb-8 border border-border object-cover max-h-[400px]"
-            />
+            <button
+              onClick={() => openLightbox(frontmatter.coverImage!, frontmatter.title)}
+              className="block w-full p-0 border-0 bg-transparent cursor-zoom-in mb-8"
+              aria-label={`View cover image: ${frontmatter.title}`}
+            >
+              <img
+                src={frontmatter.coverImage}
+                alt=""
+                className="w-full h-auto rounded-xl border border-border object-cover max-h-[400px]"
+              />
+            </button>
           )}
         </header>
 
@@ -209,6 +223,8 @@ export default function BlogPost() {
       <aside className="sticky top-[100px] self-start hidden lg:block blog-toc-aside max-h-[calc(100vh-140px)] overflow-y-auto pr-2">
         <TableOfContents items={headings} activeId={activeId} />
       </aside>
+
+      <MobileTocSheet />
 
       <style>{`
         @media (max-width: 1024px) {

@@ -1,0 +1,283 @@
+---
+title: "MDX Components Reference"
+section: "2. Guides"
+order: 30
+version: "v1.0"
+description: "Complete reference for all globally available MDX components — Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, and the image lightbox."
+next: "docs/guides/installation"
+---
+
+This project registers a set of custom React components that are **globally available** in every `.md` and `.mdx` file — no imports needed. This page documents every component and its usage.
+
+---
+
+## Callout / Admonition
+
+The `<Callout>` component creates a styled callout box with a matching icon. Ideal for tips, warnings, and contextual notes.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `type` | string | `"note"` | One of: `note`, `tip`, `info`, `warning`, `danger` |
+| `title` | string | *(auto)* | Override the default title |
+| `children` | ReactNode | — | Callout body content |
+
+### Usage
+
+```mdx
+<Callout type="note" title="Custom Title">
+  Body text here.
+</Callout>
+
+<Callout type="tip">Quick tip without a custom title.</Callout>
+<Callout type="warning">Something to be careful about.</Callout>
+<Callout type="danger">Critical warning about data loss or security.</Callout>
+```
+
+---
+
+## VideoEmbed
+
+The `<VideoEmbed>` component embeds YouTube videos, Shorts, and iframe URLs with responsive aspect ratios.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `src` | string | — | YouTube URL, `youtu.be` link, or raw embed URL |
+| `aspect` | string | `"16/9"` | Aspect ratio: `16/9`, `4/3`, `1/1`, `9/16` |
+| `caption` | string | — | Optional caption below the video |
+| `title` | string | `"Embedded video"` | Accessible title attribute |
+
+### Usage
+
+```mdx
+<VideoEmbed src="https://www.youtube.com/watch?v=VIDEO_ID" />
+<VideoEmbed src="https://youtu.be/VIDEO_ID" aspect="4/3" caption="A short demo" />
+<VideoEmbed src="https://www.youtube.com/shorts/VIDEO_ID" aspect="9/16" />
+```
+
+---
+
+## Badge
+
+The `<Badge>` component renders a small, colorful pill for tags, labels, status indicators, and inline metadata. Supports 22+ Tailwind color names and semantic admonition variants, plus 40+ built-in icon names.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `variant` | string | `"slate"` | Tailwind color name or admonition semantic name |
+| `icon` | string | — | Icon name (see table below) |
+| `children` | ReactNode | — | Badge text content |
+
+### Admonition Variants
+
+Use these semantic names for quick access:
+
+| Variant | Color | Use Case |
+| :--- | :--- | :--- |
+| `note` | Slate | General annotation |
+| `tip` | Emerald | Helpful suggestion |
+| `info` | Blue | Informational note |
+| `success` | Green | Success confirmation |
+| `warning` | Amber | Cautionary notice |
+| `danger` | Red | Critical warning |
+| `destructive` | Red | Destructive action |
+
+### Tailwind Color Variants
+
+Any standard Tailwind color name works directly: `red`, `orange`, `amber`, `yellow`, `lime`, `green`, `emerald`, `teal`, `cyan`, `sky`, `blue`, `indigo`, `violet`, `purple`, `fuchsia`, `pink`, `rose`, `slate`, `gray`, `zinc`, `neutral`, `stone`.
+
+### Available Icons
+
+| Key | Icon | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| `check` | Check | `copy` | Copy | `info` | Info |
+| `warning` | AlertTriangle | `danger` | XCircle | `star` | Star |
+| `heart` | Heart | `zap` | Zap | `shield` | Shield |
+| `clock` | Clock | `calendar` | Calendar | `book` | BookOpen |
+| `file` | FileText | `tag` | Tag | `hash` | Hash |
+| `mail` | Mail | `link` | Link2 | `sun` | Sun |
+| `moon` | Moon | `cloud` | Cloud | `download` | Download |
+| `upload` | Upload | `refresh` | RefreshCw | `plus` | Plus |
+| `minus` | Minus | `close` | X | `search` | Search |
+| `settings` | Settings | `user` | User | `home` | Home |
+| `arrow` | ArrowRight | `external` | ExternalLink | `github` | GitHub |
+| `globe` | Globe | `bulb` | Lightbulb | `rocket` | Rocket |
+| `sparkles` | Sparkles | `target` | Target | `flag` | Flag |
+
+### Usage
+
+```mdx
+{/* Semantic variants */}
+<Badge variant="tip">Tip</Badge>
+<Badge variant="warning">Caution</Badge>
+
+{/* Tailwind colors */}
+<Badge variant="emerald">Emerald</Badge>
+<Badge variant="violet">Violet</Badge>
+
+{/* With icons */}
+<Badge variant="success" icon="check">Completed</Badge>
+<Badge variant="warning" icon="zap">Requires attention</Badge>
+
+{/* Inline with text */}
+Run <Badge variant="info">npm install</Badge> to install dependencies.
+```
+
+---
+
+## Tooltip
+
+The `<Tooltip>` component shows a floating label when the user hovers or focuses the wrapped element. Uses `@base-ui/react` for accessible, performant interactions.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `content` | string | — | The tooltip text shown on hover/focus |
+| `side` | string | `"top"` | Placement: `top`, `bottom`, `left`, `right` |
+| `children` | ReactNode | — | The trigger element |
+
+### Usage
+
+```mdx
+<Tooltip content="Server Components that run on the server">RSC</Tooltip>
+enables efficient data fetching.
+
+{/* With placement control */}
+<Tooltip content="Renders below" side="bottom">Hover me</Tooltip>
+
+{/* Combined with Badge */}
+<Badge variant="blue">
+  <Tooltip content="Application Programming Interface">API</Tooltip>
+</Badge>
+```
+
+### Notes
+
+- The trigger text appears with a **dotted underline** to indicate interactivity
+- Tooltips support all four sides with automatic collision detection
+- Fully keyboard accessible — hover **and** focus-triggered
+
+---
+
+## Image Lightbox
+
+**No component needed** — this is a built-in behavior for the standard MDX `img` tag.
+
+Any image rendered through the default `img` component is clickable and opens in a full-screen lightbox viewer.
+
+### Interactions
+
+- **Click** any image → opens in a full-screen overlay
+- **Toolbar** at the bottom: zoom in, zoom out, rotate
+- **Escape** key or **click outside** the image to close
+- **Alt text** is displayed as a caption in the overlay
+
+### Zoom Levels
+
+| Action | Range |
+| :--- | :--- |
+| Zoom in | Up to 400% (click the + button) |
+| Zoom out | Down to 25% (click the − button) |
+| Rotate | 90° clockwise per click |
+| Reset | Auto-resets when opening a new image |
+
+### Usage
+
+No special syntax needed — every `<img>` in your MDX gets this behavior:
+
+```mdx
+![Descriptive alt text](./my-image.png)
+![A photo](https://images.unsplash.com/photo-1234)
+```
+
+---
+
+## ProfileBadge
+
+The `<ProfileBadge>` component renders an author profile card with avatar, bio, and social links. Reads from `site.config.json` and is designed for the `/about` page.
+
+### Usage
+
+```mdx
+<ProfileBadge />
+```
+
+---
+
+## CCLicense
+
+The `<CCLicense>` component renders a Creative Commons license badge for a blog post.
+
+### Props
+
+| Prop | Type | Description |
+| :--- | :--- | :--- |
+| `code` | string | License code: `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-NC-4.0`, `CC0-1.0` |
+| `author` | string | The author name displayed in the license text |
+
+Inline usage:
+
+```mdx
+<CCLicense code="CC-BY-SA-4.0" author="Chigusa Asuha" />
+```
+
+You can also set `cc` in the frontmatter of a blog post to have it rendered automatically in the post footer.
+
+---
+
+## AuthorCard
+
+The `<AuthorCard>` component displays an author's avatar, bio, and social links. Used automatically in blog post footers.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `author` | Author | — | Author object from `authors.yaml` |
+| `compact` | boolean | `false` | If true, renders a compact inline version |
+
+### Usage
+
+```mdx
+{/* The full card shown in post footers */}
+<AuthorCard author={author} />
+
+{/* Compact version for the post header metadata area */}
+<AuthorCard author={author} compact />
+```
+
+---
+
+## Code Block
+
+Code blocks are automatically wrapped in a styled container with:
+
+- **Language label** (top-right corner) — auto-detected from the opening fence
+- **Copy button** (top-right) — copies code to clipboard
+- **Traffic light dots** — macOS-style decoration
+
+No component needed — just use standard fenced code blocks:
+
+````mdx
+```javascript
+const greeting = "Hello, world!";
+```
+
+```tsx
+export function Button() {
+  return <button>Click me</button>;
+}
+```
+````
+
+---
+
+## Related
+
+- See [Creating Posts](/blog/creating-posts-guide) for the complete authoring guide
+- Visit the [Demo Showcase](/blog/demo-mdx-components) for live examples

@@ -1,0 +1,250 @@
+---
+title: "Showcase: New MDX Components & Features"
+date: "2026-06-27"
+author: "chigusa-asuha"
+category: "Showcase"
+tags: ["mdx", "components", "badge", "tooltip", "lightbox", "demo"]
+description: "A live demonstration of the newly implemented Badge, Tooltip, and image lightbox features — all available globally in any MDX file."
+coverImage: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop"
+---
+
+Welcome to the interactive showcase! All the components below are **globally available** — no imports needed in your MDX files.
+
+---
+
+## 1. Badge Component
+
+The `<Badge>` component renders a small, colorful pill perfect for tags, labels, status indicators, and metadata.
+
+### Admonition Variants
+
+Use semantic names for quick access to standard admonition colors:
+
+<Badge variant="note">Note</Badge>
+<Badge variant="tip">Tip</Badge>
+<Badge variant="info">Info</Badge>
+<Badge variant="success">Success</Badge>
+<Badge variant="warning">Warning</Badge>
+<Badge variant="danger">Danger</Badge>
+<Badge variant="destructive">Destructive</Badge>
+
+```mdx
+<Badge variant="note">Note</Badge>
+<Badge variant="tip">Tip</Badge>
+<Badge variant="info">Info</Badge>
+<Badge variant="success">Success</Badge>
+<Badge variant="warning">Warning</Badge>
+<Badge variant="danger">Danger</Badge>
+<Badge variant="destructive">Destructive</Badge>
+```
+
+### Direct Tailwind Colors
+
+You can use any standard Tailwind color name directly:
+
+<Badge variant="red">Red</Badge>
+<Badge variant="orange">Orange</Badge>
+<Badge variant="amber">Amber</Badge>
+<Badge variant="yellow">Yellow</Badge>
+<Badge variant="lime">Lime</Badge>
+<Badge variant="green">Green</Badge>
+<Badge variant="emerald">Emerald</Badge>
+<Badge variant="teal">Teal</Badge>
+<Badge variant="cyan">Cyan</Badge>
+<Badge variant="sky">Sky</Badge>
+<Badge variant="blue">Blue</Badge>
+<Badge variant="indigo">Indigo</Badge>
+<Badge variant="violet">Violet</Badge>
+<Badge variant="purple">Purple</Badge>
+<Badge variant="fuchsia">Fuchsia</Badge>
+<Badge variant="pink">Pink</Badge>
+<Badge variant="rose">Rose</Badge>
+<Badge variant="slate">Slate</Badge>
+
+```mdx
+<Badge variant="emerald">Emerald</Badge>
+<Badge variant="violet">Violet</Badge>
+<Badge variant="rose">Rose</Badge>
+```
+
+### With Icons
+
+Add an icon by passing its string name to the `icon` prop — no imports needed:
+
+<Badge variant="success" icon="check">Completed</Badge>
+<Badge variant="info" icon="info">Details</Badge>
+<Badge variant="warning" icon="warning">Review</Badge>
+<Badge variant="danger" icon="danger">Critical</Badge>
+<Badge variant="tip" icon="zap">Fast</Badge>
+<Badge variant="note" icon="book">Docs</Badge>
+<Badge variant="purple" icon="star">Featured</Badge>
+<Badge variant="sky" icon="cloud">Deployed</Badge>
+<Badge variant="rose" icon="heart">Loved</Badge>
+<Badge variant="amber" icon="bulb">Idea</Badge>
+<Badge variant="emerald" icon="rocket">Launched</Badge>
+<Badge variant="indigo" icon="sparkles">New</Badge>
+<Badge variant="blue" icon="target">Goal</Badge>
+<Badge variant="green" icon="shield">Secure</Badge>
+<Badge variant="orange" icon="flag">Flagged</Badge>
+
+```mdx
+<Badge variant="success" icon="check">Completed</Badge>
+<Badge variant="purple" icon="star">Featured</Badge>
+<Badge variant="emerald" icon="rocket">Launched</Badge>
+<Badge variant="indigo" icon="sparkles">New</Badge>
+```
+
+### Available Icons
+
+| Icon Name | | | |
+| :--- | :--- | :--- | :--- |
+| check | copy | info | warning |
+| danger | star | heart | zap |
+| shield | clock | calendar | book |
+| file | tag | hash | mail |
+| link | sun | moon | cloud |
+| download | upload | refresh | plus |
+| minus | close | search | settings |
+| user | home | arrow | external |
+| github | globe | bulb | rocket |
+| sparkles | target | flag | |
+
+### Inline Usage
+
+Badges sit naturally inline with text. For example: make sure to run <Badge variant="warning" icon="zap">npm install</Badge> before starting the dev server. The <Badge variant="info" icon="info">Note</Badge> callout type is for supplementary information.
+
+```mdx
+Run <Badge variant="warning" icon="zap">npm install</Badge> first.
+```
+
+---
+
+## 2. Tooltip Component
+
+Hover or focus any underlined text to reveal extra information.
+
+### Basic Usage
+
+Wrap any text with a `<Tooltip>` to show additional context on hover:
+
+<Tooltip content="Server Components that run exclusively on the server">RSC</Tooltip> enables efficient data fetching and smaller client bundles.
+
+<Tooltip content="A build-time tool that removes dead code">Tree-shaking</Tooltip> is handled automatically by Vite.
+
+<Tooltip content="React's built-in mechanism for tracking side effects">useEffect</Tooltip> runs after every render by default.
+
+```mdx
+<Tooltip content="Server Components that run exclusively on the server">RSC</Tooltip>
+enables efficient data fetching and smaller client bundles.
+```
+
+### Placement Control
+
+Use the `side` prop to control where the tooltip appears:
+
+<Tooltip content="Appears above (default)" side="top">Top</Tooltip>
+<Tooltip content="Appears below" side="bottom">Bottom</Tooltip>
+<Tooltip content="Appears to the left" side="left">Left</Tooltip>
+<Tooltip content="Appears to the right" side="right">Right</Tooltip>
+
+```mdx
+<Tooltip content="Appears above" side="top">Top</Tooltip>
+<Tooltip content="Appears below" side="bottom">Bottom</Tooltip>
+```
+
+### With Badges
+
+Tooltips work great with badges for compact definitions:
+
+<Badge variant="blue" icon="shield"><Tooltip content="Cross-Origin Resource Sharing — a browser security mechanism">CORS</Tooltip></Badge>
+<Badge variant="emerald" icon="zap"><Tooltip content="Document Object Model — the browser's programming interface">DOM</Tooltip></Badge>
+<Badge variant="violet" icon="sparkles"><Tooltip content="Application Programming Interface">API</Tooltip></Badge>
+<Badge variant="amber" icon="bulb"><Tooltip content="Don't Repeat Yourself — a software development principle">DRY</Tooltip></Badge>
+
+```mdx
+<Badge variant="blue" icon="shield">
+  <Tooltip content="Cross-Origin Resource Sharing">CORS</Tooltip>
+</Badge>
+```
+
+---
+
+## 3. Image Lightbox Viewer
+
+Click any image in a blog post to open it in a full-screen lightbox viewer. This is already wired up globally — no extra work needed.
+
+### What happens when you click an image
+
+1. The image opens in a **full-screen overlay** with a dark backdrop
+2. Use the **toolbar at the bottom** to zoom in/out and rotate
+3. The **percentage indicator** shows current zoom level
+4. Press **Escape** or click the **backdrop/close button** to dismiss
+5. **Alt text** (if present) is shown as a caption at the bottom
+
+### Try it
+
+The cover image at the top of this post is clickable — and so are the images below:
+
+```mdx
+![Unsplash abstract](https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop)
+```
+![Unsplash abstract](https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop)
+
+### Zoom Controls
+
+| Action | Control |
+| :--- | :--- |
+| Zoom in | Click the **+** button or scroll on the image area |
+| Zoom out | Click the **−** button |
+| Rotate | Click the **↻** button (90° clockwise each click) |
+| Close | Press **Escape** or click outside the image |
+| Reset | Zoom resets automatically when opening a new image |
+
+<Callout type="tip" title="Pro Tip">
+The lightbox works with **any image** rendered through the standard MDX `img` component — including images in docs pages and the cover image in the post header (when it uses the img element).
+</Callout>
+
+---
+
+## 4. Putting It All Together
+
+Here's a realistic example combining multiple components:
+
+<Callout type="info" title="Getting Started Checklist">
+  <Badge variant="success" icon="check">Node.js 20+</Badge>
+  <Badge variant="success" icon="check">pnpm installed</Badge>
+  <Badge variant="warning" icon="zap">
+    <Tooltip content="Run this after cloning the repo">npm install</Tooltip>
+  </Badge>
+  <Badge variant="tip" icon="rocket">
+    <Tooltip content="Starts the Vite dev server with HMR">npm run dev</Tooltip>
+  </Badge>
+  <br /><br />
+  See the <Badge variant="blue" icon="book">Installation Guide</Badge> for detailed setup steps.
+</Callout>
+
+```mdx
+<Badge variant="warning" icon="zap">
+  <Tooltip content="Run this after cloning the repo">npm install</Tooltip>
+</Badge>
+```
+
+---
+
+## 5. Quick Reference
+
+| Component | Prop | Type | Default | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| **Badge** | `variant` | string | `"slate"` | Tailwind color or admonition name |
+| | `icon` | string | — | Icon name from the 40+ icon map |
+| | `children` | ReactNode | — | Badge text content |
+| **Tooltip** | `content` | string | — | The tooltip text shown on hover |
+| | `side` | string | `"top"` | Placement: `top`, `bottom`, `left`, `right` |
+| | `children` | ReactNode | — | Hover/focus target element |
+| **Image** | *(all)* | — | — | Click any image → opens lightbox |
+
+---
+
+<Callout type="tip" title="Write Your Own Demo">
+All components shown here are ready to use in any `.md` or `.mdx` file — just drop them in and they work!
+</Callout>
