@@ -57,7 +57,7 @@ const imageVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { type: 'spring', damping: 25, stiffness: 300 },
+    transition: { type: 'spring' as const, damping: 25, stiffness: 300 },
   },
   exit: {
     opacity: 0,

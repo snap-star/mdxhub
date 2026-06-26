@@ -13,6 +13,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeKatex from 'rehype-katex'
 import rehypeShiki from '@shikijs/rehype'
 import rehypeUnwrapImages from 'rehype-unwrap-images'
+import type { Plugin } from 'unified'
 import {
   transformerNotationDiff,
   transformerNotationHighlight,
@@ -35,7 +36,7 @@ export default defineConfig({
           remarkMath,
         ],
         rehypePlugins: [
-          rehypeUnwrapImages,
+          rehypeUnwrapImages as unknown as Plugin,
           rehypeSlug,
           rehypeKatex,
           [rehypeAutolinkHeadings, { behavior: 'wrap', properties: { className: ['anchor-link'] } }],

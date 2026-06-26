@@ -15,7 +15,7 @@ interface YamlNode {
  * Factored for reading speeds: ~238 wpm Latin, ~500 cpm CJK, code ~40% speed.
  */
 export function remarkReadingTime() {
-  return (tree: { children: unknown[] }, file: { value: string | Buffer }) => {
+  return (tree: { children: unknown[] }, file: { value: string | Uint8Array }) => {
     const content = String(file.value)
 
     // Skip if readingTime is already explicitly set in frontmatter
