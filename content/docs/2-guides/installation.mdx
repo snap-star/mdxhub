@@ -26,21 +26,78 @@ cd reactmdx
 
 ### 2. Install dependencies
 
+Use `npm` or `pnpm` depending on your preference:
+
 ```bash
 npm install
+# or
+pnpm install
 ```
 
 ### 3. Start the development server
 
 ```bash
 npm run dev
+# or
+pnpm run dev
 ```
 
 Your site is now running at `http://localhost:3000`. Vite will automatically hot-reload whenever you change source files **or** content files.
 
 <Callout type="tip">
-Any `.mdx` file you add to `content/blog/` or `content/docs/` will be automatically discovered — no registration or routing config needed!
+Any `.md` or `.mdx` file you add to `content/blog/` or `content/docs/` will be automatically discovered — no registration or routing config needed!
 </Callout>
+
+## Content Discovery
+
+This project discovers content with Vite's `import.meta.glob` patterns:
+
+- `content/blog/**/*.{md,mdx}` for blog posts
+- `content/docs/**/*.{md,mdx}` for documentation pages
+
+Nested folders are supported, and `index.mdx` inside a folder maps to the parent route slug.
+
+### Example slug mappings
+
+```text
+content/blog/my-post.mdx                  → /blog/my-post
+content/blog/tutorials/react-hooks.mdx     → /blog/tutorials/react-hooks
+content/blog/tutorials/react/index.mdx     → /blog/tutorials/react
+content/docs/guides/installation.mdx       → /docs/guides/installation
+content/docs/reference/index.mdx           → /docs/reference
+content/docs/reference/api/usage.mdx       → /docs/reference/api/usage
+content/about.mdx                           → /about
+```
+
+### Valid vs invalid docs/about slugs
+
+Valid paths:
+- `/about` → `content/about.mdx`
+- `/docs` → docs index page handled by the docs layout
+- `/docs/guides/installation` → `content/docs/guides/installation.mdx`
+- `/docs/reference/api` → `content/docs/reference/api/index.mdx`
+- `/docs/reference/api/usage` → `content/docs/reference/api/usage.mdx`
+
+Avoid these invalid paths:
+- `/about/me` — only `content/about.mdx` maps to `/about`
+- `/docs/about` — docs content must be inside `content/docs/`, not `content/about.mdx`
+- `/content/docs/guides/installation` — URLs do not include the `content/` prefix
+- `/blog/installation` for a file stored in `content/docs/` — blog and docs are separate route trees
+
+## Static Assets
+
+- Place images, icons, or any static file in the `public/` folder.
+- Use `/path/to/file.png` in your MDX or frontmatter to reference it.
+
+### Relative content assets
+
+MDX image sources that use relative paths are resolved relative to the current content folder. For example:
+
+```mdx
+![Diagram](./diagram.png)
+```
+
+If the MDX file is at `content/blog/tutorials/react/index.mdx`, the image is resolved from `content/blog/tutorials/react/diagram.png`.
 
 ## Project Configuration
 
@@ -63,7 +120,7 @@ Register content authors by editing `content/authors/authors.yaml`:
 ```yaml
 - id: your-id             # Used in blog frontmatter
   name: "Your Full Name"
-  avatar: "/your-avatar.png"   # Can be a local /public path or URL
+  avatar: "/your-avatar.png"   # Can be a local /public path or a full URL
   bio: "Short bio."
   twitter: yourhandle
   github: yourhandle
@@ -80,13 +137,16 @@ When you're ready to deploy:
 
 ```bash
 npm run build
+# or
+pnpm run build
 ```
 
 This runs the TypeScript compiler (`tsc`) and then Vite's production bundler. All MDX content is compiled at build time into optimized JavaScript. The output is placed in the `dist/` directory and is fully static — no server required.
 
 ```bash
-# Preview the production build locally
 npm run preview
+# or
+pnpm run preview
 ```
 
 <Callout type="warning">

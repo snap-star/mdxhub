@@ -7,26 +7,32 @@ description: "Author schema for MDX Hub."
 next: "/getting-started"
 ---
 
-You can change `AuthorCard.tsx` badge, that is show on `/blog` page after the content, in here `/content/authors/authors.yaml`<br />
+Author profiles are defined in `/content/authors/authors.yaml`. Each post looks up an author by the `author` frontmatter key, so the `id` field must match exactly.
 
-Basic example:
+### Example author entry
+
 ```yaml
-- id: chigusa-asuha         <--- Author ID
-  name: Chigusa Asuha        <--- Author Name
-  avatar: /snap-star.png      <--- Author Avatar URL
-  bio: Lead Developer & Creative Technologist. Passionate about React, MDX, and building beautiful web experiences. <--- Author Bio
-  twitter: <--- Author Twitter Handle
-  instagram: reirain_exe <--- Author Instagram Handle
-  github: snap-star <--- Author GitHub Handle
-  website: https://mdxhub.vercel.app/ <--- Author Website URL
+- id: chigusa-asuha
+  name: "Chigusa Asuha"
+  avatar: "/snap-star.png"
+  bio: "Lead Developer & Creative Technologist. Passionate about React, MDX, and building beautiful web experiences."
+  twitter: chigusa
+  instagram: reirain_exe
+  github: snap-star
+  website: https://example.com
 ```
 
-You can add necessary socialmedia via those yaml.
+Use the `id` value in blog frontmatter:
 
-## Extending Social Media Handles
-You can add any social media icons you want to the author schema.
-change necessary social media icons in the author schema types located in `/src/lib/content/types.ts`.
-```tsx
+```yaml
+author: "chigusa-asuha"
+```
+
+### Supported author fields
+
+This project supports a wide author schema. You can add any of these optional handles:
+
+```ts
 export interface Author {
   id: string
   name: string
@@ -35,9 +41,17 @@ export interface Author {
   twitter?: string
   instagram?: string
   linkedin?: string
-  medium?: string
+  facebook?: string
+  tiktok?: string
+  bluesky?: string
+  threads?: string
+  reddit?: string
+  mastodon?: string
   youtube?: string
   twitch?: string
+  medium?: string
+  stackoverflow?: string
+  devto?: string
   discord?: string
   telegram?: string
   email?: string
@@ -49,12 +63,12 @@ export interface Author {
   website?: string
 }
 ```
-Adding icons to `AuthorCard.tsx` badge:
-```tsx
-{author.twitter && (
-<a href={`https://twitter.com/${author.twitter}`} target="_blank" rel="noopener noreferrer"
-    className="flex items-center gap-1.5 text-xs text-primary no-underline hover:underline">
-    <SiX size={14} /> @{author.twitter}
-</a>
-)}
+
+If you want to display an additional social icon, update `src/components/blog/AuthorCard.tsx` and add the corresponding icon mapping.
+
+### Author card usage
+
+Authors are shown automatically on blog posts when the `author` frontmatter value matches an `id` in `content/authors/authors.yaml`.
+
+If the author is missing or the `id` is incorrect, the post still renders, but author details and social links will not appear.
 ```

@@ -2,13 +2,15 @@
 
 A blazingly fast, highly interactive, and beautiful MDX-powered platform for building blogs and documentation sites. Built from the ground up to provide a world-class developer and authoring experience.
 
-**No database required.** Just write your `.mdx` files in the `content/` directory, commit them to Git, and let the build system handle the rest.
+**No database required.** Just write your `.md` or `.mdx` files in the `content/` directory, commit them to Git, and let the build system handle the rest.
 
 ---
 
 ## ✨ Features
 
 - **Git-Backed CMS**: Write content as Markdown/MDX files right in your editor. Automatically discovered and routed using Vite.
+- **Nested Content Routing**: Supports nested folders in `content/blog/**` and `content/docs/**`, with `index.mdx` folder slug support.
+- **Relative MDX Assets**: Resolve image sources relative to the current content folder, or use static `/public` assets.
 - **Rich MDX Components**: Use React components directly inside your Markdown.
   - Native `<VideoEmbed />` (YouTube, Shorts, custom aspect ratios)
   - Interactive `<Callout />` admonitions
@@ -23,7 +25,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Framework**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
 - **Content**: [MDX v3](https://mdxjs.com/) with `remark-gfm` and `rehype-katex`
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) (CSS-first architecture)
-- **Routing**: [React Router v7](https://reactrouter.com/)
+- **Routing**: [React Router v8](https://reactrouter.com/)
 - **State Management**: [Zustand v5](https://zustand-demo.pmnd.rs/)
 - **Icons**: `lucide-react` & `simple-icons`
 
@@ -38,12 +40,18 @@ You will need **Node.js 20+** installed on your machine.
 
 1. Clone the repository and install dependencies:
 ```bash
+git clone https://github.com/your-username/reactmdx.git
+cd reactmdx
 npm install
+# or
+pnpm install
 ```
 
 2. Start the development server:
 ```bash
 npm run dev
+# or
+pnpm run dev
 ```
 
 3. Open [http://localhost:3000](http://localhost:3000) to view the application.
@@ -53,28 +61,52 @@ npm run dev
 ## 📂 Project Structure
 
 ```text
-├── content/              # Your Markdown/MDX content lives here!
-│   ├── blog/             # All blog posts (auto-routed to /blog/*)
-│   ├── docs/             # Documentation pages (auto-routed to /docs/*)
+├── content/              # Your Markdown/MDX content lives here
+│   ├── blog/             # Blog posts and nested folders (auto-routed to /blog/*)
+│   ├── docs/             # Docs pages and nested folders (auto-routed to /docs/*)
 │   ├── authors/          # Author registry (authors.yaml)
 │   └── about.mdx         # The special /about page
-├── public/               # Static assets (images, RSS feeds, etc.)
-├── src/                  
+├── public/               # Static assets (images, icons, etc.)
+├── src/
 │   ├── components/       # Reusable React components (UI, MDX, Layout)
 │   ├── lib/              # Utilities (content parsers, search logic)
 │   ├── routes/           # React Router page definitions
 │   ├── store/            # Zustand global state
 │   ├── styles/           # Tailwind and custom CSS
 │   └── main.tsx          # Application entry point
-├── site.config.json      # Global site configuration (title, github URL)
+├── site.config.json      # Project-wide configuration
 └── package.json          # Project dependencies
 ```
 
 ---
 
-## 📝 Authoring Content
+## � Routing rules
 
-To create a new blog post, simply create a new `.mdx` file in `content/blog/` with the following YAML frontmatter at the top:
+- `content/about.mdx` → `/about`
+- `content/docs/**/*.{md,mdx}` → `/docs/*`
+- `content/blog/**/*.{md,mdx}` → `/blog/*`
+- `index.mdx` inside a folder maps to the parent folder slug
+
+### Valid examples
+
+- `/about`
+- `/docs`
+- `/docs/guides/installation`
+- `/docs/reference/api`
+- `/blog/my-first-post`
+
+### Invalid examples
+
+- `/about/me` — only `/about` is supported for the standalone about page
+- `/docs/about` — docs pages must live under `content/docs/`
+- `/content/docs/guides/installation` — URLs do not include the `content/` prefix
+- `/blog/installation` for a file stored in `content/docs/`
+
+---
+
+## �📝 Authoring Content
+
+To create a new blog post, simply create a new `.md` or `.mdx` file in `content/blog/` with the following YAML frontmatter at the top:
 
 ### Basic syntax
 
@@ -86,7 +118,7 @@ author: "chigusa-asuha"
 category: "Tutorial"
 tags: ["react", "mdx", "vite"]
 description: "A short summary for the post card and SEO meta description."
-coverImage: "https://images.unsplash.com/..." # Used for thumbnail and OpenGraph preview
+coverImage: "https://images.unsplash.com/..." # Used for thumbnail and Open Graph preview also support from local path
 ---
 
 Your content goes here...
@@ -96,19 +128,21 @@ Your content goes here...
 
 ```yaml
 ---
-title: "My Awesome Post" #your blog post title
-date: "2026-06-21" # Format date YYYY-MM-DD
-author: "chigusa-asuha" #author profile badge
+title: "My Awesome Post"
+date: "2026-06-21"
+author: "chigusa-asuha"
 category: "Tutorial"
-tags: ["react", "mdx", "vite"] # An array tags.
+tags: ["react", "mdx", "vite"]
 description: "A short summary for the post card and SEO meta description."
-coverImage: "https://images.unsplash.com/..." # Used for thumbnail and OpenGraph preview support local image byPath Location and url.
-series: seriesName #Your Series Name used for series title in series nav and postcard badge
-seriesOrder: seriesNumber (e.g: 1,2,3) # Used to sort the series ordering
+coverImage: "https://images.unsplash.com/..." # Used for thumbnail and Open Graph preview also support from local path
+series: "My Series Name"
+seriesOrder: 1
 ---
 
 Your content goes here...
 ```
+
+> Blog slugs are derived from the file path. Files under `content/blog/**` map to `/blog/...`, and `index.mdx` inside a folder maps to the folder slug.
 
 For more detailed information, check out the [Creating Posts Guide](/blog/creating-posts-guide) in the local blog once the dev server is running.
 
@@ -120,7 +154,16 @@ To generate a static production build:
 
 ```bash
 npm run build
+# or
+pnpm run build
+```
+
+Then preview it locally:
+
+```bash
 npm run preview
+# or
+pnpm run preview
 ```
 
 ## 📜 License

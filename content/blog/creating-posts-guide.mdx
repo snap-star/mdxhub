@@ -14,7 +14,7 @@ This guide covers everything you need to know to write and publish content in th
 
 ## How Content Discovery Works
 
-This project uses **Vite's `import.meta.glob`** to automatically discover and load every `.mdx` file at build time. You do not register files manually — simply drop them into the right folder and they appear.
+This project uses **Vite's `import.meta.glob`** to automatically discover and load `.md` and `.mdx` content at build time. You do not register files manually — simply drop them into the right folder and they appear.
 
 ```
 content/
@@ -31,11 +31,11 @@ content/
 ```
 
 The discovery rules are:
-- **Blog posts**: Any `.mdx` file inside `/content/blog/**` is automatically a blog post.
-- **Doc pages**: Any `.mdx` file inside `/content/docs/**` is automatically a documentation page.
+- **Blog posts**: Any `.md` or `.mdx` file inside `/content/blog/**` is automatically a blog post.
+- **Doc pages**: Any `.md` or `.mdx` file inside `/content/docs/**` is automatically a documentation page.
 - **Slug derivation**: `content/blog/my-post.mdx` → `/blog/my-post`. A file named `index.mdx` inside a folder maps to the folder slug.
 - **Draft posts**: Set `draft: true` in frontmatter to exclude a post from the published feed.
-- **Sorting**: Blog posts are sorted by `date` descending. Doc pages are sorted by `order` ascending.
+- **Sorting**: Blog posts use explicit `order` first, then date descending. Doc pages are sorted by `order` ascending.
 
 ---
 
@@ -43,10 +43,12 @@ The discovery rules are:
 
 ### Step 1 — Create the File
 
-Create a new `.mdx` file inside `/content/blog/`. The filename becomes the URL slug.
+Create a new `.md` or `.mdx` file inside `/content/blog/`. The file path becomes the page slug.
 
 ```
-content/blog/my-first-post.mdx    → /blog/my-first-post
+content/blog/my-first-post.mdx             → /blog/my-first-post
+content/blog/tutorials/react/index.mdx      → /blog/tutorials/react
+content/blog/series/part-1.mdx              → /blog/series/part-1
 ```
 
 ### Step 2 — Write the YAML Frontmatter
@@ -62,18 +64,20 @@ category: "Tutorial"             # Required — used for category filtering
 tags: ["react", "mdx", "vite"]  # Required — array of strings for tag filtering and search
 description: "A short summary."  # Optional but recommended — shown on cards and SEO meta tags
 coverImage: "https://..."        # Optional — thumbnail shown on the blog homepage card
-cc: "by-sa"                      # Optional — shows a Creative Commons license badge
-readingTime: 5                   # Optional — override auto-calculated reading time (minutes)
-draft: true                      # Optional — set to true to hide from the published feed
+cc: "CC-BY-4.0"                  # Optional — shows a Creative Commons license badge
+readingTime: 5                    # Optional — override auto-calculated reading time (minutes)
+draft: true                       # Optional — set to true to hide from the published feed
+series: "My Series"             # Optional — group related posts into a series
+seriesOrder: 1                    # Optional — used to sort series posts
 ---
 ```
 
 <Callout type="warning" title="Required Fields">
-If you omit `title`, `date`, `author`, `category`, or `tags`, the post will either fail to build or display incorrectly. All five are required.
+If you omit `title`, `date`, `author`, `category`, or `tags`, the post may not render correctly. All five are required.
 </Callout>
 
 <Callout type="tip" title="Cover Images">
-Set `coverImage` to a URL (e.g. from Unsplash) and the image will appear as a thumbnail on the blog homepage card grid AND as the hero image inside the post. It is also automatically used as the Open Graph image for social sharing previews.
+Set `coverImage` to a URL or a static `/public/` path. It appears as the blog card thumbnail and as the hero image inside the post.
 </Callout>
 
 ### Step 3 — Start Writing
@@ -84,7 +88,7 @@ Below the closing `---`, write your content using standard Markdown. All the sup
 
 ## Part 2: Creating a Docs Page
 
-Documentation pages live in `/content/docs/` and are organized into **sections** using subdirectories.
+Documentation pages live in `/content/docs/` and are organized into **sections** using subdirectories. Nested folders are fully supported.
 
 ### File Structure
 
@@ -94,9 +98,11 @@ content/docs/
 │   └── index.mdx           → /docs/introduction
 ├── guides/
 │   ├── installation.mdx    → /docs/guides/installation
-│   └── advanced.mdx        → /docs/guides/advanced
-├── deployment/
-│   └── hosting.mdx         → /docs/deployment/hosting
+│   └── advanced/
+│       └── features.mdx    → /docs/guides/advanced/features
+├── reference/
+│   └── api/
+│       └── usage.mdx       → /docs/reference/api/usage
 └── troubleshooting/
     └── index.mdx           → /docs/troubleshooting
 ```
@@ -107,26 +113,19 @@ content/docs/
 ---
 title: "Getting Started"        # Required — page title shown in sidebar and heading
 section: "Introduction"         # Required — the human-readable section name
-order: 1                        # Optional — controls sidebar sort order within a section
+order: 1                         # Optional — controls sidebar sort order within a section
 description: "Learn how to…"   # Optional — shown in search results and browser tab
 draft: false                    # Optional — hides page from nav and search when true
-version: "v1.0"                 # Optional — displays a version badge next to the page title
-toc: true                       # Optional — enables the table of contents (default: true)
+version: "v1.0"                # Optional — displays a version badge
+toc: true                        # Optional — enables the table of contents (default: true)
 prev: "introduction"            # Optional — slug of the previous doc
-next: "guides/advanced"         # Optional — slug of the next doc
+next: "guides/advanced/features" # Optional — slug of the next doc
 ---
 ```
 
 ### Sidebar Section Order
 
-The sidebar sections are sorted in this fixed order regardless of file system order:
-
-1. **Getting Started** (`introduction/`)
-2. **Guides** (`guides/`)
-3. **Deployment** (`deployment/`)
-4. **Troubleshooting** (`troubleshooting/`)
-
-Within each section, pages are sorted by their `order` frontmatter field.
+The sidebar sections are sorted by folder order and the `section` frontmatter label. Use `order` to control page order within a section.
 
 ---
 
@@ -319,18 +318,17 @@ Renders your author profile card (used on the About page):
 Add a license badge at the end of a post using the `cc` frontmatter key, or inline:
 
 ```mdx
-<CCLicense code="by-sa" author="Chigusa Asuha" />
+<CCLicense code="CC-BY-SA-4.0" author="Chigusa Asuha" />
 ```
 
 **Supported `cc` codes:**
 
 | Code | License Name |
 | :--- | :--- |
-| `by` | Attribution 4.0 |
-| `by-sa` | Attribution-ShareAlike 4.0 |
-| `by-nc` | Attribution-NonCommercial 4.0 |
-| `by-nc-sa` | Attribution-NonCommercial-ShareAlike 4.0 |
-| `zero` | CC0 — Public Domain |
+| `CC-BY-4.0` | Creative Commons Attribution 4.0 |
+| `CC-BY-SA-4.0` | Creative Commons Attribution-ShareAlike 4.0 |
+| `CC-BY-NC-4.0` | Creative Commons Attribution-NonCommercial 4.0 |
+| `CC0-1.0` | Creative Commons Zero (Public Domain) |
 
 ---
 

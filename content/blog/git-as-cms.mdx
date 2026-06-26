@@ -18,16 +18,16 @@ In this post, we'll explain how it works, why it's better for developer-focused 
 
 ## What is a Git-Backed CMS?
 
-A Git-backed CMS means that the "database" for all of our blog posts and documentation is simply the file system of our code repository. 
+A Git-backed CMS means that the "database" for all of our blog posts and documentation is simply the file system of our code repository.
 
-There is no SQL database. There is no external API to fetch posts from. Instead, every piece of content exists as an `.mdx` file right alongside the source code in GitHub.
+There is no SQL database. There is no external API to fetch posts from. Instead, every piece of content exists as an `.md` or `.mdx` file right alongside the source code in GitHub.
 
 ### How do you add new content?
 
 You don't log into a dashboard. To publish a new post, you simply:
 
 1. Open your code editor (or the GitHub web interface).
-2. Create a new `.mdx` file in the `content/blog/` or `content/docs/` folder.
+2. Create a new `.md` or `.mdx` file in the `content/blog/` or `content/docs/` folder.
 3. Commit the file and push it to GitHub.
 
 That's it. **GitHub is our CMS.**
@@ -42,7 +42,7 @@ You don't even need to use the command line! You can navigate to your repository
 
 Because there's no database to query at runtime, we rely on the build process to handle content discovery.
 
-When you push a new `.mdx` file to the `main` branch on GitHub:
+When you push a new `.md` or `.mdx` file to the `main` branch on GitHub:
 1. **GitHub Actions / Vercel** detects the new commit.
 2. The build process (`npm run build`) starts.
 3. **Vite's `import.meta.glob`** scans the `content/` folder, discovers the new file, parses the YAML frontmatter, and bundles it into the JavaScript payload.
@@ -71,12 +71,15 @@ Here is a live video embed right from the file:
 <VideoEmbed src="https://youtu.be/dQw4w9WgXcQ" />
 ```
 
+### 5. Nested Folders and Filename Matching
+This platform supports nested content folders inside `content/blog/` and `content/docs/`. A folder named `index.mdx` maps to the parent slug, and the app can resolve blog posts by filename when the plain file name is used in the route.
+
 ---
 
 ## The Trade-offs
 
-This approach isn't for everyone. If you have a marketing team of non-technical writers who are terrified of Markdown and GitHub, a Headless CMS with a visual editor is a better choice. 
+This approach isn't for everyone. If you have a marketing team of non-technical writers who are terrified of Markdown and GitHub, a Headless CMS with a visual editor is a better choice.
 
 But for developers, technical writers, and engineering teams? The Git-backed MDX approach provides the lowest friction, highest performance, and most durable way to publish content on the modern web.
 
-<CCLicense code="by-sa" author="Chigusa Asuha" />
+<CCLicense code="CC-BY-SA-4.0" author="Chigusa Asuha" />

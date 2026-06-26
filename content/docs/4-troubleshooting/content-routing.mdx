@@ -74,26 +74,51 @@ draft: false  # ← or remove this line entirely
 **How slugs are derived:**
 
 ```
-content/docs/guides/installation.mdx   → /docs/guides/installation
-content/docs/introduction/index.mdx   → /docs/introduction
-content/docs/api/reference.mdx        → /docs/api/reference
+content/docs/guides/installation.mdx            → /docs/guides/installation
+content/docs/introduction/index.mdx             → /docs/introduction
+content/docs/reference/api/usage.mdx            → /docs/reference/api/usage
+content/docs/tutorials/react/hooks/index.mdx    → /docs/tutorials/react/hooks
+content/about.mdx                                → /about
 ```
 
-**Fix:** Check that the URL you are visiting exactly matches the file path (minus `/content/docs` prefix and `.mdx` extension). Rename the file or folder if needed.
+### Valid docs/about slug examples
+
+- `/about` → `content/about.mdx`
+- `/docs` → `content/docs/_index` or docs index route handled by `/src/routes/docs._index.tsx`
+- `/docs/guides/installation` → `content/docs/guides/installation.mdx`
+- `/docs/reference/api` → `content/docs/reference/api/index.mdx`
+- `/docs/reference/api/usage` → `content/docs/reference/api/usage.mdx`
+
+### Invalid slugs to avoid
+
+- `/about/me` — only `/about` is supported for the standalone about page.
+- `/docs/about` — does not automatically map to `content/about.mdx`; docs pages must be under `content/docs/`.
+- `/content/docs/guides/installation` — the URL should not include the `/content` prefix.
+- `/blog/installation` when the file is in `content/docs/` — blog and docs routes are separate.
+
+**Fix:** Check that the URL you are visiting matches the file path (minus the `/content/docs` prefix and `.mdx` extension). Nested folders are supported, and `index.mdx` maps to the parent folder slug.
 
 ---
 
 ### The sidebar shows pages but clicking them gives a 404
 
-**Cause:** The `docs.$section.$slug.tsx` route handler expects exactly two URL segments after `/docs/`. A deeply nested file like `content/docs/a/b/c.mdx` (three levels deep) will not be matched.
+**Cause:** The `docs` route is now a catch-all route, so mismatched slugs usually indicate a path typo or a file that has been renamed without updating links.
 
-**Fix:** Keep docs to a **maximum of two folder levels deep**:
+**Fix:** Verify both of the following:
+
+- The file exists under `content/docs/`
+- The frontmatter includes a valid `section` field
+
+The actual route mapping is flexible enough to support deeply nested docs content:
 
 ```
-✅ content/docs/guides/installation.mdx   → /docs/guides/installation
-✅ content/docs/introduction/index.mdx   → /docs/introduction
-❌ content/docs/guides/advanced/deep.mdx  → Cannot be routed
+✅ content/docs/guides/installation.mdx            → /docs/guides/installation
+✅ content/docs/reference/api/index.mdx            → /docs/reference/api
+✅ content/docs/reference/api/usage.mdx            → /docs/reference/api/usage
+✅ content/docs/tutorials/react/hooks/index.mdx    → /docs/tutorials/react/hooks
 ```
+
+If a file still fails to resolve, make sure the page is not marked with `draft: true` in frontmatter.
 
 ---
 

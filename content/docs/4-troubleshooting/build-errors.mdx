@@ -73,11 +73,13 @@ export default defineConfig({
       ...mdx({ /* ... */ }),
     },
     react({
-      include: /\.(mdx|js|jsx|ts|tsx)$/, // ← Must include .mdx
+      include: /\.(md|mdx|js|jsx|ts|tsx)$/,
     }),
   ],
 })
 ```
+
+This project supports both `.md` and `.mdx` files inside the content glob patterns. If you are using `.md` files for blog or docs content, make sure the React plugin include list contains `md` as shown above.
 
 ---
 
