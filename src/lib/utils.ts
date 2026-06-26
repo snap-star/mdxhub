@@ -83,36 +83,6 @@ export function timeAgo(dateStr: string): string {
   }
 }
 
-export function estimateReadingTime(content: string): number {
-  // Strip frontmatter
-  const withoutFrontmatter = content.replace(/^---[\s\S]*?---/, '')
-  // Strip import statements
-  const withoutImports = withoutFrontmatter.replace(/^import\s+.*$/gm, '')
-  // Extract code blocks for separate counting
-  const codeBlocks = withoutImports.match(/```[\s\S]*?```/g) ?? []
-  const codeWordCount = codeBlocks.join(' ').replace(/```\w*/g, '').trim().split(/\s+/).length
-  // Strip code blocks and JSX/HTML tags
-  const prose = withoutImports
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
-  // Count images
-  const imageCount = (content.match(/!\[.*?\]\(.*?\)/g) ?? []).length
-    + (content.match(/<img\s/gi) ?? []).length
-  // Split CJK vs Latin words
-  const cjkChars = (prose.match(/[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g) ?? []).length
-  const latinWords = prose.replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g, '')
-    .trim().split(/\s+/).filter(Boolean).length
-  // Calculate time
-  const proseMinutes = latinWords / 238 + cjkChars / 500
-  const codeMinutes = codeWordCount * 0.4 / 238
-  const imageMinutes = imageCount > 0
-    ? (12 + Math.max(0, imageCount - 1) * 3) / 60
-    : 0
-  const total = proseMinutes + codeMinutes + imageMinutes
-  return Math.max(1, Math.round(total * 2) / 2) // round to 0.5
-}
-
 // ─── CC License helpers ────────────────────────────────────────────────────
 const CC_LICENSES: Record<string, { label: string; url: string; icon: string }> = {
   'CC-BY-4.0': {

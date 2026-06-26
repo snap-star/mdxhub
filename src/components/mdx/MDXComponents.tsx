@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router'
+import { Badge } from './Badge'
 import { Callout } from './Callout'
 import { ProfileBadge } from './ProfileBadge'
 import { VideoEmbed } from './VideoEmbed'
@@ -69,7 +70,7 @@ export const MDXComponents = {
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
     const isInternal = props.href?.startsWith('/') || props.href?.startsWith('#')
     if (isInternal) {
-      return <Link to={props.href!} {...props as any} />
+      return <Link to={props.href!} {...props as React.AnchorHTMLAttributes<HTMLAnchorElement>} />
     }
     return <a target="_blank" rel="noopener noreferrer" {...props} />
   },
@@ -105,7 +106,7 @@ export const MDXComponents = {
           {...props}
           src={resolvedSrc}
         />
-        {props.alt && <figcaption className="text-center text-sm text-muted mt-2">{props.alt}</figcaption>}
+        {props.alt && <figcaption className="text-center text-sm italic text-muted mt-2 dark:text-muted-foreground">{props.alt}</figcaption>}
       </figure>
     )
   },
@@ -120,6 +121,7 @@ export const MDXComponents = {
   th: (props: React.ThHTMLAttributes<HTMLTableCellElement>) => <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground" {...props} />,
   td: (props: React.TdHTMLAttributes<HTMLTableCellElement>) => <td className="p-4 align-middle" {...props} />,
   pre: CodeBlock,
+  Badge,
   Callout,
   CCLicense,
   ProfileBadge,

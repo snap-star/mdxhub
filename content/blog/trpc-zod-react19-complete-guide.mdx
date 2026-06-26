@@ -1,0 +1,3391 @@
+---
+title: "The Complete Guide to tRPC, Zod & React 19"
+description: "A complete guide to tRPC v11, Zod v3.24+, and React 19, covering the fundamentals to advanced topics."
+date: 2026-06-26
+category: "Guide"
+tags: ["tRPC", "Zod", "React", "Vite"]
+series: "tRPC, Zod & React 19 Complete Guide"
+seriesOrder: 1
+coverImage:
+---
+
+# The Complete Guide to tRPC, Zod & React 19
+## From Junior to Expert — Full-Stack Type-Safe Development
+
+---
+
+# Part 0: Introduction & Philosophy
+
+## What This Guide Covers
+
+This guide is your comprehensive journey through **tRPC v11**, **Zod v3.24+**, and **React 19** — three technologies that, when combined, create a developer experience that feels like magic. We progress from absolute fundamentals through production-grade architecture patterns.
+
+### The Stack
+| Technology | Role | Why It Matters |
+|-----------|------|----------------|
+| **tRPC v11** | Type-safe API layer | End-to-end types without code generation |
+| **Zod v3.24+** | Schema validation | Runtime safety with inferred TypeScript types |
+| **React 19** | UI framework | Server Components, Actions, and Suspense integration |
+| **TanStack Query v5** | Data fetching | The engine behind tRPC's React hooks |
+| **TypeScript 5.7+** | Type system | The glue that makes everything work |
+
+### The Philosophy: Type Safety as a Feature
+
+Before we write code, understand this: **tRPC doesn't just add types to your API — it eliminates an entire class of bugs and cognitive overhead.** When your frontend and backend share types:
+
+- **No more API documentation drift** — types ARE the documentation
+- **No more `as any` to silence TypeScript** — the types flow from your database to your UI
+- **Refactoring becomes fearless** — change a field name, and every usage breaks immediately
+- **Autocompletion becomes telepathy** — your editor knows what's available before you do
+
+### How to Read This Guide
+
+We use a **level badge system** to indicate difficulty:
+
+<Badge variant="green">Junior</Badge> — Fundamental concepts, first-time setup, basic usage  
+<Badge variant="orange">Intermediate</Badge> — Patterns, configuration, real-world scenarios  
+<Badge variant="red">Expert</Badge> — Architecture, performance, edge cases, production concerns  
+
+Each section builds on the previous. Junior sections must be mastered before Intermediate. Intermediate patterns are assumed knowledge in Expert sections.
+
+---
+
+## Prerequisites Checklist
+
+Before starting, ensure you're comfortable with:
+
+- [ ] TypeScript basics (generics, utility types, `infer` keyword)
+- [ ] React fundamentals (hooks, components, state management)
+- [ ] Node.js and npm/pnpm/bun package management
+- [ ] Basic understanding of HTTP and REST concepts
+- [ ] React Server Components concept (new in React 19)
+
+---
+
+# Part 1: Junior Level — Foundations
+
+## Chapter 1: Your First tRPC Setup
+
+<Badge variant="green">Junior</Badge>
+
+### 1.1 Project Initialization
+
+Let's create a modern full-stack TypeScript project with tRPC and React 19.
+
+```bash
+# Create a new project with your preferred tool
+# Option A: Using create-t3-app (recommended for beginners)
+npx create-t3-app@latest my-trpc-app
+# Select: App Router, tRPC, Prisma (optional), NextAuth (optional)
+
+# Option B: Manual setup with Vite + Express
+mkdir my-trpc-app && cd my-trpc-app
+npm init -y
+
+# Install core dependencies
+npm install @trpc/server@next @trpc/client@next @trpc/react-query@next @tanstack/react-query@latest zod react@latest react-dom@latest
+npm install -D typescript @types/react @types/react-dom @types/node tsx
+```
+
+### 1.2 The File Structure
+
+```
+my-trpc-app/
+├── src/
+│   ├── server/               # Backend code
+│   │   ├── index.ts          # Server entry point
+│   │   ├── trpc.ts           # tRPC initialization
+│   │   └── routers/          # API routers
+│   │       ├── index.ts      # Root router
+│   │       └── user.ts       # User-specific routes
+│   ├── client/               # Frontend code
+│   │   ├── trpc.ts           # tRPC client setup
+│   │   └── components/       # React components
+│   └── shared/               # Shared between client & server
+│       └── schemas.ts        # Zod schemas
+├── package.json
+└── tsconfig.json
+```
+
+### 1.3 Creating Your First Router
+
+**File: `src/server/trpc.ts`** — The tRPC initialization file
+
+```typescript
+import { initTRPC } from '@trpc/server';
+
+// Create the tRPC instance with context type
+const t = initTRPC.create();
+
+// Export reusable router and procedure helpers
+export const router = t.router;
+export const publicProcedure = t.procedure;
+```
+
+**File: `src/server/routers/user.ts`** — A feature router
+
+```typescript
+import { z } from 'zod';
+import { router, publicProcedure } from '../trpc';
+
+export const userRouter = router({
+  // Query: get a single user by ID
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      // In real apps, this comes from your database
+      const user = await db.user.findUnique({ where: { id: input.id } });
+      return user; // Type: { id: string; name: string; email: string } | null
+    }),
+
+  // Query: list all users
+  list: publicProcedure
+    .query(async () => {
+      const users = await db.user.findMany();
+      return users; // Type: Array<{ id: string; name: string; email: string }>
+    }),
+
+  // Mutation: create a new user
+  create: publicProcedure
+    .input(z.object({
+      name: z.string().min(1, "Name is required").max(100),
+      email: z.string().email("Invalid email address"),
+      age: z.number().int().min(0).max(150).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const user = await db.user.create({ data: input });
+      return user;
+    }),
+});
+```
+
+**File: `src/server/routers/index.ts`** — Root router
+
+```typescript
+import { router } from '../trpc';
+import { userRouter } from './user';
+
+export const appRouter = router({
+  user: userRouter,
+  // Add more routers here: post: postRouter, comment: commentRouter, etc.
+});
+
+// Export type for client usage
+export type AppRouter = typeof appRouter;
+```
+
+**File: `src/server/index.ts`** — Server entry point
+
+```typescript
+import { createHTTPServer } from '@trpc/server/adapters/standalone';
+import { appRouter } from './routers';
+
+const server = createHTTPServer({
+  router: appRouter,
+  createContext: () => ({}), // We'll expand this later
+});
+
+server.listen(3001);
+console.log('tRPC server running on http://localhost:3001');
+```
+
+### 1.4 Client Setup with React 19
+
+**File: `src/client/trpc.ts`** — Client initialization
+
+```typescript
+import { createTRPCReact } from '@trpc/react-query';
+import { httpBatchLink } from '@trpc/client';
+import type { AppRouter } from '../server/routers';
+
+// Create typed React hooks
+export const trpc = createTRPCReact<AppRouter>();
+
+// Create a provider wrapper component
+export function TrpcProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = React.useState(() => new QueryClient());
+  
+  const trpcClient = trpc.createClient({
+    links: [
+      httpBatchLink({
+        url: 'http://localhost:3001',
+        // React 19: Headers can be async for auth tokens
+        async headers() {
+          const token = localStorage.getItem('token');
+          return token ? { Authorization: `Bearer ${token}` } : {};
+        },
+      }),
+    ],
+  });
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+```
+
+### 1.5 Using tRPC in React 19 Components
+
+**File: `src/client/components/UserList.tsx`** — React Server Component (RSC)
+
+```typescript
+// React 19 Server Component — data fetching on the server
+import { trpc } from '../trpc';
+
+// Server Components can directly call tRPC in React 19
+export async function UserListRSC() {
+  const users = await trpc.user.list.fetch();
+
+  return (
+    <div className="user-list">
+      <h2>Users (Server Rendered)</h2>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>
+            <strong>{user.name}</strong> — {user.email}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+**File: `src/client/components/UserForm.tsx`** — Client Component with tRPC
+
+```typescript
+'use client'; // Next.js App Router — mark as Client Component
+
+import { trpc } from '../trpc';
+import { useState } from 'react';
+
+export function UserForm() {
+  const utils = trpc.useUtils();
+  
+  // useMutation with React 19's enhanced form handling
+  const createUser = trpc.user.create.useMutation({
+    // React 19: Optimistic updates pattern
+    onMutate: async (newUser) => {
+      // Cancel outgoing refetches
+      await utils.user.list.cancel();
+      
+      // Snapshot previous value
+      const previousUsers = utils.user.list.getData();
+      
+      // Optimistically update
+      utils.user.list.setData(undefined, (old) => [
+        ...(old ?? []),
+        { id: 'temp-id', ...newUser },
+      ]);
+      
+      return { previousUsers };
+    },
+    onError: (err, newUser, context) => {
+      // Rollback on error
+      utils.user.list.setData(undefined, context?.previousUsers);
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      utils.user.list.invalidate();
+    },
+  });
+
+  // React 19: Actions work seamlessly with tRPC mutations
+  const handleSubmit = async (formData: FormData) => {
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    
+    await createUser.mutateAsync({ name, email });
+  };
+
+  return (
+    <form action={handleSubmit}>
+      <input 
+        name="name" 
+        placeholder="Name" 
+        required 
+        minLength={1}
+        maxLength={100}
+      />
+      <input 
+        name="email" 
+        type="email" 
+        placeholder="Email" 
+        required 
+      />
+      <button type="submit" disabled={createUser.isPending}>
+        {createUser.isPending ? 'Creating...' : 'Create User'}
+      </button>
+      
+      {createUser.error && (
+        <p className="error">{createUser.error.message}</p>
+      )}
+    </form>
+  );
+}
+```
+
+---
+
+## Chapter 2: Zod Fundamentals for API Validation
+
+<Badge variant="green">Junior</Badge>
+
+### 2.1 Why Zod?
+
+**Zod is a TypeScript-first schema validation library.** Its superpower is that it validates at **runtime** while simultaneously producing **compile-time types**. This dual nature makes it the perfect companion for tRPC.
+
+```typescript
+import { z } from 'zod';
+
+// Define once — get both runtime validation AND compile-time types
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  email: z.string().email(),
+  age: z.number().int().min(0).optional(),
+});
+
+// Extract the TypeScript type
+type User = z.infer<typeof UserSchema>;
+// Equivalent to: type User = { id: string; name: string; email: string; age?: number }
+
+// Runtime validation
+const result = UserSchema.safeParse({
+  id: '550e8400-e29b-41d4-a716-446655440000',
+  name: 'Alice',
+  email: 'alice@example.com',
+  age: 30,
+});
+
+if (result.success) {
+  console.log(result.data); // Typed as User
+} else {
+  console.error(result.error.issues);
+  // [{ path: ['email'], message: 'Invalid email' }, ...]
+}
+```
+
+### 2.2 Zod Primitives for tRPC Input
+
+These are the building blocks you'll use daily:
+
+```typescript
+import { z } from 'zod';
+
+// String validations
+const name = z.string().min(1).max(100);
+const email = z.string().email();
+const url = z.string().url();
+const uuid = z.string().uuid();
+const regex = z.string().regex(/^[a-zA-Z0-9_]+$/);
+
+// Number validations
+const age = z.number().int().min(0).max(150);
+const price = z.number().positive().multipleOf(0.01); // 2 decimal places
+const rating = z.number().min(1).max(5);
+
+// Coercion — convert strings to numbers (common with form data)
+const queryLimit = z.coerce.number().int().min(1).max(100).default(10);
+
+// Booleans
+const isActive = z.boolean().default(true);
+
+// Dates
+const createdAt = z.coerce.date(); // Accepts ISO strings, converts to Date
+
+// Enums
+const status = z.enum(['pending', 'active', 'archived']);
+
+// Literals (exact values)
+const role = z.literal('admin');
+
+// Arrays
+const tags = z.array(z.string().min(1)).max(10);
+
+// Objects (most common)
+const createUserInput = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(['user', 'admin']).default('user'),
+});
+
+// Optionals and nullables
+const optionalBio = z.string().optional();        // bio?: string
+const nullableBio = z.string().nullable();        // bio: string | null
+const nullishBio = z.string().nullish();          // bio?: string | null | undefined
+```
+
+### 2.3 tRPC Input Validation in Practice
+
+Every tRPC procedure that accepts input should validate it with Zod:
+
+```typescript
+import { z } from 'zod';
+import { router, publicProcedure } from './trpc';
+
+export const postRouter = router({
+  // Pagination pattern — used everywhere
+  list: publicProcedure
+    .input(
+      z.object({
+        cursor: z.string().optional(),       // For cursor-based pagination
+        limit: z.number().min(1).max(50).default(10),
+        search: z.string().optional(),
+        sortBy: z.enum(['createdAt', 'title', 'views']).default('createdAt'),
+        sortOrder: z.enum(['asc', 'desc']).default('desc'),
+      })
+    )
+    .query(async ({ input }) => {
+      // input is fully typed: { cursor?: string; limit: number; search?: string; ... }
+      const { cursor, limit, search, sortBy, sortOrder } = input;
+      
+      return db.post.findMany({
+        take: limit + 1, // Take one extra to check if there's more
+        cursor: cursor ? { id: cursor } : undefined,
+        where: search ? { title: { contains: search } } : undefined,
+        orderBy: { [sortBy]: sortOrder },
+      });
+    }),
+
+  // Nested object validation
+  create: publicProcedure
+    .input(
+      z.object({
+        title: z.string().min(1).max(200),
+        content: z.string().min(1),
+        metadata: z.object({
+          tags: z.array(z.string()).max(10),
+          category: z.string().optional(),
+          publishedAt: z.coerce.date().optional(),
+        }).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // metadata.tags, metadata.category — all fully typed and validated
+      return db.post.create({ data: input });
+    }),
+
+  // Array input for batch operations
+  createMany: publicProcedure
+    .input(
+      z.array(
+        z.object({
+          title: z.string().min(1),
+          content: z.string().min(1),
+        })
+      ).min(1).max(100)
+    )
+    .mutation(async ({ input }) => {
+      // input is an array, validated for length 1-100
+      return db.post.createMany({ data: input });
+    }),
+});
+```
+
+### 2.4 React 19 Form Integration with Zod
+
+React 19 introduces enhanced form handling. Combine it with Zod for bulletproof forms:
+
+```typescript
+'use client';
+
+import { z } from 'zod';
+import { useActionState } from 'react'; // React 19 feature
+import { trpc } from './trpc';
+
+// Define schema once — use everywhere
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+type LoginInput = z.infer<typeof loginSchema>;
+
+// Server action with Zod validation (React 19)
+export function LoginForm() {
+  const login = trpc.auth.login.useMutation();
+  
+  // React 19 useActionState for form state management
+  const [state, submitAction, isPending] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      // Validate with Zod
+      const result = loginSchema.safeParse({
+        email: formData.get('email'),
+        password: formData.get('password'),
+      });
+      
+      if (!result.success) {
+        // Return field errors for display
+        return { 
+          errors: result.error.flatten().fieldErrors,
+          message: null 
+        };
+      }
+      
+      try {
+        await login.mutateAsync(result.data);
+        return { errors: {}, message: 'Login successful!' };
+      } catch (err) {
+        return { 
+          errors: {}, 
+          message: err instanceof Error ? err.message : 'Login failed' 
+        };
+      }
+    },
+    { errors: {}, message: null }
+  );
+
+  return (
+    <form action={submitAction}>
+      <div>
+        <input name="email" type="email" placeholder="Email" />
+        {state.errors?.email && <span>{state.errors.email}</span>}
+      </div>
+      <div>
+        <input name="password" type="password" placeholder="Password" />
+        {state.errors?.password && <span>{state.errors.password}</span>}
+      </div>
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Logging in...' : 'Login'}
+      </button>
+      {state.message && <p>{state.message}</p>}
+    </form>
+  );
+}
+```
+
+---
+
+## Chapter 3: Core tRPC Concepts
+
+<Badge variant="green">Junior</Badge>
+
+### 3.1 Queries vs Mutations
+
+```typescript
+import { router, publicProcedure } from './trpc';
+
+export const todoRouter = router({
+  // QUERY: Read operations (GET equivalent)
+  // - Can be cached by TanStack Query
+  // - Support automatic refetching
+  // - Can be used in Server Components
+  
+  getAll: publicProcedure.query(async () => {
+    return db.todo.findMany();
+  }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      return db.todo.findUnique({ where: input });
+    }),
+
+  // MUTATION: Write operations (POST/PUT/DELETE equivalent)
+  // - Invalidates queries automatically
+  // - Used for create, update, delete
+  // - Only in Client Components
+  
+  create: publicProcedure
+    .input(z.object({ text: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      return db.todo.create({ data: input });
+    }),
+
+  toggle: publicProcedure
+    .input(z.object({ id: z.string(), completed: z.boolean() }))
+    .mutation(async ({ input }) => {
+      return db.todo.update({
+        where: { id: input.id },
+        data: { completed: input.completed },
+      });
+    }),
+
+  delete: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      return db.todo.delete({ where: input });
+    }),
+});
+```
+
+### 3.2 Client-Side Query Usage
+
+```typescript
+'use client';
+
+import { trpc } from './trpc';
+
+export function TodoList() {
+  // Basic query — auto-cached, auto-refetched on window focus
+  const { data: todos, isLoading, error } = trpc.todo.getAll.useQuery();
+
+  // Query with input parameters
+  const { data: singleTodo } = trpc.todo.getById.useQuery(
+    { id: 'some-id' },
+    { enabled: !!todoId } // Only run when todoId exists
+  );
+
+  // Mutations with automatic invalidation
+  const utils = trpc.useUtils();
+  const createTodo = trpc.todo.create.useMutation({
+    onSuccess: () => {
+      // Invalidate and refetch the list
+      utils.todo.getAll.invalidate();
+    },
+  });
+
+  const deleteTodo = trpc.todo.delete.useMutation({
+    onSuccess: () => {
+      utils.todo.getAll.invalidate();
+    },
+  });
+
+  if (isLoading) return <div>Loading todos...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <button 
+        onClick={() => createTodo.mutate({ text: 'New todo' })}
+        disabled={createTodo.isPending}
+      >
+        Add Todo
+      </button>
+      
+      <ul>
+        {todos?.map((todo) => (
+          <li key={todo.id}>
+            {todo.text}
+            <button onClick={() => deleteTodo.mutate({ id: todo.id })}>
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### 3.3 The `useUtils()` Hook — Your Swiss Army Knife
+
+```typescript
+'use client';
+
+function TodoManager() {
+  const utils = trpc.useUtils();
+
+  // Manual invalidation
+  const handleRefresh = () => {
+    utils.todo.getAll.invalidate(); // Refetch all todo.getAll queries
+  };
+
+  // Prefetch on hover (performance optimization)
+  const handleMouseEnter = (todoId: string) => {
+    utils.todo.getById.prefetch({ id: todoId });
+  };
+
+  // Access cached data without a query
+  const handleCheckCache = () => {
+    const cachedTodos = utils.todo.getAll.getData();
+    console.log('Currently cached:', cachedTodos);
+  };
+
+  // Set data directly (for optimistic updates)
+  const handleOptimisticAdd = (newTodo: Todo) => {
+    utils.todo.getAll.setData(undefined, (old) => 
+      old ? [...old, newTodo] : [newTodo]
+    );
+  };
+
+  // Cancel outgoing queries
+  const handleCancelAll = () => {
+    utils.todo.getAll.cancel();
+  };
+
+  return (/* ... */);
+}
+```
+
+---
+
+## Chapter 4: Error Handling Basics
+
+<Badge variant="green">Junior</Badge>
+
+### 4.1 tRPC Error Types
+
+```typescript
+import { TRPCError } from '@trpc/server';
+
+export const userRouter = router({
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const user = await db.user.findUnique({ where: input });
+      
+      if (!user) {
+        // Throw structured errors
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `User with ID ${input.id} not found`,
+        });
+      }
+      
+      return user;
+    }),
+
+  create: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      const existing = await db.user.findUnique({
+        where: { email: input.email },
+      });
+      
+      if (existing) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Email already registered',
+        });
+      }
+      
+      return db.user.create({ data: input });
+    }),
+});
+```
+
+### 4.2 Error Handling on the Client
+
+```typescript
+'use client';
+
+export function UserProfile({ userId }: { userId: string }) {
+  const { data, isLoading, error, isError } = trpc.user.getById.useQuery(
+    { id: userId },
+    {
+      // Handle specific error types
+      retry: (failureCount, error) => {
+        // Don't retry on 404s
+        if (error.data?.code === 'NOT_FOUND') return false;
+        return failureCount < 3;
+      },
+    }
+  );
+
+  if (isLoading) return <Skeleton />;
+  
+  if (isError) {
+    // Type-safe error handling!
+    switch (error.data?.code) {
+      case 'NOT_FOUND':
+        return <div>User not found. <Link href="/users">Browse users</Link></div>;
+      case 'UNAUTHORIZED':
+        return <div>Please <Link href="/login">log in</Link> to view this profile.</div>;
+      case 'FORBIDDEN':
+        return <div>You don't have permission to view this profile.</div>;
+      default:
+        return <div>Something went wrong: {error.message}</div>;
+    }
+  }
+
+  return (
+    <div>
+      <h1>{data.name}</h1>
+      <p>{data.email}</p>
+    </div>
+  );
+}
+```
+
+---
+
+# Part 2: Intermediate Level — Real-World Patterns
+
+## Chapter 5: Authentication & Context
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 5.1 Building a Context with Authentication
+
+**File: `src/server/context.ts`**
+
+```typescript
+import { CreateHTTPContextOptions } from '@trpc/server/adapters/standalone';
+
+interface User {
+  id: string;
+  email: string;
+  role: 'user' | 'admin';
+}
+
+export async function createContext({ req }: CreateHTTPContextOptions) {
+  // Extract token from header
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader?.startsWith('Bearer ')) {
+    return { user: null }; // Anonymous user
+  }
+  
+  const token = authHeader.slice(7);
+  
+  try {
+    // Verify JWT and get user
+    const payload = await verifyToken(token);
+    const user = await db.user.findUnique({ where: { id: payload.sub } });
+    
+    return { user }; // Authenticated context
+  } catch {
+    return { user: null }; // Invalid token
+  }
+}
+
+export type Context = Awaited<ReturnType<typeof createContext>>;
+```
+
+**File: `src/server/trpc.ts`** — Updated with context
+
+```typescript
+import { initTRPC, TRPCError } from '@trpc/server';
+import type { Context } from './context';
+
+const t = initTRPC.context<Context>().create();
+
+export const router = t.router;
+export const publicProcedure = t.procedure;
+
+// Middleware: require authentication
+const enforceAuth = t.middleware(({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      user: ctx.user, // Now guaranteed non-null
+    },
+  });
+});
+
+// Middleware: require admin role
+const enforceAdmin = t.middleware(({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  if (ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+  }
+  return next({ ctx });
+});
+
+// Create protected procedures
+export const authedProcedure = t.procedure.use(enforceAuth);
+export const adminProcedure = t.procedure.use(enforceAdmin);
+```
+
+### 5.2 Using Protected Procedures
+
+```typescript
+import { router, publicProcedure, authedProcedure, adminProcedure } from '../trpc';
+
+export const userRouter = router({
+  // Public — anyone can call
+  list: publicProcedure.query(async () => {
+    return db.user.findMany({ select: { id: true, name: true } });
+  }),
+
+  // Protected — requires login
+  me: authedProcedure.query(async ({ ctx }) => {
+    // ctx.user is guaranteed to exist
+    return db.user.findUnique({ where: { id: ctx.user.id } });
+  }),
+
+  // Protected — users can only update their own profile
+  update: authedProcedure
+    .input(z.object({
+      name: z.string().min(1).optional(),
+      bio: z.string().max(500).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return db.user.update({
+        where: { id: ctx.user.id },
+        data: input,
+      });
+    }),
+
+  // Admin only
+  delete: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      return db.user.delete({ where: input });
+    }),
+
+  // Admin only — list all emails
+  listEmails: adminProcedure.query(async () => {
+    return db.user.findMany({ select: { id: true, email: true } });
+  }),
+});
+```
+
+### 5.3 React Client with Auth Integration
+
+```typescript
+// src/client/trpc.ts — with auth token management
+import { createTRPCReact } from '@trpc/react-query';
+import { httpBatchLink, retryLink } from '@trpc/client';
+import type { AppRouter } from '../server/routers';
+
+export const trpc = createTRPCReact<AppRouter>();
+
+export function TrpcProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Global error handling
+        meta: {
+          onError: (error: TRPCClientError<AppRouter>) => {
+            if (error.data?.code === 'UNAUTHORIZED') {
+              window.location.href = '/login';
+            }
+          },
+        },
+      },
+    },
+  }));
+
+  const trpcClient = trpc.createClient({
+    links: [
+      // Retry failed requests intelligently
+      retryLink({
+        retry: (opts) => {
+          // Don't retry mutations
+          if (opts.op.type === 'mutation') return false;
+          // Don't retry auth errors
+          if (opts.error.data?.code === 'UNAUTHORIZED') return false;
+          // Default retry logic
+          return opts.attempts < 3;
+        },
+      }),
+      httpBatchLink({
+        url: '/api/trpc',
+        headers() {
+          const token = localStorage.getItem('token');
+          return token ? { Authorization: `Bearer ${token}` } : {};
+        },
+      }),
+    ],
+  });
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+```
+
+---
+
+## Chapter 6: Advanced Zod Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 6.1 Reusable Validation Patterns
+
+```typescript
+import { z } from 'zod';
+
+// Reusable field validators
+export const schemas = {
+  // IDs
+  id: z.string().uuid(),
+  cuid: z.string().cuid2(),
+  
+  // User fields
+  email: z.string().email().toLowerCase().trim(),
+  password: z.string().min(8).max(100)
+    .regex(/[A-Z]/, 'Must contain uppercase')
+    .regex(/[a-z]/, 'Must contain lowercase')
+    .regex(/[0-9]/, 'Must contain number'),
+  
+  username: z.string().min(3).max(30)
+    .regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers, underscores'),
+  
+  // Content
+  title: z.string().min(1).max(200).trim(),
+  description: z.string().max(2000).trim().optional(),
+  
+  // Pagination
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  
+  // Sorting
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+};
+
+// Reusable pagination input
+export const paginationInput = z.object({
+  page: schemas.page,
+  limit: schemas.limit,
+  search: z.string().optional(),
+  sortBy: z.string().optional(),
+  sortOrder: schemas.sortOrder,
+});
+
+export type PaginationInput = z.infer<typeof paginationInput>;
+
+// Usage in routers
+export const postRouter = router({
+  list: publicProcedure
+    .input(paginationInput)
+    .query(async ({ input }) => {
+      const { page, limit } = input;
+      const skip = (page - 1) * limit;
+      
+      const [posts, total] = await Promise.all([
+        db.post.findMany({ skip, take: limit }),
+        db.post.count(),
+      ]);
+      
+      return {
+        data: posts,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    }),
+});
+```
+
+### 6.2 Schema Composition & Refinement
+
+```typescript
+import { z } from 'zod';
+
+// Base schemas that can be extended
+const timestampFields = {
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+};
+
+// Base entity schema
+const entitySchema = z.object({
+  id: z.string().uuid(),
+  ...timestampFields,
+});
+
+// Extending schemas
+type Entity = z.infer<typeof entitySchema>;
+
+const userBaseSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+});
+
+// Create User Input (no ID needed)
+const createUserSchema = userBaseSchema.extend({
+  password: z.string().min(8),
+  role: z.enum(['user', 'admin']).default('user'),
+});
+
+// Update User Input (all fields optional)
+const updateUserSchema = userBaseSchema.partial();
+
+// Full User (from database)
+const userSchema = entitySchema.merge(userBaseSchema).extend({
+  role: z.enum(['user', 'admin']),
+  avatar: z.string().url().nullable(),
+});
+
+// Advanced refinement — custom validation
+const passwordSchema = z.object({
+  password: z.string().min(8),
+  confirmPassword: z.string(),
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Passwords don't match",
+    path: ['confirmPassword'], // Error will be attached to this field
+  }
+);
+
+// Transform — modify data after validation
+const slugSchema = z.string()
+  .min(1)
+  .transform((val) => val.toLowerCase().replace(/\s+/g, '-'));
+
+// Async refinement — check against database
+const uniqueEmailSchema = z.string().email()
+  .refine(
+    async (email) => {
+      const existing = await db.user.findUnique({ where: { email } });
+      return existing === null;
+    },
+    { message: 'Email already in use' }
+  );
+```
+
+### 6.3 Zod + tRPC Output Validation
+
+```typescript
+import { z } from 'zod';
+import { router, publicProcedure } from './trpc';
+
+// Define output schemas for API contracts
+const userOutputSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  email: z.string().email(),
+  // Explicitly exclude password from output!
+});
+
+const postOutputSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  content: z.string(),
+  author: userOutputSchema, // Nested validation
+  publishedAt: z.date().nullable(),
+});
+
+export const postRouter = router({
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .output(postOutputSchema) // tRPC validates output against this!
+    .query(async ({ input }) => {
+      const post = await db.post.findUnique({
+        where: input,
+        include: { author: true },
+      });
+      
+      if (!post) throw new TRPCError({ code: 'NOT_FOUND' });
+      
+      // Output is automatically validated against postOutputSchema
+      // If the shape doesn't match, tRPC throws an error
+      return post;
+    }),
+});
+```
+
+---
+
+## Chapter 7: Middleware Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 7.1 Creating Reusable Middleware
+
+```typescript
+import { initTRPC, TRPCError } from '@trpc/server';
+import type { Context } from './context';
+
+const t = initTRPC.context<Context>().create();
+
+// Logging middleware
+const logger = t.middleware(async ({ path, type, rawInput, next }) => {
+  const start = Date.now();
+  
+  console.log(`→ ${type.toUpperCase()} ${path}`);
+  
+  const result = await next();
+  
+  const duration = Date.now() - start;
+  console.log(`← ${type.toUpperCase()} ${path} — ${result.ok ? 'OK' : 'ERR'} (${duration}ms)`);
+  
+  return result;
+});
+
+// Rate limiting middleware
+const rateLimit = t.middleware(async ({ ctx, path, next }) => {
+  const key = `${ctx.user?.id ?? ctx.ip}:${path}`;
+  const limit = await checkRateLimit(key);
+  
+  if (limit.exceeded) {
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: `Rate limit exceeded. Retry after ${limit.retryAfter}s`,
+    });
+  }
+  
+  return next();
+});
+
+// Input sanitization middleware
+const sanitize = t.middleware(async ({ rawInput, next }) => {
+  if (typeof rawInput === 'object' && rawInput !== null) {
+    // Strip HTML tags from string inputs
+    const sanitized = Object.fromEntries(
+      Object.entries(rawInput).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? stripHtml(value) : value,
+      ])
+    );
+    return next({ rawInput: sanitized });
+  }
+  return next();
+});
+
+// Compose middleware into procedures
+export const loggedProcedure = t.procedure.use(logger);
+export const rateLimitedProcedure = t.procedure.use(logger).use(rateLimit);
+export const sanitizedProcedure = t.procedure.use(logger).use(sanitize);
+
+// Usage
+export const apiRouter = router({
+  // All calls are logged
+  health: loggedProcedure.query(() => ({ status: 'ok' })),
+  
+  // Rate limited + logged
+  search: rateLimitedProcedure
+    .input(z.object({ q: z.string().min(1) }))
+    .query(async ({ input }) => {
+      return performSearch(input.q);
+    }),
+  
+  // Sanitized input + logged
+  createPost: sanitizedProcedure
+    .input(z.object({ title: z.string(), content: z.string() }))
+    .mutation(async ({ input }) => {
+      // input.title and input.content are now HTML-safe
+      return db.post.create({ data: input });
+    }),
+});
+```
+
+### 7.2 Context Enrichment Pattern
+
+```typescript
+import { t } from './trpc-init';
+
+// Middleware that enriches context with additional data
+const withPost = t.middleware(async ({ ctx, rawInput, next }) => {
+  const input = rawInput as { postId: string };
+  
+  const post = await db.post.findUnique({
+    where: { id: input.postId },
+  });
+  
+  if (!post) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+  }
+  
+  // Pass post to context so procedures don't need to re-fetch
+  return next({ ctx: { ...ctx, post } });
+});
+
+// Middleware that enriches with user's organization
+const withOrganization = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+  
+  const org = await db.organization.findFirst({
+    where: { members: { some: { userId: ctx.user.id } } },
+  });
+  
+  if (!org) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'No organization found' });
+  }
+  
+  return next({ ctx: { ...ctx, organization: org } });
+});
+
+// Use enriched context
+export const postRouter = router({
+  // post is pre-loaded by middleware
+  getDetails: authedProcedure
+    .input(z.object({ postId: z.string().uuid() }))
+    .use(withPost)
+    .query(async ({ ctx }) => {
+      // ctx.post is available and typed!
+      return {
+        ...ctx.post,
+        canEdit: ctx.post.authorId === ctx.user.id,
+      };
+    }),
+
+  // organization is pre-loaded
+  getOrgPosts: authedProcedure
+    .use(withOrganization)
+    .query(async ({ ctx }) => {
+      // ctx.organization is available!
+      return db.post.findMany({
+        where: { orgId: ctx.organization.id },
+      });
+    }),
+});
+```
+
+---
+
+## Chapter 8: Subscriptions & Real-Time
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 8.1 WebSocket Subscriptions Setup
+
+```typescript
+// Server: WebSocket adapter
+import { applyWSSHandler } from '@trpc/server/adapters/ws';
+import { WebSocketServer } from 'ws';
+import { appRouter } from './routers';
+
+const wss = new WebSocketServer({ port: 3002 });
+
+const handler = applyWSSHandler({
+  wss,
+  router: appRouter,
+  createContext: ({ req }) => {
+    // Extract auth from WebSocket connection
+    const token = req.headers['sec-websocket-protocol'] as string;
+    return createContextFromToken(token);
+  },
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => handler.broadcastReconnectNotification());
+```
+
+```typescript
+// Server: Subscription router
+import { observable } from '@trpc/server/observable';
+import { EventEmitter } from 'events';
+
+const messageEmitter = new EventEmitter();
+
+export const messageRouter = router({
+  onNewMessage: authedProcedure
+    .input(z.object({ roomId: z.string().uuid() }))
+    .subscription(({ input }) => {
+      // Return an observable that emits new messages
+      return observable<{ id: string; content: string; sender: string }>((emit) => {
+        const onMessage = (msg: any) => {
+          if (msg.roomId === input.roomId) {
+            emit.next(msg);
+          }
+        };
+        
+        messageEmitter.on('message', onMessage);
+        
+        // Cleanup when unsubscribed
+        return () => {
+          messageEmitter.off('message', onMessage);
+        };
+      });
+    }),
+
+  send: authedProcedure
+    .input(z.object({
+      roomId: z.string().uuid(),
+      content: z.string().min(1).max(2000),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const message = await db.message.create({
+        data: {
+          ...input,
+          senderId: ctx.user.id,
+        },
+      });
+      
+      // Notify subscribers
+      messageEmitter.emit('message', message);
+      
+      return message;
+    }),
+});
+```
+
+### 8.2 React Client for Subscriptions
+
+```typescript
+'use client';
+
+import { trpc } from './trpc';
+
+export function ChatRoom({ roomId }: { roomId: string }) {
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  // Subscribe to real-time messages
+  trpc.message.onNewMessage.useSubscription(
+    { roomId },
+    {
+      onData: (newMessage) => {
+        setMessages((prev) => [...prev, newMessage]);
+      },
+      onError: (err) => {
+        console.error('Subscription error:', err);
+      },
+    }
+  );
+
+  const sendMessage = trpc.message.send.useMutation();
+
+  return (
+    <div>
+      <div className="messages">
+        {messages.map((msg) => (
+          <div key={msg.id}>
+            <strong>{msg.sender}:</strong> {msg.content}
+          </div>
+        ))}
+      </div>
+      
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const input = e.currentTarget.elements.namedItem('msg') as HTMLInputElement;
+          await sendMessage.mutateAsync({ roomId, content: input.value });
+          input.value = '';
+        }}
+      >
+        <input name="msg" maxLength={2000} />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  );
+}
+```
+
+---
+
+## Chapter 9: React 19 Integration Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 9.1 Server Components + tRPC Architecture
+
+React 19 Server Components (RSC) can directly call tRPC procedures on the server, eliminating client-server waterfalls:
+
+```typescript
+// app/page.tsx — Server Component (no 'use client')
+import { createCaller } from '@/server/routers';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { getQueryClient } from './query-client';
+import { TodoListClient } from './todo-list-client';
+
+export default async function TodoPage() {
+  const queryClient = getQueryClient();
+  const caller = createCaller({});
+
+  // Pre-fetch data on the server
+  await queryClient.prefetchQuery({
+    queryKey: [['todo', 'getAll']],
+    queryFn: () => caller.todo.getAll(),
+  });
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <main>
+        <h1>My Todos</h1>
+        <AddTodoForm /> {/* Client Component for interactivity */}
+        <TodoListClient /> {/* Hydrated with server data */}
+      </main>
+    </HydrationBoundary>
+  );
+}
+```
+
+```typescript
+// app/todo-list-client.tsx — Client Component
+'use client';
+
+import { trpc } from './trpc';
+
+export function TodoListClient() {
+  // Uses server-fetched data initially, then manages cache client-side
+  const { data: todos, isLoading } = trpc.todo.getAll.useQuery();
+
+  if (isLoading) return <TodoSkeleton />;
+
+  return (
+    <ul>
+      {todos?.map((todo) => (
+        <TodoItem key={todo.id} todo={todo} />
+      ))}
+    </ul>
+  );
+}
+```
+
+### 9.2 React 19 Actions + tRPC
+
+```typescript
+// app/actions.ts
+'use server';
+
+import { createCaller } from '@/server/routers';
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+
+const createTodoSchema = z.object({
+  text: z.string().min(1),
+});
+
+export async function createTodoAction(formData: FormData) {
+  const parsed = createTodoSchema.safeParse({
+    text: formData.get('text'),
+  });
+  
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors };
+  }
+  
+  const caller = createCaller({ user: null });
+  await caller.todo.create(parsed.data);
+  
+  revalidatePath('/');
+  return { success: true };
+}
+```
+
+```typescript
+// components/todo-form.tsx
+'use client';
+
+import { useActionState } from 'react';
+import { createTodoAction } from './actions';
+
+export function TodoForm() {
+  const [state, dispatch, isPending] = useActionState(
+    createTodoAction,
+    { error: null, success: false }
+  );
+
+  return (
+    <form action={dispatch}>
+      <input 
+        name="text" 
+        placeholder="Add a todo..."
+        disabled={isPending}
+      />
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Adding...' : 'Add'}
+      </button>
+      {state.error?.text && <p className="error">{state.error.text}</p>}
+    </form>
+  );
+}
+```
+
+### 9.3 Parallel Queries Pattern
+
+```typescript
+'use client';
+
+import { trpc } from './trpc';
+
+// Parallel data fetching — tRPC batches these automatically!
+export function Dashboard() {
+  const utils = trpc.useUtils();
+  
+  // These three queries are batched into ONE HTTP request!
+  const userQuery = trpc.user.me.useQuery();
+  const postsQuery = trpc.post.recent.useQuery({ limit: 5 });
+  const statsQuery = trpc.analytics.overview.useQuery();
+
+  // Wait for all to resolve
+  const isLoading = userQuery.isLoading || postsQuery.isLoading || statsQuery.isLoading;
+
+  if (isLoading) return <DashboardSkeleton />;
+
+  return (
+    <div className="dashboard">
+      <UserCard user={userQuery.data!} />
+      <RecentPosts posts={postsQuery.data!} />
+      <StatsCards stats={statsQuery.data!} />
+    </div>
+  );
+}
+
+// Dependent queries — wait for first to complete
+export function UserPosts({ userId }: { userId: string }) {
+  const userQuery = trpc.user.getById.useQuery({ id: userId });
+  
+  // Only fetch posts after user data is available
+  const postsQuery = trpc.post.byAuthor.useQuery(
+    { authorId: userId },
+    { enabled: userQuery.isSuccess }
+  );
+
+  // ...
+}
+```
+
+---
+
+## Chapter 10: Pagination Strategies
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 10.1 Cursor-Based Pagination (Recommended)
+
+```typescript
+// Server: Cursor pagination implementation
+export const postRouter = router({
+  infiniteList: publicProcedure
+    .input(
+      z.object({
+        cursor: z.string().optional(), // Last item's ID
+        limit: z.number().min(1).max(50).default(10),
+        category: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { cursor, limit, category } = input;
+
+      const posts = await db.post.findMany({
+        take: limit + 1, // Take one extra to determine if there's more
+        cursor: cursor ? { id: cursor } : undefined,
+        where: category ? { category } : undefined,
+        orderBy: { createdAt: 'desc' },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+
+      // If we got more items than requested, there's a next page
+      if (posts.length > limit) {
+        const nextItem = posts.pop(); // Remove the extra item
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items: posts,
+        nextCursor,
+      };
+    }),
+});
+```
+
+```typescript
+// Client: useInfiniteQuery for cursor pagination
+'use client';
+
+import { trpc } from './trpc';
+
+export function InfinitePostList() {
+  const { 
+    data, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage,
+    status,
+  } = trpc.post.infiniteList.useInfiniteQuery(
+    { limit: 10 }, // input without cursor
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  const allPosts = data?.pages.flatMap((page) => page.items) ?? [];
+
+  return (
+    <div>
+      {allPosts.map((post) => (
+        <PostCard key={post.id} post={post} />
+      ))}
+      
+      <button
+        onClick={() => fetchNextPage()}
+        disabled={!hasNextPage || isFetchingNextPage}
+      >
+        {isFetchingNextPage
+          ? 'Loading more...'
+          : hasNextPage
+          ? 'Load More'
+          : 'No more posts'}
+      </button>
+    </div>
+  );
+}
+```
+
+### 10.2 Offset Pagination
+
+```typescript
+// Server
+export const commentRouter = router({
+  list: publicProcedure
+    .input(z.object({
+      postId: z.string().uuid(),
+      page: z.number().min(1).default(1),
+      limit: z.number().min(1).max(100).default(20),
+    }))
+    .query(async ({ input }) => {
+      const { postId, page, limit } = input;
+      const skip = (page - 1) * limit;
+
+      const [items, total] = await Promise.all([
+        db.comment.findMany({
+          where: { postId },
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        db.comment.count({ where: { postId } }),
+      ]);
+
+      return {
+        items,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    }),
+});
+```
+
+---
+
+# Part 3: Expert Level — Architecture & Production
+
+## Chapter 11: tRPC Architecture Patterns
+
+<Badge variant="red">Expert</Badge>
+
+### 11.1 Modular Router Design
+
+```typescript
+// src/server/routers/_app.ts — Root router with namespacing
+import { router } from '../trpc';
+import { userRouter } from './user';
+import { postRouter } from './post';
+import { commentRouter } from './comment';
+import { searchRouter } from './search';
+import { adminRouter } from './admin';
+import { webhookRouter } from './webhook';
+
+// Merge routers with clear namespacing
+export const appRouter = router({
+  // Public APIs
+  user: userRouter,
+  post: postRouter,
+  comment: commentRouter,
+  search: searchRouter,
+  
+  // Protected namespaces
+  admin: adminRouter,       // All routes require admin
+  webhook: webhookRouter,   // External service integrations
+});
+
+export type AppRouter = typeof appRouter;
+```
+
+```typescript
+// src/server/routers/post.ts — Feature router with sub-routers
+import { router, publicProcedure, authedProcedure } from '../trpc';
+
+// Sub-router for post interactions (likes, bookmarks)
+const postInteractionRouter = router({
+  toggleLike: authedProcedure
+    .input(z.object({ postId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Toggle like logic
+    }),
+
+  toggleBookmark: authedProcedure
+    .input(z.object({ postId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Toggle bookmark logic
+    }),
+
+  getStats: publicProcedure
+    .input(z.object({ postId: z.string().uuid() }))
+    .query(async ({ input }) => {
+      return { likes: 42, bookmarks: 7 };
+    }),
+});
+
+// Main post router
+export const postRouter = router({
+  // CRUD operations
+  list: publicProcedure
+    .input(paginationInput)
+    .query(async ({ input }) => { /* ... */ }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => { /* ... */ }),
+
+  create: authedProcedure
+    .input(createPostSchema)
+    .mutation(async ({ ctx, input }) => { /* ... */ }),
+
+  update: authedProcedure
+    .input(z.object({ id: z.string().uuid(), data: updatePostSchema }))
+    .mutation(async ({ ctx, input }) => { /* ... */ }),
+
+  delete: authedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => { /* ... */ }),
+
+  // Nested router for interactions
+  interaction: postInteractionRouter,
+});
+
+// Usage on client:
+// trpc.post.interaction.toggleLike.useMutation()
+// trpc.post.interaction.getStats.useQuery({ postId: '...' })
+```
+
+### 11.2 Factory Pattern for CRUD Routers
+
+```typescript
+// src/server/lib/crud-router.ts — Generic CRUD router factory
+import { z } from 'zod';
+import { router, publicProcedure, authedProcedure } from '../trpc';
+
+interface CrudOptions<TCreate, TUpdate, TOutput> {
+  name: string;
+  createSchema: z.ZodType<TCreate>;
+  updateSchema: z.ZodType<TUpdate>;
+  outputSchema: z.ZodType<TOutput>;
+  db: {
+    create: (data: TCreate) => Promise<TOutput>;
+    findMany: (params: { skip?: number; take?: number }) => Promise<TOutput[]>;
+    findById: (id: string) => Promise<TOutput | null>;
+    update: (id: string, data: Partial<TUpdate>) => Promise<TOutput>;
+    delete: (id: string) => Promise<void>;
+    count: () => Promise<number>;
+  };
+}
+
+export function createCrudRouter<TCreate, TUpdate, TOutput>(
+  options: CrudOptions<TCreate, TUpdate, TOutput>
+) {
+  const { createSchema, updateSchema, db } = options;
+
+  return router({
+    list: publicProcedure
+      .input(paginationInput)
+      .query(async ({ input }) => {
+        const skip = (input.page - 1) * input.limit;
+        const [items, total] = await Promise.all([
+          db.findMany({ skip, take: input.limit }),
+          db.count(),
+        ]);
+        return { items, meta: { page: input.page, limit: input.limit, total } };
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ input }) => {
+        const item = await db.findById(input.id);
+        if (!item) throw new TRPCError({ code: 'NOT_FOUND' });
+        return item;
+      }),
+
+    create: authedProcedure
+      .input(createSchema)
+      .mutation(async ({ input }) => db.create(input)),
+
+    update: authedProcedure
+      .input(z.object({ id: z.string().uuid(), data: updateSchema }))
+      .mutation(async ({ input }) => db.update(input.id, input.data)),
+
+    delete: authedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ input }) => db.delete(input.id)),
+  });
+}
+
+// Usage:
+const tagRouter = createCrudRouter({
+  name: 'tag',
+  createSchema: z.object({ name: z.string().min(1) }),
+  updateSchema: z.object({ name: z.string().min(1) }).partial(),
+  outputSchema: z.object({ id: z.string(), name: z.string() }),
+  db: tagDb,
+});
+```
+
+---
+
+## Chapter 12: Performance Optimization
+
+<Badge variant="red">Expert</Badge>
+
+### 12.1 Query Optimization Strategies
+
+```typescript
+// src/server/lib/data-loader.ts — DataLoader pattern for N+1 prevention
+import DataLoader from 'dataloader';
+
+// Batch load users by ID — prevents N+1 queries
+const userLoader = new DataLoader<string, User>(async (userIds) => {
+  const users = await db.user.findMany({
+    where: { id: { in: [...userIds] } },
+  });
+  
+  // Return in same order as keys
+  const userMap = new Map(users.map((u) => [u.id, u]));
+  return userIds.map((id) => userMap.get(id) ?? null);
+});
+
+// Context factory with loaders
+export async function createContext() {
+  return {
+    loaders: {
+      user: userLoader,
+      // Add more loaders...
+    },
+  };
+}
+
+// Usage in resolvers:
+export const postRouter = router({
+  listWithAuthors: publicProcedure.query(async ({ ctx }) => {
+    const posts = await db.post.findMany({ take: 10 });
+    
+    // Only 2 queries total instead of 11!
+    const authors = await Promise.all(
+      posts.map((post) => ctx.loaders.user.load(post.authorId))
+    );
+    
+    return posts.map((post, i) => ({
+      ...post,
+      author: authors[i],
+    }));
+  }),
+});
+```
+
+### 12.2 Response Caching
+
+```typescript
+import { redis } from './redis-client';
+
+// Middleware: Redis response caching
+const cached = (ttlSeconds: number) => t.middleware(async ({ path, type, next }) => {
+  // Only cache queries
+  if (type !== 'query') return next();
+  
+  const cacheKey = `trpc:${path}`;
+  const cached = await redis.get(cacheKey);
+  
+  if (cached) {
+    return { result: { data: JSON.parse(cached) } };
+  }
+  
+  const result = await next();
+  
+  if (result.ok) {
+    await redis.setex(cacheKey, ttlSeconds, JSON.stringify(result.data));
+  }
+  
+  return result;
+});
+
+// Usage:
+export const postRouter = router({
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .use(cached(60)) // Cache for 60 seconds
+    .query(async ({ input }) => {
+      return db.post.findUnique({ where: input });
+    }),
+
+  // Cache expensive computations longer
+  getTrending: publicProcedure
+    .use(cached(300)) // Cache for 5 minutes
+    .query(async () => {
+      // Expensive aggregation query...
+      return computeTrendingPosts();
+    }),
+});
+```
+
+### 12.3 Client-Side Optimizations
+
+```typescript
+'use client';
+
+import { trpc } from './trpc';
+
+// Optimistic updates with rollback
+function useOptimisticToggle() {
+  const utils = trpc.useUtils();
+  
+  return trpc.post.toggleLike.useMutation({
+    // Optimistically update UI
+    onMutate: async ({ postId }) => {
+      await utils.post.getById.cancel({ id: postId });
+      
+      const previous = utils.post.getById.getData({ id: postId });
+      
+      utils.post.getById.setData({ id: postId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          liked: !old.liked,
+          likeCount: old.liked ? old.likeCount - 1 : old.likeCount + 1,
+        };
+      });
+      
+      return { previous };
+    },
+    
+    onError: (_err, { postId }, context) => {
+      utils.post.getById.setData({ id: postId }, context?.previous);
+    },
+    
+    onSettled: (_data, _err, { postId }) => {
+      utils.post.getById.invalidate({ id: postId });
+    },
+  });
+}
+
+// Stale-while-revalidate pattern
+function useRealtimeData() {
+  return trpc.dashboard.stats.useQuery(undefined, {
+    refetchInterval: 30000,      // Refetch every 30s
+    staleTime: 10000,            // Data fresh for 10s
+    refetchOnWindowFocus: true,  // Refresh when user returns
+    placeholderData: (prev) => prev, // Show old data while loading
+  });
+}
+
+// Prefetching for instant navigation
+function usePrefetchPost() {
+  const utils = trpc.useUtils();
+  
+  return {
+    prefetchPost: (postId: string) => {
+      utils.post.getById.prefetch({ id: postId });
+      utils.post.comments.prefetch({ postId });
+    },
+  };
+}
+```
+
+---
+
+## Chapter 13: Advanced Context & Authorization
+
+<Badge variant="red">Expert</Badge>
+
+### 13.1 Role-Based Access Control (RBAC)
+
+```typescript
+// src/server/auth/permissions.ts
+import { TRPCError } from '@trpc/server';
+
+// Define all possible permissions
+const Permissions = {
+  post: ['create', 'read', 'update', 'delete', 'publish'] as const,
+  user: ['read', 'update', 'delete', 'manageRoles'] as const,
+  comment: ['create', 'read', 'update', 'delete', 'moderate'] as const,
+} as const;
+
+type Permission = {
+  [K in keyof typeof Permissions]: `${K}:${(typeof Permissions)[K][number]}`;
+}[keyof typeof Permissions];
+
+// Role definitions
+const RolePermissions: Record<string, Permission[]> = {
+  admin: [
+    'post:create', 'post:read', 'post:update', 'post:delete', 'post:publish',
+    'user:read', 'user:update', 'user:delete', 'user:manageRoles',
+    'comment:create', 'comment:read', 'comment:update', 'comment:delete', 'comment:moderate',
+  ],
+  editor: [
+    'post:create', 'post:read', 'post:update', 'post:publish',
+    'user:read',
+    'comment:create', 'comment:read', 'comment:moderate',
+  ],
+  author: [
+    'post:create', 'post:read', 'post:update',
+    'user:read',
+    'comment:create', 'comment:read',
+  ],
+  user: [
+    'post:read',
+    'user:read', 'user:update',
+    'comment:create', 'comment:read',
+  ],
+};
+
+// Middleware factory for permission checking
+const requirePermission = (permission: Permission) => 
+  t.middleware(({ ctx, next }) => {
+    if (!ctx.user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+    
+    const userPermissions = RolePermissions[ctx.user.role] ?? [];
+    
+    if (!userPermissions.includes(permission)) {
+      throw new TRPCError({ 
+        code: 'FORBIDDEN', 
+        message: `Missing permission: ${permission}` 
+      });
+    }
+    
+    return next({ ctx });
+  });
+
+// Usage:
+export const postRouter = router({
+  create: authedProcedure
+    .use(requirePermission('post:create'))
+    .input(createPostSchema)
+    .mutation(async ({ ctx, input }) => {
+      // User guaranteed to have post:create permission
+      return db.post.create({ data: { ...input, authorId: ctx.user.id } });
+    }),
+
+  publish: authedProcedure
+    .use(requirePermission('post:publish'))
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      return db.post.update({
+        where: input,
+        data: { status: 'published', publishedAt: new Date() },
+      });
+    }),
+
+  moderate: authedProcedure
+    .use(requirePermission('comment:moderate'))
+    .input(z.object({ commentId: z.string().uuid(), action: z.enum(['approve', 'reject']) }))
+    .mutation(async ({ input }) => { /* ... */ }),
+});
+```
+
+### 13.2 Multi-Tenant Context
+
+```typescript
+// src/server/context/organization.ts
+interface OrgContext {
+  user: User;
+  organization: Organization;
+  membership: OrganizationMember;
+}
+
+const withOrganization = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+  
+  // Extract org from header or user default
+  const orgId = ctx.req.headers['x-organization-id'] as string 
+    ?? ctx.user.defaultOrgId;
+  
+  const [organization, membership] = await Promise.all([
+    db.organization.findUnique({ where: { id: orgId } }),
+    db.organizationMember.findUnique({
+      where: { userId_orgId: { userId: ctx.user.id, orgId } },
+    }),
+  ]);
+  
+  if (!organization || !membership) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Organization access denied' });
+  }
+  
+  return next({
+    ctx: { ...ctx, organization, membership } as OrgContext,
+  });
+});
+
+// Organization-scoped procedures
+const orgProcedure = authedProcedure.use(withOrganization);
+
+// Usage:
+export const projectRouter = router({
+  list: orgProcedure.query(async ({ ctx }) => {
+    // Automatically scoped to user's org!
+    return db.project.findMany({
+      where: { organizationId: ctx.organization.id },
+    });
+  }),
+
+  create: orgProcedure
+    .input(z.object({ name: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      return db.project.create({
+        data: {
+          ...input,
+          organizationId: ctx.organization.id,
+          createdById: ctx.user.id,
+        },
+      });
+    }),
+});
+```
+
+---
+
+## Chapter 14: Testing Strategies
+
+<Badge variant="red">Expert</Badge>
+
+### 14.1 Unit Testing Routers
+
+```typescript
+// tests/post-router.test.ts
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createCaller } from '@/server/routers';
+import { db } from '@/server/db';
+
+// Mock database
+vi.mock('@/server/db', () => ({
+  db: {
+    post: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+  },
+}));
+
+describe('postRouter', () => {
+  // Create caller with test context
+  const createTestCaller = (user?: { id: string; role: string }) => 
+    createCaller({ user: user ?? null });
+
+  describe('list', () => {
+    it('returns paginated posts', async () => {
+      const caller = createTestCaller();
+      
+      vi.mocked(db.post.findMany).mockResolvedValue([
+        { id: '1', title: 'Hello', content: 'World' },
+      ]);
+      vi.mocked(db.post.count).mockResolvedValue(1);
+
+      const result = await caller.post.list({ page: 1, limit: 10 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+      expect(result.meta.totalPages).toBe(1);
+    });
+  });
+
+  describe('create', () => {
+    it('creates a post for authenticated user', async () => {
+      const caller = createTestCaller({ 
+        id: 'user-1', 
+        role: 'user' 
+      });
+
+      vi.mocked(db.post.create).mockResolvedValue({
+        id: 'post-1',
+        title: 'Test',
+        content: 'Content',
+        authorId: 'user-1',
+      });
+
+      const result = await caller.post.create({
+        title: 'Test',
+        content: 'Content',
+      });
+
+      expect(result.title).toBe('Test');
+      expect(result.authorId).toBe('user-1');
+    });
+
+    it('rejects unauthenticated users', async () => {
+      const caller = createTestCaller(); // No user
+
+      await expect(
+        caller.post.create({ title: 'Test', content: 'Content' })
+      ).rejects.toThrow('UNAUTHORIZED');
+    });
+  });
+
+  describe('input validation', () => {
+    it('rejects invalid input types', async () => {
+      const caller = createTestCaller({ id: 'user-1', role: 'user' });
+
+      // Zod validation catches this automatically!
+      await expect(
+        caller.post.create({ title: '', content: 'Content' })
+      ).rejects.toThrow('too_small'); // Zod error for min(1)
+    });
+
+    it('rejects extra properties by default', async () => {
+      const caller = createTestCaller({ id: 'user-1', role: 'user' });
+
+      await expect(
+        caller.post.create({
+          title: 'Test',
+          content: 'Content',
+          extraField: 'not-allowed', // Zod strips unknown by default
+        } as any)
+      ).rejects.toThrow();
+    });
+  });
+});
+```
+
+### 14.2 Integration Testing with Test Database
+
+```typescript
+// tests/integration/setup.ts
+import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import { execSync } from 'child_process';
+
+let container: PostgreSqlContainer;
+
+export async function setupTestDb() {
+  container = await new PostgreSqlContainer().start();
+  
+  const databaseUrl = container.getConnectionUri();
+  process.env.DATABASE_URL = databaseUrl;
+  
+  // Run migrations
+  execSync('npx prisma migrate deploy', { env: process.env });
+  
+  return { databaseUrl, cleanup: () => container.stop() };
+}
+
+// tests/integration/post-flow.test.ts
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { createCaller } from '@/server/routers';
+import { setupTestDb } from './setup';
+
+describe('Post Creation Flow', () => {
+  let cleanup: () => Promise<void>;
+  let caller: ReturnType<typeof createCaller>;
+
+  beforeAll(async () => {
+    const testDb = await setupTestDb();
+    cleanup = testDb.cleanup;
+    
+    // Create test user
+    const user = await db.user.create({
+      data: { email: 'test@example.com', name: 'Test User' },
+    });
+    
+    caller = createCaller({ user });
+  });
+
+  afterAll(async () => {
+    await cleanup();
+  });
+
+  it('full CRUD flow', async () => {
+    // Create
+    const created = await caller.post.create({
+      title: 'Integration Test',
+      content: 'Testing full flow',
+    });
+    expect(created.title).toBe('Integration Test');
+
+    // Read
+    const fetched = await caller.post.getById({ id: created.id });
+    expect(fetched?.id).toBe(created.id);
+
+    // Update
+    const updated = await caller.post.update({
+      id: created.id,
+      data: { title: 'Updated Title' },
+    });
+    expect(updated.title).toBe('Updated Title');
+
+    // Delete
+    await caller.post.delete({ id: created.id });
+    
+    const deleted = await caller.post.getById({ id: created.id });
+    expect(deleted).toBeNull();
+  });
+});
+```
+
+### 14.3 E2E Testing with Playwright
+
+```typescript
+// tests/e2e/todo.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Todo App', () => {
+  test('creates and completes a todo', async ({ page }) => {
+    await page.goto('/todos');
+    
+    // Add todo
+    await page.fill('[name="text"]', 'E2E Test Todo');
+    await page.click('button[type="submit"]');
+    
+    // Verify it appears
+    await expect(page.locator('text=E2E Test Todo')).toBeVisible();
+    
+    // Toggle complete
+    await page.click('[data-testid="todo-checkbox"]');
+    
+    // Verify strikethrough
+    await expect(page.locator('text=E2E Test Todo')).toHaveClass(/completed/);
+    
+    // tRPC requests are automatically made — no mocking needed!
+    // The app talks to a real test server with a test database.
+  });
+
+  test('handles validation errors', async ({ page }) => {
+    await page.goto('/todos');
+    
+    // Submit empty form
+    await page.click('button[type="submit"]');
+    
+    // Zod validation error appears
+    await expect(page.locator('text=Required')).toBeVisible();
+  });
+});
+```
+
+---
+
+## Chapter 15: Production Deployment
+
+<Badge variant="red">Expert</Badge>
+
+### 15.1 Docker Configuration
+
+```dockerfile
+# Dockerfile
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npx prisma generate
+RUN npm run build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 trpc
+COPY --from=builder --chown=trpc:nodejs /app/dist ./dist
+COPY --from=builder --chown=trpc:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=trpc:nodejs /app/package.json ./package.json
+USER trpc
+EXPOSE 3000
+ENV PORT=3000
+CMD ["node", "dist/server/index.js"]
+```
+
+### 15.2 Environment Configuration
+
+```typescript
+// src/server/env.ts — Runtime environment validation with Zod
+import { z } from 'zod';
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  PORT: z.coerce.number().default(3000),
+  
+  // Database
+  DATABASE_URL: z.string().startsWith('postgresql://'),
+  
+  // Redis (for caching)
+  REDIS_URL: z.string().startsWith('redis://').optional(),
+  
+  // Auth
+  JWT_SECRET: z.string().min(32),
+  JWT_EXPIRES_IN: z.string().default('7d'),
+  
+  // Rate limiting
+  RATE_LIMIT_REQUESTS: z.coerce.number().default(100),
+  RATE_LIMIT_WINDOW: z.coerce.number().default(60000),
+  
+  // CORS
+  CORS_ORIGIN: z.string().url().optional(),
+});
+
+export const env = envSchema.parse(process.env);
+// ^ Throws immediately on startup if env is misconfigured
+```
+
+### 15.3 Health Checks & Monitoring
+
+```typescript
+// src/server/routers/health.ts
+import { router, publicProcedure } from '../trpc';
+import { db } from '../db';
+import { redis } from '../redis';
+
+export const healthRouter = router({
+  check: publicProcedure.query(async () => {
+    const checks = await Promise.allSettled([
+      // Database check
+      db.$queryRaw`SELECT 1`,
+      // Redis check
+      redis.ping(),
+      // External API check
+      fetch('https://api.stripe.com/v1/health').then(r => r.ok),
+    ]);
+
+    const [dbCheck, redisCheck, externalCheck] = checks;
+
+    const healthy = 
+      dbCheck.status === 'fulfilled' && 
+      redisCheck.status === 'fulfilled';
+
+    return {
+      status: healthy ? 'healthy' : 'degraded',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: dbCheck.status === 'fulfilled' ? 'up' : 'down',
+        redis: redisCheck.status === 'fulfilled' ? 'up' : 'down',
+        stripe: externalCheck.status === 'fulfilled' ? 'up' : 'down',
+      },
+    };
+  }),
+});
+```
+
+### 15.4 Structured Logging
+
+```typescript
+// src/server/lib/logger.ts
+import { createLogger, format, transports } from 'winston';
+
+export const logger = createLogger({
+  level: process.env.LOG_LEVEL ?? 'info',
+  format: format.combine(
+    format.timestamp(),
+    format.errors({ stack: true }),
+    format.json()
+  ),
+  defaultMeta: { service: 'trpc-api' },
+  transports: [
+    new transports.Console(),
+    new transports.File({ filename: 'error.log', level: 'error' }),
+  ],
+});
+
+// Request logging middleware
+const requestLogger = t.middleware(async ({ path, type, rawInput, ctx, next }) => {
+  const start = Date.now();
+  const requestId = crypto.randomUUID();
+  
+  logger.info({
+    type: 'request.start',
+    requestId,
+    path,
+    procedureType: type,
+    userId: ctx.user?.id,
+  });
+
+  const result = await next();
+
+  logger.info({
+    type: 'request.complete',
+    requestId,
+    path,
+    duration: Date.now() - start,
+    ok: result.ok,
+    ...(result.ok ? {} : { error: result.error }),
+  });
+
+  return result;
+});
+```
+
+---
+
+## Chapter 16: Advanced Zod Techniques
+
+<Badge variant="red">Expert</Badge>
+
+### 16.1 Recursive Schemas
+
+```typescript
+import { z } from 'zod';
+
+// Recursive type for comments with replies
+interface Comment {
+  id: string;
+  content: string;
+  authorId: string;
+  replies: Comment[];
+}
+
+const commentSchema: z.ZodType<Comment> = z.lazy(() =>
+  z.object({
+    id: z.string().uuid(),
+    content: z.string().min(1),
+    authorId: z.string().uuid(),
+    replies: z.array(commentSchema).default([]),
+  })
+);
+
+// Usage in tRPC
+export const commentRouter = router({
+  getThread: publicProcedure
+    .input(z.object({ rootId: z.string().uuid() }))
+    .query(async ({ input }) => {
+      // Returns nested comment structure
+      return buildCommentTree(input.rootId);
+    }),
+});
+```
+
+### 16.2 Conditional Validation with Super Refine
+
+```typescript
+import { z } from 'zod';
+
+// Complex form with conditional fields
+const eventSchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(['online', 'in-person', 'hybrid']),
+  
+  // Conditional: only required for in-person/hybrid
+  location: z.string().optional(),
+  
+  // Conditional: only required for online/hybrid
+  meetingUrl: z.string().url().optional(),
+  
+  // Conditional: only required if type is 'recurring'
+  schedule: z.object({
+    frequency: z.enum(['once', 'daily', 'weekly', 'monthly']),
+    endDate: z.date().optional(),
+  }).optional(),
+}).superRefine((data, ctx) => {
+  // Location required for in-person events
+  if ((data.type === 'in-person' || data.type === 'hybrid') && !data.location) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Location is required for in-person events',
+      path: ['location'],
+    });
+  }
+  
+  // Meeting URL required for online events
+  if ((data.type === 'online' || data.type === 'hybrid') && !data.meetingUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Meeting URL is required for online events',
+      path: ['meetingUrl'],
+    });
+  }
+  
+  // End date must be after start date for recurring events
+  if (data.schedule?.frequency !== 'once' && data.schedule?.endDate) {
+    // Additional validation...
+  }
+});
+
+// Usage:
+export const eventRouter = router({
+  create: authedProcedure
+    .input(eventSchema)
+    .mutation(async ({ ctx, input }) => {
+      return db.event.create({ data: input });
+    }),
+});
+```
+
+### 16.3 Branded Types for Type Safety
+
+```typescript
+import { z } from 'zod';
+
+// Create branded types to prevent mixing up different ID types
+const userIdSchema = z.string().uuid().brand<'UserId'>();
+const postIdSchema = z.string().uuid().brand<'PostId'>();
+const orgIdSchema = z.string().uuid().brand<'OrgId'>();
+
+type UserId = z.infer<typeof userIdSchema>;
+type PostId = z.infer<typeof postIdSchema>;
+type OrgId = z.infer<typeof orgIdSchema>;
+
+// These are now type-safe!
+function getUser(id: UserId) { /* ... */ }
+function getPost(id: PostId) { /* ... */ }
+
+// Won't compile: getUser(postId) — TypeScript error!
+
+// tRPC input with branded types
+export const router = router({
+  transferOwnership: authedProcedure
+    .input(z.object({
+      postId: postIdSchema,
+      newOwnerId: userIdSchema,
+      orgId: orgIdSchema,
+    }))
+    .mutation(async ({ input }) => {
+      // input.postId is PostId, input.newOwnerId is UserId
+      // No chance of mixing them up!
+      return db.post.update({
+        where: { id: input.postId },
+        data: { authorId: input.newOwnerId },
+      });
+    }),
+});
+```
+
+### 16.4 Zod Plugin: Auto-Documentation
+
+```typescript
+import { extendZodWithOpenApi } from 'zod-openapi';
+import { generateOpenApiDocument } from 'trpc-openapi';
+
+// Extend Zod with OpenAPI metadata
+extendZodWithOpenApi(z);
+
+const createUserSchema = z.object({
+  name: z.string().min(1).openapi({
+    description: 'The user\'s display name',
+    example: 'John Doe',
+  }),
+  email: z.string().email().openapi({
+    description: 'The user\'s email address',
+    example: 'john@example.com',
+  }),
+  age: z.number().int().min(0).optional().openapi({
+    description: 'The user\'s age in years',
+    example: 30,
+  }),
+}).openapi('CreateUserInput');
+
+// Generate OpenAPI spec from tRPC router
+const openApiDocument = generateOpenApiDocument(appRouter, {
+  title: 'My tRPC API',
+  version: '1.0.0',
+  baseUrl: 'https://api.example.com',
+});
+
+// Serve at /api/openapi.json
+// Use with Swagger UI or Redoc for auto-generated documentation!
+```
+
+---
+
+## Chapter 17: Edge Runtime & Serverless
+
+<Badge variant="red">Expert</Badge>
+
+### 17.1 Vercel Edge Runtime
+
+```typescript
+// app/api/trpc/[trpc]/route.ts
+import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
+import { appRouter } from '@/server/routers';
+import { createEdgeContext } from '@/server/context-edge';
+
+// Edge Runtime configuration
+export const runtime = 'edge';
+
+export async function GET(req: Request) {
+  return fetchRequestHandler({
+    endpoint: '/api/trpc',
+    req,
+    router: appRouter,
+    createContext: () => createEdgeContext(req),
+  });
+}
+
+export async function POST(req: Request) {
+  return fetchRequestHandler({
+    endpoint: '/api/trpc',
+    req,
+    router: appRouter,
+    createContext: () => createEdgeContext(req),
+  });
+}
+
+// Edge-compatible context (no Node.js APIs!)
+export async function createEdgeContext(req: Request) {
+  const token = req.headers.get('authorization')?.slice(7);
+  
+  // Use Web Crypto API (Edge-compatible) instead of Node.js crypto
+  const user = token ? await verifyJWTEdge(token) : null;
+  
+  return { user, req };
+}
+```
+
+### 17.2 Cloudflare Workers
+
+```typescript
+// src/index.ts — Cloudflare Worker entry point
+import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
+import { appRouter } from './routers';
+
+export interface Env {
+  DB: D1Database;          // Cloudflare D1
+  CACHE: Cache;            // Cloudflare Cache API
+  JWT_SECRET: string;
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    return fetchRequestHandler({
+      endpoint: '/trpc',
+      req: request,
+      router: appRouter,
+      createContext: () => ({
+        env,        // Cloudflare bindings
+        user: null, // Extract from JWT
+      }),
+    });
+  },
+};
+
+// D1 Database usage in procedures
+export const userRouter = router({
+  list: publicProcedure.query(async ({ ctx }) => {
+    const { results } = await ctx.env.DB.prepare(
+      'SELECT id, name, email FROM users LIMIT 100'
+    ).all();
+    return results;
+  }),
+
+  create: publicProcedure
+    .input(z.object({ name: z.string(), email: z.string().email() }))
+    .mutation(async ({ ctx, input }) => {
+      const { meta } = await ctx.env.DB.prepare(
+        'INSERT INTO users (id, name, email) VALUES (?, ?, ?)'
+      ).bind(crypto.randomUUID(), input.name, input.email).run();
+      
+      return { id: meta.last_row_id, ...input };
+    }),
+});
+```
+
+---
+
+## Chapter 18: Microservices & Federation
+
+<Badge variant="red">Expert</Badge>
+
+### 18.1 tRPC in Microservices
+
+```typescript
+// Gateway: Aggregates multiple tRPC services
+import { router } from './trpc';
+
+// Client for User Service
+const userService = createTRPCProxyClient<AppRouter>({
+  links: [httpBatchLink({ url: 'http://user-service:3001' })],
+});
+
+// Client for Order Service
+const orderService = createTRPCProxyClient<OrderRouter>({
+  links: [httpBatchLink({ url: 'http://order-service:3002' })],
+});
+
+// Client for Inventory Service
+const inventoryService = createTRPCProxyClient<InventoryRouter>({
+  links: [httpBatchLink({ url: 'http://inventory-service:3003' })],
+});
+
+// Gateway router — composes all services
+export const gatewayRouter = router({
+  user: createServiceProxy(userService),
+  order: createServiceProxy(orderService),
+  inventory: createServiceProxy(inventoryService),
+  
+  // Cross-service queries
+  userOrders: authedProcedure
+    .input(z.object({ userId: z.string().uuid() }))
+    .query(async ({ input }) => {
+      // Parallel calls to multiple services
+      const [user, orders] = await Promise.all([
+        userService.user.getById.query({ id: input.userId }),
+        orderService.order.byUser.query({ userId: input.userId }),
+      ]);
+      
+      return { user, orders };
+    }),
+
+  // Saga pattern: distributed transaction
+  placeOrder: authedProcedure
+    .input(z.object({
+      items: z.array(z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+      })),
+      shippingAddress: z.object({ /* ... */ }),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Step 1: Check inventory
+      const stockChecks = await Promise.all(
+        input.items.map((item) =>
+          inventoryService.inventory.check.query({
+            productId: item.productId,
+            quantity: item.quantity,
+          })
+        )
+      );
+      
+      if (stockChecks.some((check) => !check.available)) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Out of stock' });
+      }
+      
+      // Step 2: Reserve inventory
+      await Promise.all(
+        input.items.map((item) =>
+          inventoryService.inventory.reserve.mutate({
+            productId: item.productId,
+            quantity: item.quantity,
+          })
+        )
+      );
+      
+      // Step 3: Create order
+      const order = await orderService.order.create.mutate({
+        userId: ctx.user.id,
+        items: input.items,
+        shippingAddress: input.shippingAddress,
+      });
+      
+      // If any step fails, implement compensation (rollback)
+      
+      return order;
+    }),
+});
+```
+
+---
+
+# Part 4: Practical Projects
+
+## Project 1: Full-Stack Task Manager
+
+<Badge variant="orange">Intermediate</Badge>
+
+Build a complete task management app with the following features:
+
+```typescript
+// Complete router implementation
+export const taskRouter = router({
+  // Board CRUD
+  board: router({
+    list: authedProcedure.query(async ({ ctx }) => {
+      return db.board.findMany({
+        where: { ownerId: ctx.user.id },
+        include: { 
+          _count: { select: { tasks: true } } 
+        },
+      });
+    }),
+
+    create: authedProcedure
+      .input(z.object({ name: z.string().min(1).max(100), color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        return db.board.create({
+          data: { ...input, ownerId: ctx.user.id },
+        });
+      }),
+  }),
+
+  // Task CRUD with drag-and-drop
+  task: router({
+    list: authedProcedure
+      .input(z.object({ boardId: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        return db.task.findMany({
+          where: { boardId: input.boardId, board: { ownerId: ctx.user.id } },
+          orderBy: { position: 'asc' },
+        });
+      }),
+
+    create: authedProcedure
+      .input(z.object({
+        boardId: z.string().uuid(),
+        title: z.string().min(1).max(200),
+        description: z.string().max(5000).optional(),
+        status: z.enum(['todo', 'in-progress', 'done']).default('todo'),
+        priority: z.enum(['low', 'medium', 'high']).default('medium'),
+        dueDate: z.coerce.date().optional(),
+        assigneeId: z.string().uuid().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Get max position for the status column
+        const lastTask = await db.task.findFirst({
+          where: { boardId: input.boardId, status: input.status },
+          orderBy: { position: 'desc' },
+        });
+
+        return db.task.create({
+          data: {
+            ...input,
+            position: (lastTask?.position ?? 0) + 1,
+          },
+        });
+      }),
+
+    // Drag and drop reordering
+    reorder: authedProcedure
+      .input(z.object({
+        taskId: z.string().uuid(),
+        newStatus: z.enum(['todo', 'in-progress', 'done']),
+        newPosition: z.number().int().min(0),
+      }))
+      .mutation(async ({ input }) => {
+        return db.$transaction(async (tx) => {
+          // Update all affected positions
+          await tx.task.updateMany({
+            where: { 
+              status: input.newStatus,
+              position: { gte: input.newPosition },
+            },
+            data: { position: { increment: 1 } },
+          });
+
+          await tx.task.update({
+            where: { id: input.taskId },
+            data: {
+              status: input.newStatus,
+              position: input.newPosition,
+            },
+          });
+        });
+      }),
+
+    search: authedProcedure
+      .input(z.object({
+        boardId: z.string().uuid(),
+        query: z.string().min(1),
+        filters: z.object({
+          status: z.array(z.enum(['todo', 'in-progress', 'done'])).optional(),
+          priority: z.array(z.enum(['low', 'medium', 'high'])).optional(),
+          assigneeId: z.array(z.string().uuid()).optional(),
+        }).optional(),
+      }))
+      .query(async ({ input }) => {
+        return db.task.findMany({
+          where: {
+            boardId: input.boardId,
+            title: { contains: input.query, mode: 'insensitive' },
+            ...input.filters,
+          },
+        });
+      }),
+  }),
+});
+```
+
+---
+
+## Project 2: Real-Time Collaborative Editor
+
+<Badge variant="red">Expert</Badge>
+
+```typescript
+// Server: Operational Transform router
+export const documentRouter = router({
+  // Real-time collaboration via WebSocket
+  onChange: authedProcedure
+    .input(z.object({ documentId: z.string().uuid() }))
+    .subscription(({ ctx, input }) => {
+      return observable<DocumentChange>((emit) => {
+        const room = getOrCreateRoom(input.documentId);
+        
+        const handler = (change: DocumentChange) => {
+          // Only emit changes from other users
+          if (change.userId !== ctx.user.id) {
+            emit.next(change);
+          }
+        };
+        
+        room.on('change', handler);
+        
+        return () => room.off('change', handler);
+      });
+    }),
+
+  applyOperation: authedProcedure
+    .input(z.object({
+      documentId: z.string().uuid(),
+      operation: z.object({
+        type: z.enum(['insert', 'delete', 'retain']),
+        position: z.number().int().min(0),
+        content: z.string().optional(),
+        length: z.number().int().min(1).optional(),
+      }),
+      version: z.number().int().min(0), // Document version for OT
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const room = getOrCreateRoom(input.documentId);
+      
+      // Transform operation against concurrent operations
+      const transformed = room.transform(input.operation, input.version);
+      
+      // Apply to document
+      const newVersion = await room.apply(transformed, ctx.user.id);
+      
+      // Broadcast to all subscribers
+      room.broadcast({
+        type: 'change',
+        operation: transformed,
+        version: newVersion,
+        userId: ctx.user.id,
+      });
+      
+      return { version: newVersion };
+    }),
+
+  // Cursor presence
+  updateCursor: authedProcedure
+    .input(z.object({
+      documentId: z.string().uuid(),
+      position: z.number().int().min(0),
+      selection: z.object({ start: z.number(), end: z.number() }).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const room = getOrCreateRoom(input.documentId);
+      room.updateCursor(ctx.user.id, {
+        position: input.position,
+        selection: input.selection,
+        color: ctx.user.color,
+        name: ctx.user.name,
+      });
+      return { success: true };
+    }),
+});
+```
+
+---
+
+# Part 5: Common Pitfalls & Solutions
+
+## 1. The `undefined` vs `null` Trap
+
+```typescript
+// WRONG: Prisma returns null, Zod optional expects undefined
+const schema = z.object({
+  bio: z.string().optional(), // undefined | string
+});
+
+// Prisma returns: { bio: null }
+// Zod fails because null is not undefined!
+
+// RIGHT: Use nullable or transform
+const schema = z.object({
+  bio: z.string().nullable(), // null | string
+});
+
+// OR transform null to undefined
+const schema = z.object({
+  bio: z.string().nullish().transform((v) => v ?? undefined),
+});
+```
+
+## 2. Circular Dependencies
+
+```typescript
+// WRONG: Creates circular import
+// user.ts imports post.ts, post.ts imports user.ts
+
+// RIGHT: Use type imports and lazy loading
+import type { AppRouter } from './_app'; // type-only import
+
+// Or define shared schemas in a separate file
+// schemas.ts — no router imports
+export const userSchema = z.object({ /* ... */ });
+export const postSchema = z.object({ /* ... */ });
+
+// Then import schemas in router files
+```
+
+## 3. Batch Link Misconfiguration
+
+```typescript
+// WRONG: Each query is a separate HTTP request
+const client = trpc.createClient({
+  links: [httpLink({ url: '/api/trpc' })], // No batching!
+});
+
+// RIGHT: Use httpBatchLink for automatic request batching
+const client = trpc.createClient({
+  links: [
+    httpBatchLink({ 
+      url: '/api/trpc',
+      maxURLLength: 2083, // Split into multiple requests if URL too long
+    }),
+  ],
+});
+```
+
+## 4. Missing `useUtils()` Call
+
+```typescript
+// WRONG: Calling invalidate on the hook
+const { invalidate } = trpc.user.list; // ❌ This doesn't work!
+
+// RIGHT: Use useUtils()
+const utils = trpc.useUtils();
+utils.user.list.invalidate(); // ✓ This works!
+```
+
+## 5. Server Component Direct Calls
+
+```typescript
+// WRONG: Using useQuery in a Server Component
+// (Server Components can't use hooks!)
+
+// RIGHT: Use the caller directly
+import { createCaller } from '@/server/routers';
+
+export default async function Page() {
+  const caller = createCaller({ user: null });
+  const data = await caller.user.list();
+  
+  return <div>{JSON.stringify(data)}</div>;
+}
+
+// RIGHT: Or use HydrationBoundary for interactive pages
+```
+
+---
+
+# Appendix A: Quick Reference Card
+
+## Zod Cheat Sheet
+
+| Pattern | Code |
+|---------|------|
+| String | `z.string()` |
+| Email | `z.string().email()` |
+| Number | `z.number().int().positive()` |
+| Boolean | `z.boolean().default(true)` |
+| Enum | `z.enum(['a', 'b'])` |
+| Optional | `z.string().optional()` |
+| Nullable | `z.string().nullable()` |
+| Array | `z.array(z.string()).min(1).max(10)` |
+| Object | `z.object({ name: z.string() })` |
+| Union | `z.string().or(z.number())` |
+| Coerce | `z.coerce.number()` |
+| Transform | `z.string().transform(s => s.trim())` |
+| Refine | `z.string().refine(s => s.length > 5)` |
+| Branded | `z.string().brand<'UserId'>()` |
+
+## tRPC Cheat Sheet
+
+| Pattern | Code |
+|---------|------|
+| Query | `publicProcedure.input(schema).query(async ({ input }) => { ... })` |
+| Mutation | `publicProcedure.input(schema).mutation(async ({ input }) => { ... })` |
+| Subscription | `publicProcedure.input(schema).subscription(({ input }) => observable(...))` |
+| Middleware | `const mw = t.middleware(async ({ ctx, next }) => { ...; return next() })` |
+| Use middleware | `t.procedure.use(mw)` |
+| Client query | `trpc.path.useQuery({ input })` |
+| Client mutation | `trpc.path.useMutation()` |
+| Prefetch | `utils.path.prefetch({ input })` |
+| Invalidate | `utils.path.invalidate()` |
+| Set data | `utils.path.setData({ input }, updater)` |
+| Optimistic update | `onMutate: async () => { utils.path.cancel(); utils.path.setData(...) }` |
+
+## React 19 + tRPC Cheat Sheet
+
+| Pattern | Code |
+|---------|------|
+| Server Component fetch | `const caller = createCaller(ctx); const data = await caller.path.query()` |
+| Hydration | `<HydrationBoundary state={dehydrate(queryClient)}>` |
+| Action + Zod | `useActionState(async (prev, formData) => { schema.safeParse(...) })` |
+| Parallel queries | `const a = trpc.a.useQuery(); const b = trpc.b.useQuery();` |
+| Dependent queries | `const a = trpc.a.useQuery(); const b = trpc.b.useQuery(input, { enabled: a.isSuccess })` |
+
+---
+
+# Appendix B: Migration Guides
+
+## Migrating from REST to tRPC
+
+1. **Phase 1**: Keep existing REST endpoints, add tRPC alongside
+2. **Phase 2**: Migrate read operations (Queries) first
+3. **Phase 3**: Migrate write operations (Mutations)
+4. **Phase 4**: Deprecate REST, remove after validation
+
+## Migrating from tRPC v10 to v11
+
+```typescript
+// v10 syntax (still works in v11 with compat layer)
+const appRouter = router({
+  greeting: publicProcedure
+    .input(z.string())
+    .query(({ input }) => `Hello ${input}`),
+});
+
+// v11 syntax (recommended)
+const appRouter = router({
+  greeting: publicProcedure
+    .input(z.string())
+    .query(async ({ input }) => `Hello ${input}`), // async preferred
+});
+
+// v11: New features
+// - Improved batching
+// - Better subscription support
+// - Enhanced middleware composition
+// - React 19 compatibility
+```
+
+---
+
+# Appendix C: Performance Benchmarks
+
+| Scenario | REST | tRPC + Zod | Improvement |
+|----------|------|------------|-------------|
+| Type safety | Manual | End-to-end | 100% coverage |
+| Refactoring | Error-prone | Type-safe | Zero runtime errors |
+| Bundle size | N/A | ~12kb gzipped | Minimal overhead |
+| Request latency | Baseline | +0-2ms | Negligible |
+| Developer velocity | Baseline | +40% estimated | Faster iteration |
+| Bug reduction | Baseline | -60% estimated | Fewer type errors |
+
+---
+
+# Glossary
+
+| Term | Definition |
+|------|------------|
+| **tRPC** | TypeScript RPC — end-to-end typesafe APIs |
+| **Zod** | TypeScript-first schema validation with static type inference |
+| **Procedure** | A tRPC endpoint (query, mutation, or subscription) |
+| **Router** | A collection of procedures, organized hierarchically |
+| **Middleware** | Functions that run before/after procedures, can modify context |
+| **Context** | Shared data passed to all procedures (user, db, etc.) |
+| **Input** | Validated input data for a procedure |
+| **Output** | Validated response data from a procedure |
+| **Batching** | Combining multiple requests into a single HTTP request |
+| **Subscription** | Real-time data flow using WebSocket or SSE |
+| **Hydration** | Passing server-fetched data to client-side React |
+| **Optimistic Update** | Updating UI before server confirmation for perceived speed |
+
+---
+
+# Resources & Further Reading
+
+## Official Documentation
+- [tRPC Documentation](https://trpc.io/docs)
+- [Zod Documentation](https://zod.dev)
+- [React 19 Documentation](https://react.dev)
+- [TanStack Query Documentation](https://tanstack.com/query/latest)
+
+## Community
+- [tRPC Discord](https://trpc.io/discord)
+- [Zod GitHub Discussions](https://github.com/colinhacks/zod/discussions)
+- [Awesome tRPC](https://github.com/trpc/awesome-trpc)
+
+## Related Tools
+- **Prisma**: Type-safe database ORM — pairs perfectly with tRPC
+- **Next.js**: Full-stack React framework with tRPC integration
+- **Drizzle**: Lightweight ORM alternative
+- **SuperJSON**: Handles Date, Map, Set, BigInt serialization in tRPC
+- **Zod Prisma**: Generate Zod schemas from Prisma models
+
+---
+<Callout variant="info">
+*This guide is a living document. The tRPC, Zod, and React ecosystems evolve rapidly. Always check the official documentation for the latest APIs and best practices.*
+</Callout>
+
+<Badge variant="info">Last updated: June 2026</Badge>

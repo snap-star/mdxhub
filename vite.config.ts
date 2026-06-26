@@ -7,6 +7,7 @@ import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
+import { remarkReadingTime } from './src/lib/remark-reading-time'
 import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeKatex from 'rehype-katex'
@@ -27,6 +28,7 @@ export default defineConfig({
       ...mdx({
         remarkPlugins: [
           remarkFrontmatter,
+          remarkReadingTime,
           [remarkMdxFrontmatter, { name: 'frontmatter' }],
           remarkGfm,
           remarkMath,
