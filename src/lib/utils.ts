@@ -54,8 +54,28 @@ export function resolveContentAssetUrl(currentPath: string, src: string): string
   }
 
   const currentRoute = currentPath.endsWith('/') ? currentPath : `${currentPath}/`
-  const resolvedPath = new URL(src, `${window.location.origin}${currentRoute}`).pathname.replace(/^\//, '')
-  return contentAssetMap[resolvedPath] ?? null
+
+  // Helper: resolve src relative to a base route, returning a decoded filesystem-like path
+  const resolvePath = (baseRoute: string) =>
+    decodeURIComponent(
+      new URL(src, `${window.location.origin}${baseRoute}`).pathname.replace(/^\//, '')
+    )
+
+  // Try 1: resolve relative to the current route (as if the slug is a directory path)
+  // Works for index.mdx files in subdirectories where slug = directory path
+  const match = contentAssetMap[resolvePath(currentRoute)]
+  if (match) return match
+
+  // Try 2: the slug's last segment might be a filename, not a directory.
+  // e.g. content/blog/my-post.mdx → URL: /blog/my-post
+  // Resolve relative to parent path instead: /blog/
+  const parentRoute = currentRoute.replace(/\/[^/]+\/$/, '/')
+  if (parentRoute !== currentRoute) {
+    const parentMatch = contentAssetMap[resolvePath(parentRoute)]
+    if (parentMatch) return parentMatch
+  }
+
+  return null
 }
 
 // ─── Date utilities ────────────────────────────────────────────────────────
@@ -125,15 +145,19 @@ export interface HeadingItem {
 }
 
 export function extractHeadingsFromHtml(html: string): HeadingItem[] {
-  const regex = /<h([2-3])[^>]+id="([^"]+)"[^>]*>(.*?)<\/h\1>/gi
+  // Match any h2/h3 element; id attribute is optional
+  const regex = /<h([2-3])([^>]*)>(.*?)<\/h\1>/gi
   const items: HeadingItem[] = []
   let match
   while ((match = regex.exec(html)) !== null) {
-    items.push({
-      level: parseInt(match[1], 10),
-      id: match[2],
-      text: match[3].replace(/<[^>]+>/g, ''),
-    })
+    const level = parseInt(match[1], 10)
+    const attrs = match[2]
+    const innerHtml = match[3]
+    const text = innerHtml.replace(/<[^>]+>/g, '')
+    // Extract id from attributes if present; otherwise generate from text
+    const idMatch = attrs.match(/id=["']([^"']+)["']/)
+    const id = idMatch ? idMatch[1] : slugify(text)
+    items.push({ level, id, text })
   }
   return items
 }

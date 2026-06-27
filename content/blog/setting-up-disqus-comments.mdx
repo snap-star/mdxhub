@@ -1,0 +1,262 @@
+---
+title: "Setting Up Disqus Comment System: A Complete Guide"
+date: "2026-06-27"
+author: "chigusa-asuha"
+category: "Tutorial"
+tags: ["disqus", "comments", "configuration", "mdx", "setup"]
+description: "Learn how to enable and configure the Disqus comment system in this MDX-powered blog platform — from signup to live comments, comment counts, and per-post control."
+coverImage: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?q=80&w=2574&auto=format&fit=crop"
+cc: "CC-BY-4.0"
+---
+
+Engaging with your readers is one of the most rewarding parts of running a blog. This project comes with a fully integrated **Disqus** comment system that you can enable with just a few environment variables — no additional code required.
+
+This tutorial walks you through every step, from creating a Disqus account to seeing your first live comment thread.
+
+---
+
+## What Is Disqus?
+
+Disqus is a popular, third-party comment hosting service. Instead of building your own comment database and moderation UI, Disqus handles everything: spam filtering, threading, upvoting, social login, email notifications, and moderation dashboards.
+
+![Disqus comment thread showing a real discussion with threaded replies](https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=2670&auto=format&fit=crop)
+
+Your readers see a fully functional comment section at the bottom of every blog post, and you manage everything through Disqus's online dashboard. The best part? It takes **under 10 minutes** to set up.
+
+---
+
+## Step 1: Create a Disqus Account
+
+Head over to [disqus.com](https://disqus.com) and click **"Get Started"** at the top of the page.
+
+You can sign up using your Google, Twitter (X), Facebook, or GitHub account — or create a standalone Disqus account with an email and password.
+
+<Callout type="tip">
+If you already have a Disqus account, skip to step 2. You can reuse the same account across multiple sites.
+</Callout>
+
+## Step 2: Register Your Site
+
+Once logged in, Disqus will ask you to register a new site:
+
+1. Click **"I want to install Disqus on my site"**
+2. Enter your **Website Name** (e.g., `MDXHub Blog`)
+3. Choose a **Shortname** — this is the unique identifier Disqus uses to link comments to your site. Something like `myblog` or `mdxhub` works well
+4. Select a **Category** for your content
+5. Click **"Finish setup"**
+
+![A laptop showing a website dashboard or admin panel interface](https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop)
+
+<Callout type="warning" title="Important">
+Your **Shortname** is the only piece of information you need to write down. It is case-sensitive and cannot be changed later without breaking existing comments.
+</Callout>
+
+After registration, Disqus will show you a universal install snippet — **you can ignore that**. This project's components handle the snippet injection automatically.
+
+## Step 3: Configure the Environment Variable
+
+Open the project root and locate the `.env.local` file. If it doesn't exist, create it:
+
+```bash
+# Create the environment file if needed
+touch .env.local
+```
+
+Add your Disqus shortname as a Vite environment variable:
+
+```env
+VITE_DISQUS_SHORTNAME=your-shortname-here
+```
+
+Replace `your-shortname-here` with the shortname you chose in Step 2.
+
+![Code editor showing environment variable configuration](https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2670&auto=format&fit=crop)
+
+<Callout type="note" title="How It Works">
+The `VITE_` prefix tells Vite to expose this variable to client-side code. The rest of the system (`DisqusComments` and `DisqusCommentCount` components) reads `import.meta.env.VITE_DISQUS_SHORTNAME` at runtime to know which Disqus site to load comments from.
+</Callout>
+
+**That's it.** Restart your development server (`pnpm dev`), and the comment section will appear on every blog post.
+
+## Step 4: Verify It's Working
+
+Navigate to any blog post on your local server. Scroll to the bottom — you should see a placeholder where Disqus loads:
+
+![A comment section placeholder area on a blog post](https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2670&auto=format&fit=crop)
+
+<Callout type="tip">
+Disqus loads asynchronously via JavaScript, so it may take a second or two to appear on first visit. If you see a blank area with `#disqus_thread`, the configuration is correct — Disqus is just loading.
+</Callout>
+
+If you don't see the comment section at all, check the troubleshooting section at the end of this guide.
+
+---
+
+## How the Components Work
+
+This project ships two React components that handle all Disqus interaction:
+
+### `DisqusComments`
+
+Rendered inside the blog post template (`src/routes/blog.$slug.tsx`), this component:
+
+- Reads `VITE_DISQUS_SHORTNAME` from environment variables
+- Injects the Disqus embed script (`embed.js`) into the page
+- Passes the post title, URL, and a unique identifier (e.g., `blog:my-post-slug`) so Disqus can associate comments with the correct thread
+- Calls `window.DISQUS.reset()` on navigation, so comments are not duplicated when moving between posts
+
+```tsx
+<DisqusComments
+  identifier={`blog:${post.slug}`}
+  title={frontmatter.title}
+/>
+```
+
+### `DisqusCommentCount`
+
+Rendered on the blog index cards, this component shows a live count of comments per post:
+
+- Injects the Disqus count script (`count.js`) into the page
+- Reads the `data-disqus-identifier` attribute to match the count to the correct thread
+- Displays a number like "5 Comments" on each blog post card
+
+```tsx
+<DisqusCommentCount
+  identifier={`blog:${post.slug}`}
+  href={`/blog/${post.slug}#disqus_thread`}
+/>
+```
+
+### Architecture Diagram
+
+The data flow is straightforward:
+
+```
+[Disqus CDN] ──embed.js──→ [DisqusComments] ──renders──→ [#disqus_thread div]
+     │                                                                    
+     └────count.js──→ [DisqusCommentCount] ──renders──→ [comment count on card]
+```
+
+Both components are already wired into the blog templates. You only need to provide `VITE_DISQUS_SHORTNAME`.
+
+---
+
+## Per-Post Control: Disabling Comments
+
+Not every post needs comments. You can disable comments on a per-post basis by setting `comments: false` in the frontmatter:
+
+```yaml
+---
+title: "Draft Notes"
+date: "2026-06-27"
+author: "chigusa-asuha"
+category: "Tutorial"
+tags: ["notes"]
+comments: false        # ← No comment section on this post
+---
+```
+
+When `comments: false` is set, both the `DisqusComments` section and the comment count icon on the blog card are hidden for that post.
+
+This works because the blog post template checks `frontmatter.comments !== false` before rendering the components:
+
+```tsx
+{frontmatter.comments !== false && (
+  <DisqusComments
+    identifier={`blog:${post.slug}`}
+    title={frontmatter.title}
+  />
+)}
+```
+
+<Callout type="warning">
+If you omit the `comments` field entirely, comments are **enabled by default**. Only set `comments: false` when you want to disable them.
+</Callout>
+
+---
+
+## Testing Comments in Development
+
+Disqus works on `localhost` without any special configuration. However, comments posted from `localhost` will not appear on your production site and vice versa because Disqus maps comments to the page URL.
+
+To test the full comment lifecycle:
+
+1. **Post a comment** — Scroll to the bottom of any blog post, log in via Disqus, and leave a test comment.
+2. **Check the count** — Go to the blog index page and verify the comment count updates on the post card.
+3. **Moderate** — Visit `https://YOUR-SHORTNAME.disqus.com/admin/` to moderate comments, mark them as spam, or approve them.
+
+![Disqus moderation dashboard showing pending and approved comments](https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2670&auto=format&fit=crop)
+
+<Callout type="tip" title="Pro Tip">
+You can pre-populate comment counts in production by running the Disqus count sync tool. The count script (`count.js`) automatically updates counts every time a page loads.
+</Callout>
+
+---
+
+## File Reference
+
+Here is every file that participates in the Disqus integration:
+
+| File | Purpose |
+| :--- | :--- |
+| `.env.local` | Stores `VITE_DISQUS_SHORTNAME` (your shortname) |
+| `src/components/blog/DisqusComments.tsx` | Injects the Disqus embed script and renders the comment thread |
+| `src/components/blog/DisqusCommentCount.tsx` | Displays the comment count badge on blog cards |
+| `src/routes/blog.$slug.tsx` | Wire-up: renders `<DisqusComments />` in the post footer |
+| `src/components/blog/PostCard.tsx` | Wire-up: renders `<DisqusCommentCount />` on each card |
+| `src/vite-env.d.ts` | TypeScript declaration for `VITE_DISQUS_SHORTNAME` |
+
+---
+
+## Troubleshooting
+
+### "No comment section appears on my blog posts"
+
+Possible causes and fixes:
+
+1. **Missing environment variable** — Verify `.env.local` contains `VITE_DISQUS_SHORTNAME=your-shortname`. Restart the dev server after editing.
+2. **Invalid shortname** — Check that the shortname in `.env.local` exactly matches the shortname in your Disqus admin panel (case-sensitive).
+3. **Frontmatter conflict** — Ensure `comments: false` is not set in the post's frontmatter.
+4. **Ad blocker** — Some ad blockers block Disqus. Try disabling it for `localhost`.
+
+### "Comment counts show 0 on all posts"
+
+The count script (`count.js`) fetches counts asynchronously. If counts show `0` immediately after posting a comment, refresh the page. The count script caches and updates periodically.
+
+### "Comments from localhost don't show in production"
+
+This is expected. Disqus threads are tied to the page URL. `http://localhost:5173/blog/my-post` and `https://your-site.com/blog/my-post` are treated as separate threads.
+
+To migrate comments from localhost to production, use the Disqus admin tool at `https://YOUR-SHORTNAME.disqus.com/admin/tools/migrate/`.
+
+### "ESLint or TypeScript errors after configuration"
+
+The `VITE_DISQUS_SHORTNAME` variable is declared in `src/vite-env.d.ts`:
+
+```typescript
+interface ImportMetaEnv {
+  readonly VITE_DISQUS_SHORTNAME?: string
+}
+```
+
+If you rename the variable, update this declaration. Otherwise, no type errors should occur.
+
+---
+
+## Summary
+
+Here is the complete checklist to get Disqus running on this project:
+
+| # | Step | Status |
+| :-: | :--- | :---: |
+| 1 | Create a Disqus account at [disqus.com](https://disqus.com) | ☐ |
+| 2 | Register your site and note the **Shortname** | ☐ |
+| 3 | Add `VITE_DISQUS_SHORTNAME=your-shortname` to `.env.local` | ☐ |
+| 4 | Restart `pnpm dev` | ☐ |
+| 5 | Scroll to the bottom of any blog post to see comments | ☐ |
+
+Once configured, readers can leave comments, you can moderate them from the Disqus dashboard, and the comment counts automatically appear on your blog cards — all with zero additional code.
+
+<Callout type="tip" title="You're All Set">
+Your readers now have a full-featured commenting experience. The next step is to write great content that gets them talking!
+</Callout>

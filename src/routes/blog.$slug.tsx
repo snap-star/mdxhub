@@ -1,17 +1,15 @@
 import React from 'react'
-import { useParams, Navigate, Link } from 'react-router'
+import { useParams, Link } from 'react-router'
 import { useContentStore } from '@/store/contentStore'
 import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
 import { AuthorCard } from '@/components/blog/AuthorCard'
 import { CCLicense } from '@/components/blog/CCLicense'
 import { ReadingTime } from '@/components/blog/ReadingTime'
 import { TableOfContents, useActiveHeading } from '@/components/blog/TableOfContents'
-import { extractHeadingsFromHtml, formatDate, matchesSlugOrFilename, type HeadingItem } from '@/lib/utils'
+import { extractHeadingsFromHtml, formatDate, matchesSlugOrFilename, slugify, type HeadingItem } from '@/lib/utils'
 import { Calendar, MessageCircle, Tag } from 'lucide-react'
 import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
-import { MDXProvider } from '@mdx-js/react'
-import { MDXComponents } from '@/components/mdx/MDXComponents'
 import { openLightbox } from '@/components/mdx/ImageLightbox'
 import { PostPagination } from '@/components/blog/PostPagination'
 import { ShareButtons } from '@/components/blog/ShareButtons'
@@ -57,6 +55,13 @@ export default function BlogPost() {
     setTimeout(() => {
       const article = document.querySelector('article.prose')
       if (article) {
+        // Ensure all h2/h3 have an id so TOC navigation works (especially for .md files
+        // that bypass the rehypeSlug plugin)
+        article.querySelectorAll('h2, h3').forEach(el => {
+          if (!el.id) {
+            el.id = slugify(el.textContent || '')
+          }
+        })
         const extracted = extractHeadingsFromHtml(article.innerHTML)
         setHeadings(extracted)
       }

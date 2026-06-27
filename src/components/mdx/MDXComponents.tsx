@@ -101,7 +101,7 @@ export const MDXComponents = {
     }
 
     return (
-      <figure className="my-6">
+      <span className="my-6 block">
         <button
           onClick={() => openLightbox(resolvedSrc ?? '', props.alt ?? '')}
           className="block w-full p-0 border-0 bg-transparent cursor-zoom-in"
@@ -114,8 +114,8 @@ export const MDXComponents = {
             src={resolvedSrc}
           />
         </button>
-        {props.alt && <figcaption className="text-center text-sm italic text-muted mt-2 dark:text-muted-foreground">{props.alt}</figcaption>}
-      </figure>
+        {props.alt && <span className="block text-center text-sm italic text-muted mt-2 dark:text-muted-foreground">{props.alt}</span>}
+      </span>
     )
   },
   table: (props: React.HTMLAttributes<HTMLTableElement>) => (

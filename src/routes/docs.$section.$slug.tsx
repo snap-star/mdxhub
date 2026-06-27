@@ -1,11 +1,11 @@
 import React from 'react'
-import { useParams, Navigate } from 'react-router'
+import { useParams } from 'react-router'
 import { useContentStore } from '@/store/contentStore'
 import { SEO } from '@/components/common/SEO'
 import { VersionBadge } from '@/components/docs/VersionBadge'
 import { PrevNextNav } from '@/components/docs/PrevNextNav'
 import { TableOfContents, useActiveHeading } from '@/components/blog/TableOfContents'
-import { extractHeadingsFromHtml, type HeadingItem } from '@/lib/utils'
+import { extractHeadingsFromHtml, slugify, type HeadingItem } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import { MobileTocSheet, setTocData } from '@/components/blog/MobileTocSheet'
 
@@ -22,7 +22,16 @@ export default function DocPage() {
     if (!doc) return
     setTimeout(() => {
       const article = document.querySelector('article.prose')
-      if (article) setHeadings(extractHeadingsFromHtml(article.innerHTML))
+      if (article) {
+        // Ensure all h2/h3 have an id so TOC navigation works (especially for .md files
+        // that bypass the rehypeSlug plugin)
+        article.querySelectorAll('h2, h3').forEach(el => {
+          if (!el.id) {
+            el.id = slugify(el.textContent || '')
+          }
+        })
+        setHeadings(extractHeadingsFromHtml(article.innerHTML))
+      }
     }, 100)
   }, [doc])
 
