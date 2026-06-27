@@ -6,6 +6,7 @@ import { formatDateShort } from '@/lib/utils'
 import { Clock, Calendar, ChevronRight, MessageCircle } from 'lucide-react'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
 import { SeriesBadge } from '@/components/blog/SeriesBadge'
+import { OptimizedImage } from '@/components/mdx/OptimizedImage'
 
 interface PostCardProps {
   post: BlogPost
@@ -33,11 +34,11 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
           } : undefined}
         >
           {frontmatter.coverImage ? (
-            <img
+            <OptimizedImage
               src={frontmatter.coverImage}
               alt={frontmatter.title}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
+              imgClassName="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              usePicture={false}
             />
           ) : (
             <div className="absolute inset-0 opacity-15">

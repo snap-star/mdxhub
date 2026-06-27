@@ -32,12 +32,12 @@ export function matchesSlugOrFilename(slug: string, currentSlug: string): boolea
   return slug === currentSlug || getSlugFilename(slug) === currentSlug
 }
 
-const contentAssetModules = import.meta.glob('../../content/**/*.{png,jpg,jpeg,gif,svg,webp}', {
+const contentAssetModules = import.meta.glob('../../content/**/*.{png,jpg,jpeg,gif,svg,webp,avif}', {
   as: 'url',
   eager: true,
 }) as Record<string, string>
 
-const contentAssetMap: Record<string, string> = Object.fromEntries(
+export const contentAssetMap: Record<string, string> = Object.fromEntries(
   Object.entries(contentAssetModules).map(([filePath, url]) => {
     const normalizedPath = filePath.replace(/\\/g, '/').replace(/^.*\/content\//, '')
     return [normalizedPath, url]

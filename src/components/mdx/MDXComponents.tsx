@@ -9,6 +9,7 @@ import { CCLicense } from '../blog/CCLicense'
 import { AuthorCard } from '../blog/AuthorCard'
 import { resolveContentAssetUrl } from '@/lib/utils'
 import { openLightbox } from './ImageLightbox'
+import { OptimizedImage } from './OptimizedImage'
 
 import { Check, Copy } from 'lucide-react'
 
@@ -107,11 +108,11 @@ export const MDXComponents = {
           className="block w-full p-0 border-0 bg-transparent cursor-zoom-in"
           aria-label={props.alt ? `View image: ${props.alt}` : 'View image'}
         >
-          <img
-            className="rounded-lg border border-border w-full object-cover max-h-[500px] transition-transform duration-200 hover:scale-[1.01]"
-            loading="lazy"
+          <OptimizedImage
+            imgClassName="rounded-lg border border-border w-full object-cover max-h-[500px] transition-transform duration-200 hover:scale-[1.01]"
+            usePicture={true}
             {...props}
-            src={resolvedSrc}
+            src={resolvedSrc || ''}
           />
         </button>
         {props.alt && <span className="block text-center text-sm italic text-muted mt-2 dark:text-muted-foreground">{props.alt}</span>}

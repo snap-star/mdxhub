@@ -25,9 +25,24 @@ export function DisqusCommentCount({
 
   const disqusUrl = React.useMemo(() => {
     if (!href || typeof window === 'undefined') return undefined
-    if (/^https?:\/\//.test(href)) return href
-    if (href.startsWith('/')) return `${window.location.origin}${href}`
-    return undefined
+
+    let url = href
+
+    // Handle #-only hrefs (like "#disqus_thread"): use current page URL
+    if (url.startsWith('#')) {
+      url = window.location.href
+    }
+    // Handle relative paths (like "/blog/my-post#disqus_thread")
+    else if (!/^https?:\/\//.test(url)) {
+      if (url.startsWith('/')) {
+        url = `${window.location.origin}${url}`
+      } else {
+        return undefined
+      }
+    }
+
+    // Strip the #disqus_thread fragment — Disqus adds it internally when matching
+    return url.replace(/#disqus_thread.*$/, '')
   }, [href])
 
   React.useEffect(() => {

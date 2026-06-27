@@ -1,12 +1,14 @@
 ---
 title: "Setting Up Disqus Comment System: A Complete Guide"
 date: "2026-06-27"
+section: "2. Guides"
 author: "chigusa-asuha"
 category: "Tutorial"
 tags: ["disqus", "comments", "configuration", "mdx", "setup"]
-description: "Learn how to enable and configure the Disqus comment system in this MDX-powered blog platform — from signup to live comments, comment counts, and per-post control."
-coverImage: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?q=80&w=2574&auto=format&fit=crop"
+description: "How to enable and configure the Disqus comment system in this MDX-powered blog platform — from signup to live comments, comment counts, and per-post control."
+order: 21
 cc: "CC-BY-4.0"
+version: "v1.0"
 ---
 
 Engaging with your readers is one of the most rewarding parts of running a blog. This project comes with a fully integrated **Disqus** comment system that you can enable with just a few environment variables — no additional code required.
@@ -18,8 +20,6 @@ This tutorial walks you through every step, from creating a Disqus account to se
 ## What Is Disqus?
 
 Disqus is a popular, third-party comment hosting service. Instead of building your own comment database and moderation UI, Disqus handles everything: spam filtering, threading, upvoting, social login, email notifications, and moderation dashboards.
-
-![Disqus comment thread showing a real discussion with threaded replies](https://images.unsplash.com/photo-1553877522-43269d4ea984?q=80&w=2670&auto=format&fit=crop)
 
 Your readers see a fully functional comment section at the bottom of every blog post, and you manage everything through Disqus's online dashboard. The best part? It takes **under 10 minutes** to set up.
 
@@ -45,8 +45,6 @@ Once logged in, Disqus will ask you to register a new site:
 4. Select a **Category** for your content
 5. Click **"Finish setup"**
 
-![A laptop showing a website dashboard or admin panel interface](https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop)
-
 <Callout type="warning" title="Important">
 Your **Shortname** is the only piece of information you need to write down. It is case-sensitive and cannot be changed later without breaking existing comments.
 </Callout>
@@ -70,8 +68,6 @@ VITE_DISQUS_SHORTNAME=your-shortname-here
 
 Replace `your-shortname-here` with the shortname you chose in Step 2.
 
-![Code editor showing environment variable configuration](https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2670&auto=format&fit=crop)
-
 <Callout type="note" title="How It Works">
 The `VITE_` prefix tells Vite to expose this variable to client-side code. The rest of the system (`DisqusComments` and `DisqusCommentCount` components) reads `import.meta.env.VITE_DISQUS_SHORTNAME` at runtime to know which Disqus site to load comments from.
 </Callout>
@@ -81,8 +77,6 @@ The `VITE_` prefix tells Vite to expose this variable to client-side code. The r
 ## Step 4: Verify It's Working
 
 Navigate to any blog post on your local server. Scroll to the bottom — you should see a placeholder where Disqus loads:
-
-![A comment section placeholder area on a blog post](https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2670&auto=format&fit=crop)
 
 <Callout type="tip">
 Disqus loads asynchronously via JavaScript, so it may take a second or two to appear on first visit. If you see a blank area with `#disqus_thread`, the configuration is correct — Disqus is just loading.
@@ -185,8 +179,6 @@ To test the full comment lifecycle:
 2. **Check the count** — Go to the blog index page and verify the comment count updates on the post card.
 3. **Moderate** — Visit `https://YOUR-SHORTNAME.disqus.com/admin/` to moderate comments, mark them as spam, or approve them.
 
-![Disqus moderation dashboard showing pending and approved comments](https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2670&auto=format&fit=crop)
-
 <Callout type="tip" title="Pro Tip">
 You can pre-populate comment counts in production by running the Disqus count sync tool. The count script (`count.js`) automatically updates counts every time a page loads.
 </Callout>
@@ -247,13 +239,13 @@ If you rename the variable, update this declaration. Otherwise, no type errors s
 
 Here is the complete checklist to get Disqus running on this project:
 
-| # | Step | Status |
-| :-: | :--- | :---: |
-| 1 | Create a Disqus account at [disqus.com](https://disqus.com) | ☐ |
-| 2 | Register your site and note the **Shortname** | ☐ |
-| 3 | Add `VITE_DISQUS_SHORTNAME=your-shortname` to `.env.local` | ☐ |
-| 4 | Restart `pnpm dev` | ☐ |
-| 5 | Scroll to the bottom of any blog post to see comments | ☐ |
+| # | Step |
+| :-: | :--- |
+| 1 | Create a Disqus account at [disqus.com](https://disqus.com) |
+| 2 | Register your site and note the **Shortname** |
+| 3 | Add `VITE_DISQUS_SHORTNAME=your-shortname` to `.env.local` |
+| 4 | Restart `pnpm dev` |
+| 5 | Scroll to the bottom of any blog post to see comments or click the `Comment icon` in the author card before your content |
 
 Once configured, readers can leave comments, you can moderate them from the Disqus dashboard, and the comment counts automatically appear on your blog cards — all with zero additional code.
 
