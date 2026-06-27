@@ -1,0 +1,214 @@
+---
+title: "Zustand + React 19 Correlation Guide"
+date: 2026-06-26
+category: "React"
+tags: ["Zustand", "React", "Vite"]
+series: "Zustand Guide"
+seriesOrder: 5
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## 1. Zustand + React 19 Correlation Guide
+
+### Mapping React 19 Concepts to Zustand
+
+| React 19 Feature | Zustand Equivalent | Correlation |
+|-----------------|-------------------|-------------|
+| `useState` | `create() state` | Both manage reactive state |
+| `useReducer` | Slices + actions | Zustand set() is like dispatch |
+| Context API | `create()` + Provider | Zustand replaces Context for global state |
+| `useContext` | `useStore(selector)` | Both subscribe to value changes |
+| Server Components | Store initialization props | Server → Client state passing |
+| `useActionState` | Zustand actions | Store actions replace form state |
+| `useOptimistic` | Optimistic store pattern | Zustand manages full lifecycle |
+| React Compiler | Auto-memoized selectors | Compiler + selectors = optimal |
+| Streaming SSR | `skipHydration` + init | Store hydration from server data |
+
+### Quick Decision Tree
+
+```
+Need state management?
+│
+├─ Server-rendered data (read-only)?
+│  └─ Use Server Components — NO Zustand needed
+│
+├─ Component-local state?
+│  └─ Use useState/useReducer — NO Zustand needed
+│
+├─ Shared across few components (3-5)?
+│  ├─ Simple prop drilling works? → Use props
+│  └─ Deep nesting? → Consider Zustand OR Context
+│
+├─ Shared across many components (6+)?
+│  ├─ Mostly static (rarely changes)? → Context API
+│  └─ Frequently changing? → ✅ Zustand
+│
+├─ Complex async logic?
+│  ├─ Server state? → React Query (complements Zustand)
+│  └─ Client state? → ✅ Zustand async actions
+│
+└─ Need persistence? → ✅ Zustand persist middleware
+```
+
+### Zustand vs React 19 Built-ins
+
+```jsx
+// React 19 Context (for comparison)
+const ThemeContext = createContext('light');
+
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+function ThemedButton() {
+  const { theme, setTheme } = useContext(ThemeContext);
+  return <button onClick={() => setTheme('dark')}>{theme}</button>;
+}
+
+// Zustand equivalent (simpler, more efficient)
+const useThemeStore = create((set) => ({
+  theme: 'light',
+  setTheme: (theme) => set({ theme }),
+}));
+
+function ThemedButton() {
+  const theme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
+  return <button onClick={() => setTheme('dark')}>{theme}</button>;
+}
+```
+
+---
+
+## 2. Quick Reference Card
+
+### Essential Zustand APIs
+
+| API | Signature | Purpose |
+|-----|-----------|---------|
+| `create()` | `create((set, get, api) => state)` | Create a store |
+| `useStore(selector)` | `useStore((state) => state.count)` | Subscribe to state slice |
+| `set()` | `set(newState)` or `set(fn)` | Update state |
+| `get()` | `get()` | Read current state |
+| `api.subscribe()` | `store.subscribe(selector, cb)` | Listen to changes |
+| `getState()` | `useStore.getState()` | One-off state read |
+| `setState()` | `useStore.setState(partial)` | Direct state update |
+| `shallow` | `import { shallow }` | Shallow compare for selectors |
+
+### Middleware Quick Reference
+
+| Middleware | Import | Purpose |
+|-----------|--------|---------|
+| `devtools` | `zustand/middleware` | Redux DevTools integration |
+| `persist` | `zustand/middleware` | localStorage/sessionStorage persistence |
+| `immer` | `zustand/middleware/immer` | Mutable state updates |
+| `subscribeWithSelector` | `zustand/middleware` | Selector-based subscriptions |
+
+### Common Patterns Cheat Sheet
+
+```jsx
+// Subscribe to single value
+const count = useStore((state) => state.count);
+
+// Subscribe to multiple values (with shallow)
+const { a, b } = useStore(
+  (state) => ({ a: state.a, b: state.b }),
+  shallow
+);
+
+// Select action only (no re-render)
+const increment = useStore((state) => state.increment);
+
+// Read state outside React
+const current = useStore.getState().value;
+
+// Update state outside React
+useStore.setState({ value: 42 });
+
+// Subscribe to changes
+const unsub = useStore.subscribe(
+  (state) => state.value,
+  (value, prevValue) => console.log(value)
+);
+unsub(); // Cleanup
+```
+
+---
+
+## 3. Troubleshooting Guide
+
+### Common Issues and Solutions
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| Component re-renders too much | Selector returns new object | Use `shallow` or split selectors |
+| Store not updating | Missing `set()` call | Always use `set()` to update state |
+| Selector returns undefined | Wrong property name | Check property names match store |
+| Persist not working | `skipHydration: true` | Remove or handle hydration |
+| TypeScript errors with slices | Type mismatch | Use `StateCreator` type properly |
+| SSR hydration mismatch | Store state differs server/client | Use `useHydration` pattern |
+| DevTools not showing | Middleware order | `devtools()` should be outermost |
+
+---
+
+### Performance Checklist
+
+- [ ] Use atomic selectors (select single values, not objects)
+- [ ] Use `shallow` for multi-value object selectors
+- [ ] Split large stores with slices pattern
+- [ ] Select actions separately from state
+- [ ] Use `useMemo` for expensive derived values (if not using React Compiler)
+- [ ] Avoid creating selectors inline (extract to constants)
+- [ ] Use `subscribeWithSelector` for external subscriptions
+- [ ] Profile with React DevTools to catch unnecessary re-renders
+
+---
+
+## 4. Learning Path Summary
+
+### Junior Level Checklist
+- [ ] Install and set up Zustand with React 19
+- [ ] Create your first store with `create()`
+- [ ] Read state with selectors
+- [ ] Write state with `set()`
+- [ ] Use actions to encapsulate logic
+- [ ] Understand shallow comparison
+- [ ] Use `'use client'` with Next.js
+
+### Intermediate Level Checklist
+- [ ] Implement the slices pattern
+- [ ] Use `immer` for nested updates
+- [ ] Add `persist` middleware
+- [ ] Add `devtools` middleware
+- [ ] Handle async operations (thunks)
+- [ ] Build custom hooks for store data
+- [ ] Test stores with Vitest/Jest
+- [ ] Optimize selectors for performance
+
+### Expert Level Checklist
+- [ ] Build custom middleware
+- [ ] Integrate with React Compiler
+- [ ] Handle SSR and hydration
+- [ ] Implement optimistic updates
+- [ ] Build state machines
+- [ ] Set up in micro-frontend architecture
+- [ ] Create TypeScript generic stores
+- [ ] Implement advanced persist patterns
+- [ ] Monitor and debug production stores
+
+---
+
+<Callout type="note" title="Conclusion">
+**End of Guide** — This comprehensive Zustand guide covers the library from beginner fundamentals to expert-level architecture patterns, fully correlated with React 19 concepts.
+</Callout>
+
+<Callout type="tip" title="Recommended Next Steps">
+Build a complete e-commerce application using Zustand for client state and React Query for server state, deploy it with Next.js 15, and implement the slices pattern for maintainable code.
+</Callout>

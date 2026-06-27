@@ -1,0 +1,1217 @@
+---
+title: Expert Level — Architecture & Production
+descriptions: A guide to advanced tRPC architecture patterns and production-ready best practices.
+date: 2026-06-26
+category: "React"
+tags: ["tRPC", "Zod", "React", "Vite"]
+series: "tRPC, Zod & React 19 Guide"
+seriesOrder: 4
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## Chapter 11: tRPC Architecture Patterns
+
+<Badge variant="red">Expert</Badge>
+
+### 11.1 Modular Router Design
+
+```typescript
+// src/server/routers/_app.ts — Root router with namespacing
+import { router } from '../trpc';
+import { userRouter } from './user';
+import { postRouter } from './post';
+import { commentRouter } from './comment';
+import { searchRouter } from './search';
+import { adminRouter } from './admin';
+import { webhookRouter } from './webhook';
+
+// Merge routers with clear namespacing
+export const appRouter = router({
+  // Public APIs
+  user: userRouter,
+  post: postRouter,
+  comment: commentRouter,
+  search: searchRouter,
+  
+  // Protected namespaces
+  admin: adminRouter,       // All routes require admin
+  webhook: webhookRouter,   // External service integrations
+});
+
+export type AppRouter = typeof appRouter;
+```
+
+```typescript
+// src/server/routers/post.ts — Feature router with sub-routers
+import { router, publicProcedure, authedProcedure } from '../trpc';
+
+// Sub-router for post interactions (likes, bookmarks)
+const postInteractionRouter = router({
+  toggleLike: authedProcedure
+    .input(z.object({ postId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Toggle like logic
+    }),
+
+  toggleBookmark: authedProcedure
+    .input(z.object({ postId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Toggle bookmark logic
+    }),
+
+  getStats: publicProcedure
+    .input(z.object({ postId: z.string().uuid() }))
+    .query(async ({ input }) => {
+      return { likes: 42, bookmarks: 7 };
+    }),
+});
+
+// Main post router
+export const postRouter = router({
+  // CRUD operations
+  list: publicProcedure
+    .input(paginationInput)
+    .query(async ({ input }) => { /* ... */ }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => { /* ... */ }),
+
+  create: authedProcedure
+    .input(createPostSchema)
+    .mutation(async ({ ctx, input }) => { /* ... */ }),
+
+  update: authedProcedure
+    .input(z.object({ id: z.string().uuid(), data: updatePostSchema }))
+    .mutation(async ({ ctx, input }) => { /* ... */ }),
+
+  delete: authedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => { /* ... */ }),
+
+  // Nested router for interactions
+  interaction: postInteractionRouter,
+});
+
+// Usage on client:
+// trpc.post.interaction.toggleLike.useMutation()
+// trpc.post.interaction.getStats.useQuery({ postId: '...' })
+```
+
+### 11.2 Factory Pattern for CRUD Routers
+
+```typescript
+// src/server/lib/crud-router.ts — Generic CRUD router factory
+import { z } from 'zod';
+import { router, publicProcedure, authedProcedure } from '../trpc';
+
+interface CrudOptions<TCreate, TUpdate, TOutput> {
+  name: string;
+  createSchema: z.ZodType<TCreate>;
+  updateSchema: z.ZodType<TUpdate>;
+  outputSchema: z.ZodType<TOutput>;
+  db: {
+    create: (data: TCreate) => Promise<TOutput>;
+    findMany: (params: { skip?: number; take?: number }) => Promise<TOutput[]>;
+    findById: (id: string) => Promise<TOutput | null>;
+    update: (id: string, data: Partial<TUpdate>) => Promise<TOutput>;
+    delete: (id: string) => Promise<void>;
+    count: () => Promise<number>;
+  };
+}
+
+export function createCrudRouter<TCreate, TUpdate, TOutput>(
+  options: CrudOptions<TCreate, TUpdate, TOutput>
+) {
+  const { createSchema, updateSchema, db } = options;
+
+  return router({
+    list: publicProcedure
+      .input(paginationInput)
+      .query(async ({ input }) => {
+        const skip = (input.page - 1) * input.limit;
+        const [items, total] = await Promise.all([
+          db.findMany({ skip, take: input.limit }),
+          db.count(),
+        ]);
+        return { items, meta: { page: input.page, limit: input.limit, total } };
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ input }) => {
+        const item = await db.findById(input.id);
+        if (!item) throw new TRPCError({ code: 'NOT_FOUND' });
+        return item;
+      }),
+
+    create: authedProcedure
+      .input(createSchema)
+      .mutation(async ({ input }) => db.create(input)),
+
+    update: authedProcedure
+      .input(z.object({ id: z.string().uuid(), data: updateSchema }))
+      .mutation(async ({ input }) => db.update(input.id, input.data)),
+
+    delete: authedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ input }) => db.delete(input.id)),
+  });
+}
+
+// Usage:
+const tagRouter = createCrudRouter({
+  name: 'tag',
+  createSchema: z.object({ name: z.string().min(1) }),
+  updateSchema: z.object({ name: z.string().min(1) }).partial(),
+  outputSchema: z.object({ id: z.string(), name: z.string() }),
+  db: tagDb,
+});
+```
+
+---
+
+## Chapter 12: Performance Optimization
+
+<Badge variant="red">Expert</Badge>
+
+### 12.1 Query Optimization Strategies
+
+```typescript
+// src/server/lib/data-loader.ts — DataLoader pattern for N+1 prevention
+import DataLoader from 'dataloader';
+
+// Batch load users by ID — prevents N+1 queries
+const userLoader = new DataLoader<string, User>(async (userIds) => {
+  const users = await db.user.findMany({
+    where: { id: { in: [...userIds] } },
+  });
+  
+  // Return in same order as keys
+  const userMap = new Map(users.map((u) => [u.id, u]));
+  return userIds.map((id) => userMap.get(id) ?? null);
+});
+
+// Context factory with loaders
+export async function createContext() {
+  return {
+    loaders: {
+      user: userLoader,
+      // Add more loaders...
+    },
+  };
+}
+
+// Usage in resolvers:
+export const postRouter = router({
+  listWithAuthors: publicProcedure.query(async ({ ctx }) => {
+    const posts = await db.post.findMany({ take: 10 });
+    
+    // Only 2 queries total instead of 11!
+    const authors = await Promise.all(
+      posts.map((post) => ctx.loaders.user.load(post.authorId))
+    );
+    
+    return posts.map((post, i) => ({
+      ...post,
+      author: authors[i],
+    }));
+  }),
+});
+```
+
+### 12.2 Response Caching
+
+```typescript
+import { redis } from './redis-client';
+
+// Middleware: Redis response caching
+const cached = (ttlSeconds: number) => t.middleware(async ({ path, type, next }) => {
+  // Only cache queries
+  if (type !== 'query') return next();
+  
+  const cacheKey = `trpc:${path}`;
+  const cached = await redis.get(cacheKey);
+  
+  if (cached) {
+    return { result: { data: JSON.parse(cached) } };
+  }
+  
+  const result = await next();
+  
+  if (result.ok) {
+    await redis.setex(cacheKey, ttlSeconds, JSON.stringify(result.data));
+  }
+  
+  return result;
+});
+
+// Usage:
+export const postRouter = router({
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .use(cached(60)) // Cache for 60 seconds
+    .query(async ({ input }) => {
+      return db.post.findUnique({ where: input });
+    }),
+
+  // Cache expensive computations longer
+  getTrending: publicProcedure
+    .use(cached(300)) // Cache for 5 minutes
+    .query(async () => {
+      // Expensive aggregation query...
+      return computeTrendingPosts();
+    }),
+});
+```
+
+### 12.3 Client-Side Optimizations
+
+```typescript
+'use client';
+
+import { trpc } from './trpc';
+
+// Optimistic updates with rollback
+function useOptimisticToggle() {
+  const utils = trpc.useUtils();
+  
+  return trpc.post.toggleLike.useMutation({
+    // Optimistically update UI
+    onMutate: async ({ postId }) => {
+      await utils.post.getById.cancel({ id: postId });
+      
+      const previous = utils.post.getById.getData({ id: postId });
+      
+      utils.post.getById.setData({ id: postId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          liked: !old.liked,
+          likeCount: old.liked ? old.likeCount - 1 : old.likeCount + 1,
+        };
+      });
+      
+      return { previous };
+    },
+    
+    onError: (_err, { postId }, context) => {
+      utils.post.getById.setData({ id: postId }, context?.previous);
+    },
+    
+    onSettled: (_data, _err, { postId }) => {
+      utils.post.getById.invalidate({ id: postId });
+    },
+  });
+}
+
+// Stale-while-revalidate pattern
+function useRealtimeData() {
+  return trpc.dashboard.stats.useQuery(undefined, {
+    refetchInterval: 30000,      // Refetch every 30s
+    staleTime: 10000,            // Data fresh for 10s
+    refetchOnWindowFocus: true,  // Refresh when user returns
+    placeholderData: (prev) => prev, // Show old data while loading
+  });
+}
+
+// Prefetching for instant navigation
+function usePrefetchPost() {
+  const utils = trpc.useUtils();
+  
+  return {
+    prefetchPost: (postId: string) => {
+      utils.post.getById.prefetch({ id: postId });
+      utils.post.comments.prefetch({ postId });
+    },
+  };
+}
+```
+
+---
+
+## Chapter 13: Advanced Context & Authorization
+
+<Badge variant="red">Expert</Badge>
+
+### 13.1 Role-Based Access Control (RBAC)
+
+```typescript
+// src/server/auth/permissions.ts
+import { TRPCError } from '@trpc/server';
+
+// Define all possible permissions
+const Permissions = {
+  post: ['create', 'read', 'update', 'delete', 'publish'] as const,
+  user: ['read', 'update', 'delete', 'manageRoles'] as const,
+  comment: ['create', 'read', 'update', 'delete', 'moderate'] as const,
+} as const;
+
+type Permission = {
+  [K in keyof typeof Permissions]: `${K}:${(typeof Permissions)[K][number]}`;
+}[keyof typeof Permissions];
+
+// Role definitions
+const RolePermissions: Record<string, Permission[]> = {
+  admin: [
+    'post:create', 'post:read', 'post:update', 'post:delete', 'post:publish',
+    'user:read', 'user:update', 'user:delete', 'user:manageRoles',
+    'comment:create', 'comment:read', 'comment:update', 'comment:delete', 'comment:moderate',
+  ],
+  editor: [
+    'post:create', 'post:read', 'post:update', 'post:publish',
+    'user:read',
+    'comment:create', 'comment:read', 'comment:moderate',
+  ],
+  author: [
+    'post:create', 'post:read', 'post:update',
+    'user:read',
+    'comment:create', 'comment:read',
+  ],
+  user: [
+    'post:read',
+    'user:read', 'user:update',
+    'comment:create', 'comment:read',
+  ],
+};
+
+// Middleware factory for permission checking
+const requirePermission = (permission: Permission) => 
+  t.middleware(({ ctx, next }) => {
+    if (!ctx.user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+    
+    const userPermissions = RolePermissions[ctx.user.role] ?? [];
+    
+    if (!userPermissions.includes(permission)) {
+      throw new TRPCError({ 
+        code: 'FORBIDDEN', 
+        message: `Missing permission: ${permission}` 
+      });
+    }
+    
+    return next({ ctx });
+  });
+
+// Usage:
+export const postRouter = router({
+  create: authedProcedure
+    .use(requirePermission('post:create'))
+    .input(createPostSchema)
+    .mutation(async ({ ctx, input }) => {
+      // User guaranteed to have post:create permission
+      return db.post.create({ data: { ...input, authorId: ctx.user.id } });
+    }),
+
+  publish: authedProcedure
+    .use(requirePermission('post:publish'))
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      return db.post.update({
+        where: input,
+        data: { status: 'published', publishedAt: new Date() },
+      });
+    }),
+
+  moderate: authedProcedure
+    .use(requirePermission('comment:moderate'))
+    .input(z.object({ commentId: z.string().uuid(), action: z.enum(['approve', 'reject']) }))
+    .mutation(async ({ input }) => { /* ... */ }),
+});
+```
+
+### 13.2 Multi-Tenant Context
+
+```typescript
+// src/server/context/organization.ts
+interface OrgContext {
+  user: User;
+  organization: Organization;
+  membership: OrganizationMember;
+}
+
+const withOrganization = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+  
+  // Extract org from header or user default
+  const orgId = ctx.req.headers['x-organization-id'] as string 
+    ?? ctx.user.defaultOrgId;
+  
+  const [organization, membership] = await Promise.all([
+    db.organization.findUnique({ where: { id: orgId } }),
+    db.organizationMember.findUnique({
+      where: { userId_orgId: { userId: ctx.user.id, orgId } },
+    }),
+  ]);
+  
+  if (!organization || !membership) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Organization access denied' });
+  }
+  
+  return next({
+    ctx: { ...ctx, organization, membership } as OrgContext,
+  });
+});
+
+// Organization-scoped procedures
+const orgProcedure = authedProcedure.use(withOrganization);
+
+// Usage:
+export const projectRouter = router({
+  list: orgProcedure.query(async ({ ctx }) => {
+    // Automatically scoped to user's org!
+    return db.project.findMany({
+      where: { organizationId: ctx.organization.id },
+    });
+  }),
+
+  create: orgProcedure
+    .input(z.object({ name: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      return db.project.create({
+        data: {
+          ...input,
+          organizationId: ctx.organization.id,
+          createdById: ctx.user.id,
+        },
+      });
+    }),
+});
+```
+
+---
+
+## Chapter 14: Testing Strategies
+
+<Badge variant="red">Expert</Badge>
+
+### 14.1 Unit Testing Routers
+
+```typescript
+// tests/post-router.test.ts
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createCaller } from '@/server/routers';
+import { db } from '@/server/db';
+
+// Mock database
+vi.mock('@/server/db', () => ({
+  db: {
+    post: {
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+  },
+}));
+
+describe('postRouter', () => {
+  // Create caller with test context
+  const createTestCaller = (user?: { id: string; role: string }) => 
+    createCaller({ user: user ?? null });
+
+  describe('list', () => {
+    it('returns paginated posts', async () => {
+      const caller = createTestCaller();
+      
+      vi.mocked(db.post.findMany).mockResolvedValue([
+        { id: '1', title: 'Hello', content: 'World' },
+      ]);
+      vi.mocked(db.post.count).mockResolvedValue(1);
+
+      const result = await caller.post.list({ page: 1, limit: 10 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+      expect(result.meta.totalPages).toBe(1);
+    });
+  });
+
+  describe('create', () => {
+    it('creates a post for authenticated user', async () => {
+      const caller = createTestCaller({ 
+        id: 'user-1', 
+        role: 'user' 
+      });
+
+      vi.mocked(db.post.create).mockResolvedValue({
+        id: 'post-1',
+        title: 'Test',
+        content: 'Content',
+        authorId: 'user-1',
+      });
+
+      const result = await caller.post.create({
+        title: 'Test',
+        content: 'Content',
+      });
+
+      expect(result.title).toBe('Test');
+      expect(result.authorId).toBe('user-1');
+    });
+
+    it('rejects unauthenticated users', async () => {
+      const caller = createTestCaller(); // No user
+
+      await expect(
+        caller.post.create({ title: 'Test', content: 'Content' })
+      ).rejects.toThrow('UNAUTHORIZED');
+    });
+  });
+
+  describe('input validation', () => {
+    it('rejects invalid input types', async () => {
+      const caller = createTestCaller({ id: 'user-1', role: 'user' });
+
+      // Zod validation catches this automatically!
+      await expect(
+        caller.post.create({ title: '', content: 'Content' })
+      ).rejects.toThrow('too_small'); // Zod error for min(1)
+    });
+
+    it('rejects extra properties by default', async () => {
+      const caller = createTestCaller({ id: 'user-1', role: 'user' });
+
+      await expect(
+        caller.post.create({
+          title: 'Test',
+          content: 'Content',
+          extraField: 'not-allowed', // Zod strips unknown by default
+        } as any)
+      ).rejects.toThrow();
+    });
+  });
+});
+```
+
+### 14.2 Integration Testing with Test Database
+
+```typescript
+// tests/integration/setup.ts
+import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import { execSync } from 'child_process';
+
+let container: PostgreSqlContainer;
+
+export async function setupTestDb() {
+  container = await new PostgreSqlContainer().start();
+  
+  const databaseUrl = container.getConnectionUri();
+  process.env.DATABASE_URL = databaseUrl;
+  
+  // Run migrations
+  execSync('npx prisma migrate deploy', { env: process.env });
+  
+  return { databaseUrl, cleanup: () => container.stop() };
+}
+
+// tests/integration/post-flow.test.ts
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { createCaller } from '@/server/routers';
+import { setupTestDb } from './setup';
+
+describe('Post Creation Flow', () => {
+  let cleanup: () => Promise<void>;
+  let caller: ReturnType<typeof createCaller>;
+
+  beforeAll(async () => {
+    const testDb = await setupTestDb();
+    cleanup = testDb.cleanup;
+    
+    // Create test user
+    const user = await db.user.create({
+      data: { email: 'test@example.com', name: 'Test User' },
+    });
+    
+    caller = createCaller({ user });
+  });
+
+  afterAll(async () => {
+    await cleanup();
+  });
+
+  it('full CRUD flow', async () => {
+    // Create
+    const created = await caller.post.create({
+      title: 'Integration Test',
+      content: 'Testing full flow',
+    });
+    expect(created.title).toBe('Integration Test');
+
+    // Read
+    const fetched = await caller.post.getById({ id: created.id });
+    expect(fetched?.id).toBe(created.id);
+
+    // Update
+    const updated = await caller.post.update({
+      id: created.id,
+      data: { title: 'Updated Title' },
+    });
+    expect(updated.title).toBe('Updated Title');
+
+    // Delete
+    await caller.post.delete({ id: created.id });
+    
+    const deleted = await caller.post.getById({ id: created.id });
+    expect(deleted).toBeNull();
+  });
+});
+```
+
+### 14.3 E2E Testing with Playwright
+
+```typescript
+// tests/e2e/todo.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Todo App', () => {
+  test('creates and completes a todo', async ({ page }) => {
+    await page.goto('/todos');
+    
+    // Add todo
+    await page.fill('[name="text"]', 'E2E Test Todo');
+    await page.click('button[type="submit"]');
+    
+    // Verify it appears
+    await expect(page.locator('text=E2E Test Todo')).toBeVisible();
+    
+    // Toggle complete
+    await page.click('[data-testid="todo-checkbox"]');
+    
+    // Verify strikethrough
+    await expect(page.locator('text=E2E Test Todo')).toHaveClass(/completed/);
+    
+    // tRPC requests are automatically made — no mocking needed!
+    // The app talks to a real test server with a test database.
+  });
+
+  test('handles validation errors', async ({ page }) => {
+    await page.goto('/todos');
+    
+    // Submit empty form
+    await page.click('button[type="submit"]');
+    
+    // Zod validation error appears
+    await expect(page.locator('text=Required')).toBeVisible();
+  });
+});
+```
+
+---
+
+## Chapter 15: Production Deployment
+
+<Badge variant="red">Expert</Badge>
+
+### 15.1 Docker Configuration
+
+```dockerfile
+# Dockerfile
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npx prisma generate
+RUN npm run build
+
+# Production image
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 trpc
+COPY --from=builder --chown=trpc:nodejs /app/dist ./dist
+COPY --from=builder --chown=trpc:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=trpc:nodejs /app/package.json ./package.json
+USER trpc
+EXPOSE 3000
+ENV PORT=3000
+CMD ["node", "dist/server/index.js"]
+```
+
+### 15.2 Environment Configuration
+
+```typescript
+// src/server/env.ts — Runtime environment validation with Zod
+import { z } from 'zod';
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  PORT: z.coerce.number().default(3000),
+  
+  // Database
+  DATABASE_URL: z.string().startsWith('postgresql://'),
+  
+  // Redis (for caching)
+  REDIS_URL: z.string().startsWith('redis://').optional(),
+  
+  // Auth
+  JWT_SECRET: z.string().min(32),
+  JWT_EXPIRES_IN: z.string().default('7d'),
+  
+  // Rate limiting
+  RATE_LIMIT_REQUESTS: z.coerce.number().default(100),
+  RATE_LIMIT_WINDOW: z.coerce.number().default(60000),
+  
+  // CORS
+  CORS_ORIGIN: z.string().url().optional(),
+});
+
+export const env = envSchema.parse(process.env);
+// ^ Throws immediately on startup if env is misconfigured
+```
+
+### 15.3 Health Checks & Monitoring
+
+```typescript
+// src/server/routers/health.ts
+import { router, publicProcedure } from '../trpc';
+import { db } from '../db';
+import { redis } from '../redis';
+
+export const healthRouter = router({
+  check: publicProcedure.query(async () => {
+    const checks = await Promise.allSettled([
+      // Database check
+      db.$queryRaw`SELECT 1`,
+      // Redis check
+      redis.ping(),
+      // External API check
+      fetch('https://api.stripe.com/v1/health').then(r => r.ok),
+    ]);
+
+    const [dbCheck, redisCheck, externalCheck] = checks;
+
+    const healthy = 
+      dbCheck.status === 'fulfilled' && 
+      redisCheck.status === 'fulfilled';
+
+    return {
+      status: healthy ? 'healthy' : 'degraded',
+      timestamp: new Date().toISOString(),
+      services: {
+        database: dbCheck.status === 'fulfilled' ? 'up' : 'down',
+        redis: redisCheck.status === 'fulfilled' ? 'up' : 'down',
+        stripe: externalCheck.status === 'fulfilled' ? 'up' : 'down',
+      },
+    };
+  }),
+});
+```
+
+### 15.4 Structured Logging
+
+```typescript
+// src/server/lib/logger.ts
+import { createLogger, format, transports } from 'winston';
+
+export const logger = createLogger({
+  level: process.env.LOG_LEVEL ?? 'info',
+  format: format.combine(
+    format.timestamp(),
+    format.errors({ stack: true }),
+    format.json()
+  ),
+  defaultMeta: { service: 'trpc-api' },
+  transports: [
+    new transports.Console(),
+    new transports.File({ filename: 'error.log', level: 'error' }),
+  ],
+});
+
+// Request logging middleware
+const requestLogger = t.middleware(async ({ path, type, rawInput, ctx, next }) => {
+  const start = Date.now();
+  const requestId = crypto.randomUUID();
+  
+  logger.info({
+    type: 'request.start',
+    requestId,
+    path,
+    procedureType: type,
+    userId: ctx.user?.id,
+  });
+
+  const result = await next();
+
+  logger.info({
+    type: 'request.complete',
+    requestId,
+    path,
+    duration: Date.now() - start,
+    ok: result.ok,
+    ...(result.ok ? {} : { error: result.error }),
+  });
+
+  return result;
+});
+```
+
+---
+
+## Chapter 16: Advanced Zod Techniques
+
+<Badge variant="red">Expert</Badge>
+
+### 16.1 Recursive Schemas
+
+```typescript
+import { z } from 'zod';
+
+// Recursive type for comments with replies
+interface Comment {
+  id: string;
+  content: string;
+  authorId: string;
+  replies: Comment[];
+}
+
+const commentSchema: z.ZodType<Comment> = z.lazy(() =>
+  z.object({
+    id: z.string().uuid(),
+    content: z.string().min(1),
+    authorId: z.string().uuid(),
+    replies: z.array(commentSchema).default([]),
+  })
+);
+
+// Usage in tRPC
+export const commentRouter = router({
+  getThread: publicProcedure
+    .input(z.object({ rootId: z.string().uuid() }))
+    .query(async ({ input }) => {
+      // Returns nested comment structure
+      return buildCommentTree(input.rootId);
+    }),
+});
+```
+
+### 16.2 Conditional Validation with Super Refine
+
+```typescript
+import { z } from 'zod';
+
+// Complex form with conditional fields
+const eventSchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(['online', 'in-person', 'hybrid']),
+  
+  // Conditional: only required for in-person/hybrid
+  location: z.string().optional(),
+  
+  // Conditional: only required for online/hybrid
+  meetingUrl: z.string().url().optional(),
+  
+  // Conditional: only required if type is 'recurring'
+  schedule: z.object({
+    frequency: z.enum(['once', 'daily', 'weekly', 'monthly']),
+    endDate: z.date().optional(),
+  }).optional(),
+}).superRefine((data, ctx) => {
+  // Location required for in-person events
+  if ((data.type === 'in-person' || data.type === 'hybrid') && !data.location) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Location is required for in-person events',
+      path: ['location'],
+    });
+  }
+  
+  // Meeting URL required for online events
+  if ((data.type === 'online' || data.type === 'hybrid') && !data.meetingUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Meeting URL is required for online events',
+      path: ['meetingUrl'],
+    });
+  }
+  
+  // End date must be after start date for recurring events
+  if (data.schedule?.frequency !== 'once' && data.schedule?.endDate) {
+    // Additional validation...
+  }
+});
+
+// Usage:
+export const eventRouter = router({
+  create: authedProcedure
+    .input(eventSchema)
+    .mutation(async ({ ctx, input }) => {
+      return db.event.create({ data: input });
+    }),
+});
+```
+
+### 16.3 Branded Types for Type Safety
+
+```typescript
+import { z } from 'zod';
+
+// Create branded types to prevent mixing up different ID types
+const userIdSchema = z.string().uuid().brand<'UserId'>();
+const postIdSchema = z.string().uuid().brand<'PostId'>();
+const orgIdSchema = z.string().uuid().brand<'OrgId'>();
+
+type UserId = z.infer<typeof userIdSchema>;
+type PostId = z.infer<typeof postIdSchema>;
+type OrgId = z.infer<typeof orgIdSchema>;
+
+// These are now type-safe!
+function getUser(id: UserId) { /* ... */ }
+function getPost(id: PostId) { /* ... */ }
+
+// Won't compile: getUser(postId) — TypeScript error!
+
+// tRPC input with branded types
+export const router = router({
+  transferOwnership: authedProcedure
+    .input(z.object({
+      postId: postIdSchema,
+      newOwnerId: userIdSchema,
+      orgId: orgIdSchema,
+    }))
+    .mutation(async ({ input }) => {
+      // input.postId is PostId, input.newOwnerId is UserId
+      // No chance of mixing them up!
+      return db.post.update({
+        where: { id: input.postId },
+        data: { authorId: input.newOwnerId },
+      });
+    }),
+});
+```
+
+### 16.4 Zod Plugin: Auto-Documentation
+
+```typescript
+import { extendZodWithOpenApi } from 'zod-openapi';
+import { generateOpenApiDocument } from 'trpc-openapi';
+
+// Extend Zod with OpenAPI metadata
+extendZodWithOpenApi(z);
+
+const createUserSchema = z.object({
+  name: z.string().min(1).openapi({
+    description: 'The user\'s display name',
+    example: 'John Doe',
+  }),
+  email: z.string().email().openapi({
+    description: 'The user\'s email address',
+    example: 'john@example.com',
+  }),
+  age: z.number().int().min(0).optional().openapi({
+    description: 'The user\'s age in years',
+    example: 30,
+  }),
+}).openapi('CreateUserInput');
+
+// Generate OpenAPI spec from tRPC router
+const openApiDocument = generateOpenApiDocument(appRouter, {
+  title: 'My tRPC API',
+  version: '1.0.0',
+  baseUrl: 'https://api.example.com',
+});
+
+// Serve at /api/openapi.json
+// Use with Swagger UI or Redoc for auto-generated documentation!
+```
+
+---
+
+## Chapter 17: Edge Runtime & Serverless
+
+<Badge variant="red">Expert</Badge>
+
+### 17.1 Vercel Edge Runtime
+
+```typescript
+// app/api/trpc/[trpc]/route.ts
+import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
+import { appRouter } from '@/server/routers';
+import { createEdgeContext } from '@/server/context-edge';
+
+// Edge Runtime configuration
+export const runtime = 'edge';
+
+export async function GET(req: Request) {
+  return fetchRequestHandler({
+    endpoint: '/api/trpc',
+    req,
+    router: appRouter,
+    createContext: () => createEdgeContext(req),
+  });
+}
+
+export async function POST(req: Request) {
+  return fetchRequestHandler({
+    endpoint: '/api/trpc',
+    req,
+    router: appRouter,
+    createContext: () => createEdgeContext(req),
+  });
+}
+
+// Edge-compatible context (no Node.js APIs!)
+export async function createEdgeContext(req: Request) {
+  const token = req.headers.get('authorization')?.slice(7);
+  
+  // Use Web Crypto API (Edge-compatible) instead of Node.js crypto
+  const user = token ? await verifyJWTEdge(token) : null;
+  
+  return { user, req };
+}
+```
+
+### 17.2 Cloudflare Workers
+
+```typescript
+// src/index.ts — Cloudflare Worker entry point
+import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
+import { appRouter } from './routers';
+
+export interface Env {
+  DB: D1Database;          // Cloudflare D1
+  CACHE: Cache;            // Cloudflare Cache API
+  JWT_SECRET: string;
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    return fetchRequestHandler({
+      endpoint: '/trpc',
+      req: request,
+      router: appRouter,
+      createContext: () => ({
+        env,        // Cloudflare bindings
+        user: null, // Extract from JWT
+      }),
+    });
+  },
+};
+
+// D1 Database usage in procedures
+export const userRouter = router({
+  list: publicProcedure.query(async ({ ctx }) => {
+    const { results } = await ctx.env.DB.prepare(
+      'SELECT id, name, email FROM users LIMIT 100'
+    ).all();
+    return results;
+  }),
+
+  create: publicProcedure
+    .input(z.object({ name: z.string(), email: z.string().email() }))
+    .mutation(async ({ ctx, input }) => {
+      const { meta } = await ctx.env.DB.prepare(
+        'INSERT INTO users (id, name, email) VALUES (?, ?, ?)'
+      ).bind(crypto.randomUUID(), input.name, input.email).run();
+      
+      return { id: meta.last_row_id, ...input };
+    }),
+});
+```
+
+---
+
+## Chapter 18: Microservices & Federation
+
+<Badge variant="red">Expert</Badge>
+
+### 18.1 tRPC in Microservices
+
+```typescript
+// Gateway: Aggregates multiple tRPC services
+import { router } from './trpc';
+
+// Client for User Service
+const userService = createTRPCProxyClient<AppRouter>({
+  links: [httpBatchLink({ url: 'http://user-service:3001' })],
+});
+
+// Client for Order Service
+const orderService = createTRPCProxyClient<OrderRouter>({
+  links: [httpBatchLink({ url: 'http://order-service:3002' })],
+});
+
+// Client for Inventory Service
+const inventoryService = createTRPCProxyClient<InventoryRouter>({
+  links: [httpBatchLink({ url: 'http://inventory-service:3003' })],
+});
+
+// Gateway router — composes all services
+export const gatewayRouter = router({
+  user: createServiceProxy(userService),
+  order: createServiceProxy(orderService),
+  inventory: createServiceProxy(inventoryService),
+  
+  // Cross-service queries
+  userOrders: authedProcedure
+    .input(z.object({ userId: z.string().uuid() }))
+    .query(async ({ input }) => {
+      // Parallel calls to multiple services
+      const [user, orders] = await Promise.all([
+        userService.user.getById.query({ id: input.userId }),
+        orderService.order.byUser.query({ userId: input.userId }),
+      ]);
+      
+      return { user, orders };
+    }),
+
+  // Saga pattern: distributed transaction
+  placeOrder: authedProcedure
+    .input(z.object({
+      items: z.array(z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+      })),
+      shippingAddress: z.object({ /* ... */ }),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Step 1: Check inventory
+      const stockChecks = await Promise.all(
+        input.items.map((item) =>
+          inventoryService.inventory.check.query({
+            productId: item.productId,
+            quantity: item.quantity,
+          })
+        )
+      );
+      
+      if (stockChecks.some((check) => !check.available)) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Out of stock' });
+      }
+      
+      // Step 2: Reserve inventory
+      await Promise.all(
+        input.items.map((item) =>
+          inventoryService.inventory.reserve.mutate({
+            productId: item.productId,
+            quantity: item.quantity,
+          })
+        )
+      );
+      
+      // Step 3: Create order
+      const order = await orderService.order.create.mutate({
+        userId: ctx.user.id,
+        items: input.items,
+        shippingAddress: input.shippingAddress,
+      });
+      
+      // If any step fails, implement compensation (rollback)
+      
+      return order;
+    }),
+});
+```

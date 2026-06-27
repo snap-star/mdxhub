@@ -1,0 +1,2121 @@
+---
+title: "Intermediate Level — Patterns & Architecture"
+date: 2026-06-26
+category: "React"
+tags: ["Zustand", "React", "Vite"]
+series: "Zustand Guide"
+seriesOrder: 3
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## 6. The Slices Pattern
+
+### What are Slices?
+
+Slices are modular store definitions that compose into a single store. Each slice manages a domain of your application state.
+
+### Basic Slice Pattern
+
+```jsx
+// stores/slices/counterSlice.js
+export const createCounterSlice = (set, get) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  decrement: () => set((state) => ({ count: state.count - 1 })),
+  reset: () => set({ count: 0 }),
+  setCount: (count) => set({ count }),
+});
+
+// stores/slices/userSlice.js
+export const createUserSlice = (set, get) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  
+  login: async (credentials) => {
+    set({ isLoading: true });
+    try {
+      const user = await api.login(credentials);
+      set({ user, isAuthenticated: true, isLoading: false });
+    } catch (error) {
+      set({ isLoading: false, error: error.message });
+    }
+  },
+  
+  logout: () => {
+    set({ user: null, isAuthenticated: false });
+    api.logout();
+  },
+  
+  updateProfile: (updates) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, ...updates } : null,
+    })),
+});
+
+// stores/slices/cartSlice.js
+export const createCartSlice = (set, get) => ({
+  items: [],
+  isOpen: false,
+  
+  addItem: (product) =>
+    set((state) => {
+      const existing = state.items.find((i) => i.id === product.id);
+      if (existing) {
+        return {
+          items: state.items.map((i) =>
+            i.id === product.id
+              ? { ...i, quantity: i.quantity + 1 }
+              : i
+          ),
+        };
+      }
+      return { items: [...state.items, { ...product, quantity: 1 }] };
+    }),
+  
+  removeItem: (productId) =>
+    set((state) => ({
+      items: state.items.filter((i) => i.id !== productId),
+    })),
+  
+  updateQuantity: (productId, quantity) =>
+    set((state) => ({
+      items: quantity <= 0
+        ? state.items.filter((i) => i.id !== productId)
+        : state.items.map((i) =>
+            i.id === productId ? { ...i, quantity } : i
+          ),
+    })),
+  
+  clearCart: () => set({ items: [] }),
+  toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
+  
+  // Computed value as a function (not reactive)
+  getTotalItems: () =>
+    get().items.reduce((sum, i) => sum + i.quantity, 0),
+  
+  getTotalPrice: () =>
+    get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+});
+```
+
+```jsx
+// stores/useAppStore.js
+import { create } from 'zustand';
+import { createCounterSlice } from './slices/counterSlice';
+import { createUserSlice } from './slices/userSlice';
+import { createCartSlice } from './slices/cartSlice';
+
+export const useAppStore = create((...a) => ({
+  ...createCounterSlice(...a),
+  ...createUserSlice(...a),
+  ...createCartSlice(...a),
+}));
+```
+
+### Cross-Slice Communication
+
+```jsx
+// stores/slices/notificationSlice.js
+export const createNotificationSlice = (set, get) => ({
+  notifications: [],
+  
+  addNotification: (message, type = 'info') => {
+    const id = crypto.randomUUID();
+    set((state) => ({
+      notifications: [...state.notifications, { id, message, type }],
+    }));
+    
+    // Auto-dismiss
+    setTimeout(() => {
+      get().removeNotification(id);
+    }, 5000);
+  },
+  
+  removeNotification: (id) =>
+    set((state) => ({
+      notifications: state.notifications.filter((n) => n.id !== id),
+    })),
+});
+
+// Cart slice notifies when item is added
+export const createCartSlice = (set, get) => ({
+  items: [],
+  
+  addItem: (product) => {
+    set((state) => {
+      const existing = state.items.find((i) => i.id === product.id);
+      // ... update logic
+      return { items: updatedItems };
+    });
+    
+    // Cross-slice: notify that item was added
+    const { addNotification } = get();
+    if (addNotification) {
+      addNotification(`${product.name} added to cart`, 'success');
+    }
+  },
+});
+```
+
+### Slices with Dependencies
+
+```jsx
+// stores/slices/orderSlice.js
+// This slice depends on cart state
+export const createOrderSlice = (set, get) => ({
+  orderStatus: 'idle', // idle | placing | success | error
+  currentOrder: null,
+  
+  placeOrder: async (shippingAddress) => {
+    const { items, getTotalPrice, clearCart } = get();
+    
+    if (items.length === 0) {
+      set({ orderStatus: 'error', error: 'Cart is empty' });
+      return;
+    }
+    
+    set({ orderStatus: 'placing' });
+    
+    try {
+      const order = await api.createOrder({
+        items,
+        total: getTotalPrice(),
+        shippingAddress,
+      });
+      
+      set({ orderStatus: 'success', currentOrder: order });
+      clearCart(); // Cross-slice action call
+    } catch (error) {
+      set({ orderStatus: 'error', error: error.message });
+    }
+  },
+  
+  resetOrder: () =>
+    set({ orderStatus: 'idle', currentOrder: null, error: null }),
+});
+```
+
+---
+
+## 7. Middleware Deep Dive
+
+### What is Middleware?
+
+Middleware wraps Zustand's store to add behavior — logging, persistence, devtools, etc.
+
+```
+┌─────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────┐
+│  Component  │───▶│  Middleware  │───▶│  Middleware  │───▶│   Core   │
+│   calls     │    │  (devtools)  │    │  (persist)   │    │  Store   │
+│   action    │    │              │    │              │    │          │
+└─────────────┘    └──────────────┘    └──────────────┘    └──────────┘
+                                                         ▲
+                                              set() / get()
+```
+
+### devtools Middleware
+
+```jsx
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+const useStore = create(
+  devtools(
+    (set, get) => ({
+      count: 0,
+      increment: () =>
+        set(
+          (state) => ({ count: state.count + 1 }),
+          false, // Not replacing all state
+          'count/increment' // Action name in Redux DevTools
+        ),
+      decrement: () =>
+        set(
+          (state) => ({ count: state.count - 1 }),
+          false,
+          'count/decrement'
+        ),
+    }),
+    {
+      name: 'MyAppStore', // Store name in DevTools
+      enabled: process.env.NODE_ENV === 'development',
+    }
+  )
+);
+```
+
+### persist Middleware
+
+```jsx
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+const useStore = create(
+  persist(
+    (set, get) => ({
+      theme: 'light',
+      sidebarOpen: true,
+      userPreferences: {
+        fontSize: 14,
+        reducedMotion: false,
+      },
+      
+      setTheme: (theme) => set({ theme }),
+      toggleSidebar: () =>
+        set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+    }),
+    {
+      name: 'my-app-storage', // localStorage key
+      
+      // Only persist specific fields
+      partialize: (state) => ({
+        theme: state.theme,
+        userPreferences: state.userPreferences,
+        // Don't persist sidebarOpen — reset on refresh
+      }),
+      
+      // Custom version for migrations
+      version: 1,
+      
+      // Migrate old stored data
+      migrate: (persistedState, version) => {
+        if (version === 0) {
+          // Migrate from v0 to v1
+          return {
+            ...persistedState,
+            userPreferences: {
+              fontSize: 14,
+              reducedMotion: false,
+              ...persistedState.userPreferences,
+            },
+          };
+        }
+        return persistedState;
+      },
+    }
+  )
+);
+```
+
+### immer Middleware
+
+```jsx
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+
+// Without immer — verbose nested updates
+const useStoreVerbose = create((set) => ({
+  user: { profile: { settings: { theme: 'dark' } } },
+  setTheme: (theme) =>
+    set((state) => ({
+      user: {
+        ...state.user,
+        profile: {
+          ...state.user.profile,
+          settings: {
+            ...state.user.profile.settings,
+            theme,
+          },
+        },
+      },
+    })),
+}));
+
+// With immer — mutate directly!
+const useStore = create(
+  immer((set) => ({
+    user: { profile: { settings: { theme: 'dark' } } },
+    notifications: [],
+    
+    setTheme: (theme) =>
+      set((draft) => {
+        draft.user.profile.settings.theme = theme; // Direct mutation!
+      }),
+    
+    addNotification: (notification) =>
+      set((draft) => {
+        draft.notifications.push(notification); // Array push works!
+      }),
+    
+    markNotificationRead: (id) =>
+      set((draft) => {
+        const notif = draft.notifications.find((n) => n.id === id);
+        if (notif) notif.read = true; // Direct property assignment!
+      }),
+    
+    removeNotification: (id) =>
+      set((draft) => {
+        const index = draft.notifications.findIndex((n) => n.id === id);
+        if (index !== -1) draft.notifications.splice(index, 1);
+      }),
+  }))
+);
+```
+
+### subscribeWithSelector Middleware
+
+```jsx
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+
+const useStore = create(
+  subscribeWithSelector((set) => ({
+    count: 0,
+    name: 'Zustand',
+    theme: 'dark',
+    
+    setCount: (count) => set({ count }),
+    setName: (name) => set({ name }),
+    setTheme: (theme) => set({ theme }),
+  }))
+);
+
+// Subscribe to specific selector (efficient!)
+const unsub = useStore.subscribe(
+  (state) => state.count,
+  (count, prevCount) => {
+    console.log(`Count: ${prevCount} → ${count}`);
+  },
+  { equalityFn: (a, b) => a === b } // Optional custom equality
+);
+
+// Subscribe to equality change (fires only when result changes)
+useStore.subscribe(
+  (state) => ({ count: state.count, name: state.name }),
+  (result) => {
+    console.log('Count or name changed:', result);
+  },
+  { equalityFn: shallow }
+);
+```
+
+### Combining Multiple Middleware
+
+```jsx
+import { create } from 'zustand';
+import { devtools, persist, immer, subscribeWithSelector } from 'zustand/middleware';
+
+const useStore = create(
+  devtools(
+    persist(
+      subscribeWithSelector(
+        immer((set, get) => ({
+          // Your store definition
+          count: 0,
+          user: null,
+          
+          increment: () =>
+            set((draft) => {
+              draft.count += 1;
+            }),
+          
+          login: async (credentials) => {
+            const user = await api.login(credentials);
+            set((draft) => {
+              draft.user = user;
+            });
+          },
+        }))
+      ),
+      {
+        name: 'app-storage',
+        partialize: (state) => ({ user: state.user }),
+      }
+    ),
+    { name: 'MyStore' }
+  )
+);
+```
+
+**Middleware Order Matters:**
+
+```
+// Outside → Inside
+// devtools sees everything (outermost)
+// persist intercepts set for saving
+// subscribeWithSelector adds subscription features
+// immer processes mutations
+// Your store (innermost)
+
+devtools(
+  persist(
+    subscribeWithSelector(
+      immer(store)
+    )
+  )
+)
+```
+
+---
+
+## 8. Async Operations in Zustand
+
+### Thunk Pattern
+
+```jsx
+import { create } from 'zustand';
+
+const useProductStore = create((set, get) => ({
+  // ─── State ───
+  products: [],
+  selectedProduct: null,
+  isLoading: false,
+  error: null,
+  
+  // ─── Simple sync actions ───
+  setError: (error) => set({ error }),
+  clearError: () => set({ error: null }),
+  
+  // ─── Async thunks ───
+  fetchProducts: async (category) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const products = await api.getProducts(category);
+      set({ products, isLoading: false });
+    } catch (error) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+  
+  fetchProductById: async (id) => {
+    set({ isLoading: true, error: null, selectedProduct: null });
+    
+    try {
+      const product = await api.getProduct(id);
+      set({ selectedProduct: product, isLoading: false });
+    } catch (error) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+  
+  createProduct: async (productData) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const newProduct = await api.createProduct(productData);
+      set((state) => ({
+        products: [...state.products, newProduct],
+        isLoading: false,
+      }));
+      return newProduct; // Return for caller to use
+    } catch (error) {
+      set({ error: error.message, isLoading: false });
+      throw error; // Re-throw for error handling
+    }
+  },
+  
+  updateProduct: async (id, updates) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      const updated = await api.updateProduct(id, updates);
+      set((state) => ({
+        products: state.products.map((p) =>
+          p.id === id ? updated : p
+        ),
+        selectedProduct:
+          state.selectedProduct?.id === id
+            ? updated
+            : state.selectedProduct,
+        isLoading: false,
+      }));
+    } catch (error) {
+      set({ error: error.message, isLoading: false });
+    }
+  },
+  
+  deleteProduct: async (id) => {
+    try {
+      await api.deleteProduct(id);
+      set((state) => ({
+        products: state.products.filter((p) => p.id !== id),
+        selectedProduct:
+          state.selectedProduct?.id === id
+            ? null
+            : state.selectedProduct,
+      }));
+    } catch (error) {
+      set({ error: error.message });
+    }
+  },
+}));
+```
+
+### Request Status Pattern
+
+```jsx
+// More granular async state tracking
+const useAsyncStore = create((set, get) => ({
+  // Map of request statuses by key
+  requests: {},
+  
+  // Get status of a specific request
+  getRequestStatus: (key) =>
+    get().requests[key] || { status: 'idle', data: null, error: null },
+  
+  // Execute an async operation with status tracking
+  execute: async (key, asyncFn) => {
+    set((state) => ({
+      requests: {
+        ...state.requests,
+        [key]: { status: 'loading', data: null, error: null },
+      },
+    }));
+    
+    try {
+      const data = await asyncFn();
+      set((state) => ({
+        requests: {
+          ...state.requests,
+          [key]: { status: 'success', data, error: null },
+        },
+      }));
+      return data;
+    } catch (error) {
+      set((state) => ({
+        requests: {
+          ...state.requests,
+          [key]: { status: 'error', data: null, error: error.message },
+        },
+      }));
+      throw error;
+    }
+  },
+  
+  // Clear a specific request
+  clearRequest: (key) =>
+    set((state) => {
+      const { [key]: _, ...rest } = state.requests;
+      return { requests: rest };
+    }),
+}));
+
+// Usage in component
+function ProductList({ category }) {
+  const { execute, getRequestStatus, clearRequest } = useAsyncStore();
+  const requestKey = `products-${category}`;
+  const { status, data: products, error } = getRequestStatus(requestKey);
+  
+  useEffect(() => {
+    execute(requestKey, () => api.getProducts(category));
+    return () => clearRequest(requestKey);
+  }, [category]);
+  
+  if (status === 'loading') return <Skeleton />;
+  if (status === 'error') return <ErrorMessage error={error} />;
+  
+  return (
+    <ul>
+      {products?.map((p) => <ProductCard key={p.id} product={p} />)}
+    </ul>
+  );
+}
+```
+
+### Cancellation Pattern
+
+```jsx
+import { create } from 'zustand';
+
+const useSearchStore = create((set, get) => ({
+  results: [],
+  isSearching: false,
+  abortController: null,
+  
+  search: async (query) => {
+    // Cancel previous search
+    const prevController = get().abortController;
+    if (prevController) {
+      prevController.abort();
+    }
+    
+    if (!query.trim()) {
+      set({ results: [], isSearching: false, abortController: null });
+      return;
+    }
+    
+    const controller = new AbortController();
+    set({ isSearching: true, abortController: controller });
+    
+    try {
+      const results = await api.search(query, {
+        signal: controller.signal,
+      });
+      
+      // Only update if this request wasn't aborted
+      if (!controller.signal.aborted) {
+        set({ results, isSearching: false, abortController: null });
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        set({ isSearching: false, abortController: null, error });
+      }
+    }
+  },
+}));
+```
+
+---
+
+## 9. TypeScript with Zustand
+
+### Basic Typed Store
+
+```tsx
+// stores/useStore.ts
+import { create } from 'zustand';
+
+// 1. Define the state shape
+interface BearState {
+  bears: number;
+  increase: () => void;
+  decrease: () => void;
+  reset: () => void;
+}
+
+// 2. Pass the type to create<YourState>
+export const useBearStore = create<BearState>((set) => ({
+  bears: 0,
+  increase: () => set((state) => ({ bears: state.bears + 1 })),
+  decrease: () => set((state) => ({ bears: state.bears - 1 })),
+  reset: () => set({ bears: 0 }),
+}));
+```
+
+### Typed Slices Pattern
+
+```tsx
+// stores/slices/userSlice.ts
+export interface UserSlice {
+  user: User | null;
+  isLoading: boolean;
+  login: (credentials: Credentials) => Promise<void>;
+  logout: () => void;
+}
+
+export const createUserSlice: StateCreator<
+  UserSlice,           // This slice
+  [],                  // Middleware types (empty for now)
+  [],                  // Additional middleware
+  UserSlice            // Return type
+> = (set) => ({
+  user: null,
+  isLoading: false,
+  
+  login: async (credentials) => {
+    set({ isLoading: true });
+    const user = await api.login(credentials);
+    set({ user, isLoading: false });
+  },
+  
+  logout: () => set({ user: null }),
+});
+```
+
+```tsx
+// stores/slices/cartSlice.ts
+export interface CartSlice {
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
+  removeItem: (id: string) => void;
+  getTotal: () => number;
+}
+
+export const createCartSlice: StateCreator<
+  CartSlice,           // This slice
+  [], [], CartSlice
+> = (set, get) => ({
+  items: [],
+  
+  addItem: (item) =>
+    set((state) => ({ items: [...state.items, item] })),
+  
+  removeItem: (id) =>
+    set((state) => ({
+      items: state.items.filter((i) => i.id !== id),
+    })),
+  
+  getTotal: () =>
+    get().items.reduce((s, i) => s + i.price * i.quantity, 0),
+});
+```
+
+```tsx
+// stores/useAppStore.ts
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+import type { StateCreator } from 'zustand';
+
+import { createUserSlice, type UserSlice } from './slices/userSlice';
+import { createCartSlice, type CartSlice } from './slices/cartSlice';
+import { createUISlice, type UISlice } from './slices/uiSlice';
+
+// Combine all slice types
+type AppStore = UserSlice & CartSlice & UISlice;
+
+export const useAppStore = create<AppStore>()(
+  devtools(
+    (...a) => ({
+      ...createUserSlice(...a),
+      ...createCartSlice(...a),
+      ...createUISlice(...a),
+    }),
+    { name: 'AppStore' }
+  )
+);
+```
+
+### Typed Middleware
+
+```tsx
+import { create } from 'zustand';
+import { devtools, persist, immer } from 'zustand/middleware';
+import type { StateCreator } from 'zustand';
+
+interface MyState {
+  name: string;
+  setName: (name: string) => void;
+}
+
+type MiddlewaredStateCreator = StateCreator<
+  MyState,
+  [
+    ['zustand/immer', never],
+    ['zustand/persist', unknown],
+    ['zustand/devtools', never],
+  ]
+>;
+
+const mySlice: MiddlewaredStateCreator = (set) => ({
+  name: '',
+  setName: (name) =>
+    set((draft) => {
+      draft.name = name;
+    }),
+});
+
+export const useStore = create<MyState>()(
+  devtools(
+    persist(
+      immer(mySlice),
+      { name: 'my-store' }
+    )
+  )
+);
+```
+
+### Typed Selectors
+
+```tsx
+// Define selector types for reusability
+type StoreSelector<T> = (state: AppStore) => T;
+
+export const selectUser: StoreSelector<User | null> = (state) => state.user;
+export const selectIsAuth: StoreSelector<boolean> = (state) =>
+  !!state.user;
+export const selectCartItems: StoreSelector<CartItem[]> = (state) =>
+  state.items;
+export const selectCartTotal: StoreSelector<number> = (state) =>
+  state.items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+// Components get full type safety
+function CartBadge() {
+  const total = useAppStore(selectCartTotal); // number
+  return <span>{total}</span>;
+}
+```
+
+---
+
+## 10. Testing Zustand Stores
+
+### Testing Store Logic
+
+```jsx
+// stores/useCounterStore.test.js
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useCounterStore } from './useCounterStore';
+
+describe('useCounterStore', () => {
+  // Reset store before each test
+  beforeEach(() => {
+    useCounterStore.setState({
+      count: 0,
+      step: 1,
+    });
+  });
+
+  it('should initialize with default values', () => {
+    const state = useCounterStore.getState();
+    expect(state.count).toBe(0);
+    expect(state.step).toBe(1);
+  });
+
+  it('should increment count', () => {
+    useCounterStore.getState().increment();
+    expect(useCounterStore.getState().count).toBe(1);
+  });
+
+  it('should decrement count', () => {
+    useCounterStore.setState({ count: 5 });
+    useCounterStore.getState().decrement();
+    expect(useCounterStore.getState().count).toBe(4);
+  });
+
+  it('should respect step value', () => {
+    useCounterStore.setState({ step: 5 });
+    useCounterStore.getState().increment();
+    expect(useCounterStore.getState().count).toBe(5);
+  });
+
+  it('should not exceed max', () => {
+    useCounterStore.setState({ count: 99, step: 5, max: 100 });
+    useCounterStore.getState().increment();
+    expect(useCounterStore.getState().count).toBe(99); // Blocked by max
+  });
+
+  it('should reset to zero', () => {
+    useCounterStore.setState({ count: 42 });
+    useCounterStore.getState().reset();
+    expect(useCounterStore.getState().count).toBe(0);
+  });
+});
+```
+
+### Testing Async Actions
+
+```jsx
+// stores/useAuthStore.test.js
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { useAuthStore } from './useAuthStore';
+
+// Mock API
+vi.mock('./api', () => ({
+  login: vi.fn(),
+  logout: vi.fn(),
+}));
+
+import { login as mockLogin } from './api';
+
+describe('useAuthStore - async actions', () => {
+  beforeEach(() => {
+    useAuthStore.setState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+    });
+    vi.clearAllMocks();
+  });
+
+  it('should set loading state during login', async () => {
+    mockLogin.mockImplementation(() =>
+      new Promise((resolve) => setTimeout(resolve, 100))
+    );
+
+    const loginPromise = useAuthStore.getState().login({
+      email: 'test@test.com',
+      password: 'password',
+    });
+
+    expect(useAuthStore.getState().isLoading).toBe(true);
+    await loginPromise;
+  });
+
+  it('should set user on successful login', async () => {
+    const mockUser = { id: 1, name: 'Alice' };
+    mockLogin.mockResolvedValue(mockUser);
+
+    await useAuthStore
+      .getState()
+      .login({ email: 'alice@test.com', password: 'password' });
+
+    const state = useAuthStore.getState();
+    expect(state.user).toEqual(mockUser);
+    expect(state.isAuthenticated).toBe(true);
+    expect(state.isLoading).toBe(false);
+    expect(state.error).toBeNull();
+  });
+
+  it('should set error on failed login', async () => {
+    mockLogin.mockRejectedValue(new Error('Invalid credentials'));
+
+    await expect(
+      useAuthStore
+        .getState()
+        .login({ email: 'wrong@test.com', password: 'wrong' })
+    ).rejects.toThrow('Invalid credentials');
+
+    const state = useAuthStore.getState();
+    expect(state.error).toBe('Invalid credentials');
+    expect(state.isAuthenticated).toBe(false);
+    expect(state.isLoading).toBe(false);
+  });
+});
+```
+
+### Testing Components that Use Zustand
+
+```jsx
+// components/Counter.test.jsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
+import Counter from './Counter';
+import { useCounterStore } from '../stores/useCounterStore';
+
+describe('Counter', () => {
+  beforeEach(() => {
+    useCounterStore.setState({ count: 0, step: 1 });
+  });
+
+  it('renders current count', () => {
+    useCounterStore.setState({ count: 5 });
+    render(<Counter />);
+    expect(screen.getByText('5')).toBeInTheDocument();
+  });
+
+  it('increments when button clicked', () => {
+    render(<Counter />);
+    fireEvent.click(screen.getByRole('button', { name: /increment/i }));
+    expect(screen.getByText('1')).toBeInTheDocument();
+  });
+
+  it('decrements when button clicked', () => {
+    useCounterStore.setState({ count: 5 });
+    render(<Counter />);
+    fireEvent.click(screen.getByRole('button', { name: /decrement/i }));
+    expect(screen.getByText('4')).toBeInTheDocument();
+  });
+});
+```
+
+### Creating Test-Only Stores
+
+```jsx
+// test-utils/createTestStore.js
+import { create } from 'zustand';
+
+export function createTestStore(initialState = {}) {
+  return create((set, get) => ({
+    // Default test state
+    count: 0,
+    items: [],
+    user: null,
+    isLoading: false,
+    ...initialState,
+    
+    // Allow direct state manipulation in tests
+    setState: (updates) => set((state) => ({ ...state, ...updates })),
+    getState: () => get(),
+    reset: () => set({ count: 0, items: [], user: null, isLoading: false }),
+    
+    // Actions
+    increment: () => set((s) => ({ count: s.count + 1 })),
+    addItem: (item) => set((s) => ({ items: [...s.items, item] })),
+  }));
+}
+
+// Usage in test
+import { createTestStore } from './test-utils/createTestStore';
+
+describe('Custom Logic', () => {
+  it('works with custom initial state', () => {
+    const store = createTestStore({ count: 10 });
+    expect(store.getState().count).toBe(10);
+    
+    store.getState().increment();
+    expect(store.getState().count).toBe(11);
+  });
+});
+```
+
+---
+
+## 11. Performance Optimization
+
+### Shallow Comparison
+
+```jsx
+import { shallow } from 'zustand/shallow';
+
+const useStore = create((set) => ({
+  firstName: 'Alice',
+  lastName: 'Johnson',
+  age: 30,
+  city: 'New York',
+}));
+
+// ❌ BAD: New object every render → always re-renders
+function BadProfile() {
+  const { firstName, lastName } = useStore(
+    (state) => ({ firstName: state.firstName, lastName: state.lastName })
+  );
+  return <div>{firstName} {lastName}</div>;
+}
+
+// ✅ GOOD: Shallow comparison prevents unnecessary re-renders
+function GoodProfile() {
+  const { firstName, lastName } = useStore(
+    (state) => ({ firstName: state.firstName, lastName: state.lastName }),
+    shallow
+  );
+  return <div>{firstName} {lastName}</div>;
+}
+
+// ✅ BEST: Split into individual selectors (most efficient)
+function BestProfile() {
+  const firstName = useStore((state) => state.firstName);
+  const lastName = useStore((state) => state.lastName);
+  return <div>{firstName} {lastName}</div>;
+}
+```
+
+### Understanding Re-render Triggers
+
+```jsx
+const useStore = create((set) => ({
+  count: 0,
+  name: 'Alice',
+  theme: 'dark',
+}));
+
+// Component A: Only subscribes to count
+function Counter() {
+  const count = useStore((state) => state.count);
+  console.log('Counter rendered');
+  return <div>{count}</div>;
+}
+
+// Component B: Only subscribes to name
+function Name() {
+  const name = useStore((state) => state.name);
+  console.log('Name rendered');
+  return <div>{name}</div>;
+}
+
+// When set({ count: 1 }):
+// → Counter re-renders (count changed)
+// → Name does NOT re-render (name didn't change)
+
+// When set({ name: 'Bob' }):
+// → Counter does NOT re-render (count didn't change)
+// → Name re-renders (name changed)
+```
+
+### Selector Memoization
+
+```jsx
+import { useMemo } from 'react';
+
+// For computed values that depend on store state
+function useCartSummary() {
+  // This selector is recreated every render — but the result is memoized
+  // by Zustand's built-in comparison (selector result is compared by Object.is)
+  return useCartStore(
+    useMemo(
+      () => (state) => ({
+        subtotal: state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+        itemCount: state.items.reduce((c, i) => c + i.quantity, 0),
+      }),
+      [] // Stable selector reference
+    ),
+    shallow
+  );
+}
+
+// Alternative: Extract selector outside component
+const cartSummarySelector = (state) => ({
+  subtotal: state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+  itemCount: state.items.reduce((c, i) => c + i.quantity, 0),
+});
+
+function CartSummary() {
+  const { subtotal, itemCount } = useCartStore(
+    cartSummarySelector,
+    shallow
+  );
+  return (
+    <div>
+      <span>{itemCount} items</span>
+      <span>${subtotal.toFixed(2)}</span>
+    </div>
+  );
+}
+```
+
+### Large List Optimization
+
+```jsx
+// stores/useItemStore.js
+const useItemStore = create((set) => ({
+  items: [],
+  selectedId: null,
+  filter: '',
+  sortBy: 'name',
+  
+  // State setters
+  setSelectedId: (id) => set({ selectedId: id }),
+  setFilter: (filter) => set({ filter }),
+  setSortBy: (sortBy) => set({ sortBy }),
+}));
+
+// ❌ BAD: Parent subscribes to everything, re-renders all children
+function BadItemList() {
+  const { items, selectedId, filter, sortBy, setSelectedId } = useItemStore();
+  // Re-renders when ANY of these change!
+}
+
+// ✅ GOOD: Separate list and item components with individual selectors
+function ItemList() {
+  const itemIds = useItemStore(
+    (state) => state.items.map((i) => i.id) // Only array of IDs
+  );
+  
+  return (
+    <ul>
+      {itemIds.map((id) => (
+        <ItemRow key={id} id={id} /> // Each row subscribes to its own data
+      ))}
+    </ul>
+  );
+}
+
+function ItemRow({ id }) {
+  // Each row only subscribes to its own item data
+  const item = useItemStore(
+    (state) => state.items.find((i) => i.id === id)
+  );
+  const selectedId = useItemStore((state) => state.selectedId);
+  const setSelectedId = useItemStore((state) => state.setSelectedId);
+  
+  const isSelected = selectedId === id;
+  
+  return (
+    <li
+      className={isSelected ? 'selected' : ''}
+      onClick={() => setSelectedId(id)}
+    >
+      {item?.name} — ${item?.price}
+    </li>
+  );
+}
+
+// ✅ BEST: Subscribe to a derived map
+function OptimizedItemList() {
+  // ItemsById only changes when items array reference changes
+  const itemsById = useItemStore(
+    (state) =>
+      new Map(state.items.map((i) => [i.id, i])),
+    (a, b) => a.size === b.size // Custom equality
+  );
+  
+  const itemIds = useItemStore(
+    (state) => state.items.map((i) => i.id),
+    (a, b) => a.length === b.length && a.every((id, i) => id === b[i])
+  );
+  
+  return (
+    <ul>
+      {itemIds.map((id) => (
+        <MemoItemRow key={id} id={id} itemsById={itemsById} />
+      ))}
+    </ul>
+  );
+}
+
+const MemoItemRow = memo(function ItemRow({ id, itemsById }) {
+  const item = itemsById.get(id);
+  // ... render
+});
+```
+
+### Action Selection (Zero Re-renders)
+
+```jsx
+// Selecting actions does NOT cause re-renders
+function AddToCartButton({ product }) {
+  // Only selects the action — no subscription to state changes
+  const addItem = useCartStore((state) => state.addItem);
+  
+  console.log('AddToCartButton rendered');
+  // This only logs once — never re-renders when cart changes!
+  
+  return <button onClick={() => addItem(product)}>Add to Cart</button>;
+}
+```
+
+---
+
+## 12. Multiple Stores Architecture
+
+### When to Use Multiple Stores
+
+| Pattern | Best For | Trade-offs |
+|---------|----------|------------|
+| Single store | Small apps, shared state | Can grow large |
+| Multiple stores | Domain separation, large apps | Cross-store communication |
+| Slices | Modular single store | Good balance |
+| Scoped stores | Multi-tenant, isolated contexts | More setup |
+
+### Domain-Based Store Separation
+
+```jsx
+// stores/useAuthStore.js
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export const useAuthStore = create(
+  persist(
+    (set, get) => ({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      
+      login: async (credentials) => {
+        set({ isLoading: true });
+        const user = await api.login(credentials);
+        set({ user, isAuthenticated: true, isLoading: false });
+      },
+      
+      logout: () => {
+        set({ user: null, isAuthenticated: false });
+        // Clear other stores
+        useCartStore.getState().clearCart();
+      },
+      
+      updateUser: (updates) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updates } : null,
+        })),
+    }),
+    { name: 'auth-storage', partialize: (state) => ({ user: state.user }) }
+  )
+);
+
+// stores/useCartStore.js
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export const useCartStore = create(
+  persist(
+    (set, get) => ({
+      items: [],
+      isOpen: false,
+      
+      addItem: (product) =>
+        set((state) => {
+          const existing = state.items.find((i) => i.id === product.id);
+          if (existing) {
+            return {
+              items: state.items.map((i) =>
+                i.id === product.id
+                  ? { ...i, quantity: i.quantity + 1 }
+                  : i
+              ),
+            };
+          }
+          return { items: [...state.items, { ...product, quantity: 1 }] };
+        }),
+      
+      removeItem: (id) =>
+        set((state) => ({
+          items: state.items.filter((i) => i.id !== id),
+        })),
+      
+      updateQuantity: (id, quantity) =>
+        set((state) => ({
+          items: quantity <= 0
+            ? state.items.filter((i) => i.id !== id)
+            : state.items.map((i) =>
+                i.id === id ? { ...i, quantity } : i
+              ),
+        })),
+      
+      clearCart: () => set({ items: [], isOpen: false }),
+      toggleCart: () => set((s) => ({ isOpen: !s.isOpen })),
+      
+      getTotalItems: () =>
+        get().items.reduce((s, i) => s + i.quantity, 0),
+      getTotalPrice: () =>
+        get().items.reduce((s, i) => s + i.price * i.quantity, 0),
+    }),
+    { name: 'cart-storage' }
+  )
+);
+
+// stores/useUIStore.js — transient UI state (not persisted)
+import { create } from 'zustand';
+
+export const useUIStore = create((set) => ({
+  sidebarOpen: false,
+  modalOpen: false,
+  modalContent: null,
+  toast: null,
+  
+  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+  
+  openModal: (content) =>
+    set({ modalOpen: true, modalContent: content }),
+  closeModal: () =>
+    set({ modalOpen: false, modalContent: null }),
+  
+  showToast: (message, type = 'info') =>
+    set({ toast: { message, type } }),
+  clearToast: () => set({ toast: null }),
+}));
+```
+
+### Cross-Store Communication Patterns
+
+```jsx
+// Pattern 1: Direct store calls
+// Auth store clears cart on logout
+const useAuthStore = create((set) => ({
+  logout: () => {
+    set({ user: null });
+    // Clear cart from auth store
+    useCartStore.getState().clearCart();
+    // Reset UI
+    useUIStore.getState().closeModal();
+  },
+}));
+
+// Pattern 2: Event bus for loose coupling
+// utils/eventBus.js
+const listeners = new Map();
+
+export const eventBus = {
+  on: (event, callback) => {
+    if (!listeners.has(event)) listeners.set(event, new Set());
+    listeners.get(event).add(callback);
+    return () => listeners.get(event)?.delete(callback);
+  },
+  emit: (event, data) => {
+    listeners.get(event)?.forEach((cb) => cb(data));
+  },
+};
+
+// Auth store emits events
+const useAuthStore = create((set) => ({
+  login: async (credentials) => {
+    const user = await api.login(credentials);
+    set({ user, isAuthenticated: true });
+    eventBus.emit('auth:login', user);
+  },
+  logout: () => {
+    set({ user: null, isAuthenticated: false });
+    eventBus.emit('auth:logout');
+  },
+}));
+
+// Cart store listens to events
+useAuthStore.subscribe(
+  (state) => state.isAuthenticated,
+  (isAuthenticated, wasAuthenticated) => {
+    if (!isAuthenticated && wasAuthenticated) {
+      useCartStore.getState().clearCart();
+    }
+  }
+);
+```
+
+### Store Combiner Hook
+
+```jsx
+// hooks/useCombinedStore.js
+import { useAuthStore } from '../stores/useAuthStore';
+import { useCartStore } from '../stores/useCartStore';
+import { useUIStore } from '../stores/useUIStore';
+
+// Combine multiple stores for dashboard/overview components
+export function useDashboardData() {
+  const user = useAuthStore((state) => state.user);
+  const cartTotal = useCartStore((state) => state.getTotalPrice());
+  const cartItems = useCartStore((state) => state.getTotalItems());
+  const sidebarOpen = useUIStore((state) => state.sidebarOpen);
+  
+  return { user, cartTotal, cartItems, sidebarOpen };
+}
+
+// Usage
+function Dashboard() {
+  const { user, cartTotal, cartItems, sidebarOpen } = useDashboardData();
+  
+  return (
+    <div>
+      <h1>Welcome, {user?.name}</h1>
+      <p>Cart: {cartItems} items (${cartTotal})</p>
+      <p>Sidebar: {sidebarOpen ? 'Open' : 'Closed'}</p>
+    </div>
+  );
+}
+```
+
+---
+
+---
+
+## 13. Zustand + React 19 Data Patterns
+
+### React Query + Zustand Bridge
+
+Server state (React Query) and client state (Zustand) are complementary:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Application State                         │
+│                                                             │
+│  ┌───────────────────────┐  ┌──────────────────────┐       │
+│  │    Server State       │  │    Client State      │       │
+│  │    (React Query)      │  │    (Zustand)         │       │
+│  │                       │  │                      │       │
+│  │  - User profiles      │  │  - UI theme          │       │
+│  │  - Product catalogs   │  │  - Sidebar state     │       │
+│  │  - Order history      │  │  - Form drafts       │       │
+│  │  - Notifications      │  │  - Selected items    │       │
+│  │                       │  │  - Cart state        │       │
+│  │  Caching, syncing,    │  │  Instant, local,     │       │
+│  │  background updates   │  │  ephemeral           │       │
+│  └───────────────────────┘  └──────────────────────┘       │
+│                                                             │
+│  React Query ↔ Server API    Zustand ↔ React UI            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+```jsx
+// hooks/useProducts.js — Server state with React Query
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+export function useProducts(category) {
+  return useQuery({
+    queryKey: ['products', category],
+    queryFn: () => api.getProducts(category),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useProduct(productId) {
+  return useQuery({
+    queryKey: ['products', productId],
+    queryFn: () => api.getProduct(productId),
+    enabled: !!productId,
+  });
+}
+```
+
+```jsx
+// stores/useCartStore.js — Client state with Zustand
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export const useCartStore = create(
+  persist(
+    (set, get) => ({
+      items: [],
+      isOpen: false,
+      
+      addItem: (product) => {
+        // product comes from React Query (server state)
+        // stored in Zustand (client state)
+        set((state) => {
+          const existing = state.items.find((i) => i.id === product.id);
+          if (existing) {
+            return {
+              items: state.items.map((i) =>
+                i.id === product.id
+                  ? { ...i, quantity: i.quantity + 1 }
+                  : i
+              ),
+            };
+          }
+          return {
+            items: [...state.items, { ...product, quantity: 1 }],
+          };
+        });
+        get().openCart();
+      },
+      
+      openCart: () => set({ isOpen: true }),
+      closeCart: () => set({ isOpen: false }),
+    }),
+    { name: 'cart-storage' }
+  )
+);
+```
+
+```jsx
+// components/ProductCard.jsx — combines both
+'use client';
+
+import { useProduct } from '../hooks/useProducts';
+import { useCartStore } from '../stores/useCartStore';
+
+export default function ProductCard({ productId }) {
+  // Server state — cached, background-synced
+  const { data: product, isLoading } = useProduct(productId);
+  
+  // Client state — instant, local
+  const addItem = useCartStore((state) => state.addItem);
+  const isInCart = useCartStore((state) =>
+    state.items.some((i) => i.id === productId)
+  );
+  
+  if (isLoading) return <ProductSkeleton />;
+  
+  return (
+    <div className="product-card">
+      <img src={product.image} alt={product.name} />
+      <h3>{product.name}</h3>
+      <p>${product.price}</p>
+      
+      <button
+        onClick={() => addItem(product)}
+        disabled={isInCart}
+      >
+        {isInCart ? 'In Cart' : 'Add to Cart'}
+      </button>
+    </div>
+  );
+}
+```
+
+### Server Actions + Zustand Integration
+
+```jsx
+// React 19 Server Actions with Zustand state management
+
+// stores/useOrderStore.js
+import { create } from 'zustand';
+
+export const useOrderStore = create((set, get) => ({
+  orderStatus: 'idle', // idle | submitting | success | error
+  lastOrder: null,
+  error: null,
+  
+  // Called before server action
+  startSubmit: () =>
+    set({ orderStatus: 'submitting', error: null }),
+  
+  // Called on server action success
+  submitSuccess: (order) =>
+    set({ orderStatus: 'success', lastOrder: order }),
+  
+  // Called on server action error
+  submitError: (error) =>
+    set({ orderStatus: 'error', error }),
+  
+  reset: () =>
+    set({ orderStatus: 'idle', lastOrder: null, error: null }),
+}));
+```
+
+```jsx
+// components/CheckoutForm.jsx — 'use client'
+'use client';
+
+import { useActionState } from 'react';
+import { useOrderStore } from '../stores/useOrderStore';
+import { useCartStore } from '../stores/useCartStore';
+import { submitOrder } from '../actions/order';
+
+export default function CheckoutForm() {
+  const startSubmit = useOrderStore((state) => state.startSubmit);
+  const submitSuccess = useOrderStore((state) => state.submitSuccess);
+  const submitError = useOrderStore((state) => state.submitError);
+  const reset = useOrderStore((state) => state.reset);
+  const orderStatus = useOrderStore((state) => state.orderStatus);
+  const error = useOrderStore((state) => state.error);
+  
+  const clearCart = useCartStore((state) => state.clearCart);
+  
+  const [result, formAction, isPending] = useActionState(
+    async (prevState, formData) => {
+      startSubmit();
+      
+      try {
+        const order = await submitOrder(formData);
+        submitSuccess(order);
+        clearCart();
+        return { success: true, order };
+      } catch (err) {
+        submitError(err.message);
+        return { success: false, error: err.message };
+      }
+    },
+    null
+  );
+  
+  return (
+    <form action={formAction}>
+      <input name="shippingAddress" required />
+      <input name="paymentMethod" required />
+      
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Placing Order...' : 'Place Order'}
+      </button>
+      
+      {orderStatus === 'success' && (
+        <p>Order placed! #{result?.order?.id}</p>
+      )}
+      {orderStatus === 'error' && (
+        <p className="error">{error}</p>
+      )}
+    </form>
+  );
+}
+```
+
+### React 19 use() + Zustand Pattern
+
+```jsx
+// Bridge React 19's use() hook with Zustand
+
+// stores/useResourceStore.js
+import { create } from 'zustand';
+
+export const useResourceStore = create((set) => ({
+  resources: new Map(), // Cache promises by key
+  
+  getResource: (key, fetcher) => {
+    const { resources } = useResourceStore.getState();
+    if (!resources.has(key)) {
+      const promise = fetcher();
+      resources.set(key, promise);
+      set({ resources: new Map(resources) });
+    }
+    return resources.get(key);
+  },
+  
+  invalidate: (key) => {
+    set((state) => {
+      const newResources = new Map(state.resources);
+      newResources.delete(key);
+      return { resources: newResources };
+    });
+  },
+}));
+```
+
+```jsx
+// components/UserProfile.jsx
+'use client';
+
+import { use, Suspense } from 'react';
+import { useResourceStore } from '../stores/useResourceStore';
+
+function UserData({ userId }) {
+  const getResource = useResourceStore((state) => state.getResource);
+  
+  // Get or create the promise
+  const userPromise = getResource(
+    `user-${userId}`,
+    () => fetchUser(userId)
+  );
+  
+  // use() suspends until the promise resolves
+  const user = use(userPromise);
+  
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+
+export default function UserProfile({ userId }) {
+  return (
+    <Suspense fallback={<UserSkeleton />}>
+      <UserData userId={userId} />
+    </Suspense>
+  );
+}
+```
+
+---
+
+## 14. Middleware Composition
+
+### Building Custom Middleware
+
+```jsx
+// A custom middleware function signature:
+// const myMiddleware = (config) => (set, get, api) => storeConfig
+
+// Logger middleware — logs all state changes
+const logger = (config) => (set, get, api) => {
+  return config(
+    // Wrap set to log changes
+    (...args) => {
+      const prevState = get();
+      set(...args);
+      const nextState = get();
+      
+      console.log('%cState Change:', 'color: #bada55; font-weight: bold');
+      console.log('  Previous:', prevState);
+      console.log('  Next:', nextState);
+    },
+    get,
+    api
+  );
+};
+
+// Usage
+const useStore = create(
+  logger((set) => ({
+    count: 0,
+    increment: () => set((state) => ({ count: state.count + 1 })),
+  }))
+);
+```
+
+### Analytics Middleware
+
+```jsx
+// middleware/analytics.js
+const analytics = (config, options = {}) => (set, get, api) => {
+  const { trackEvent = console.log, exclude = [] } = options;
+  
+  return config(
+    (...args) => {
+      // Get action name if provided (devtools format)
+      const actionName = typeof args[1] === 'string' ? args[1] : 'unknown';
+      
+      if (!exclude.includes(actionName)) {
+        const prevState = get();
+        set(...args);
+        const nextState = get();
+        
+        // Track state change
+        trackEvent('state_change', {
+          action: actionName,
+          diff: getDiff(prevState, nextState),
+          timestamp: Date.now(),
+        });
+      } else {
+        set(...args);
+      }
+    },
+    get,
+    api
+  );
+};
+
+// Helper to compute state diff
+function getDiff(prev, next) {
+  const diff = {};
+  for (const key of new Set([...Object.keys(prev), ...Object.keys(next)])) {
+    if (prev[key] !== next[key]) {
+      diff[key] = { from: prev[key], to: next[key] };
+    }
+  }
+  return diff;
+}
+
+// Usage
+import { sendToAnalytics } from './analytics';
+
+const useStore = create(
+  analytics(
+    (set) => ({
+      user: null,
+      login: (user) => set({ user }, false, 'user/login'),
+      logout: () => set({ user: null }, false, 'user/logout'),
+    }),
+    {
+      trackEvent: sendToAnalytics,
+      exclude: ['ui/toggle'], // Don't track UI toggles
+    }
+  )
+);
+```
+
+### Validation Middleware
+
+```jsx
+// middleware/validation.js
+const validation = (config, rules) => (set, get, api) => {
+  return config(
+    (...args) => {
+      // Get the state update
+      const update = typeof args[0] === 'function'
+        ? args[0](get())
+        : args[0];
+      
+      // Validate against rules
+      for (const [key, validators] of Object.entries(rules)) {
+        if (update[key] !== undefined) {
+          for (const validator of validators) {
+            const error = validator(update[key], get());
+            if (error) {
+              console.error(`Validation error for ${key}: ${error}`);
+              // Optionally prevent the update
+              // return;
+              throw new Error(`Invalid value for ${key}: ${error}`);
+            }
+          }
+        }
+      }
+      
+      set(...args);
+    },
+    get,
+    api
+  );
+};
+
+// Usage
+const useValidatedStore = create(
+  validation(
+    (set) => ({
+      age: 0,
+      email: '',
+      setAge: (age) => set({ age }),
+      setEmail: (email) => set({ email }),
+    }),
+    {
+      age: [
+        (v) => v < 0 && 'Age must be positive',
+        (v) => v > 150 && 'Age must be realistic',
+      ],
+      email: [
+        (v) => !v.includes('@') && 'Email must contain @',
+      ],
+    }
+  )
+);
+```
+
+### Middleware Ordering
+
+```jsx
+import { create } from 'zustand';
+import { devtools, persist, immer } from 'zustand/middleware';
+
+// Correct order: devtools (outermost) → persist → immer → store (innermost)
+const useStore = create(
+  devtools(
+    persist(
+      immer((set, get) => ({
+        // Store definition
+        items: [],
+        addItem: (item) =>
+          set((draft) => {
+            draft.items.push(item);
+          }),
+      })),
+      {
+        name: 'my-app-storage',
+        partialize: (state) => ({ items: state.items }),
+      }
+    ),
+    { name: 'MyStore' }
+  )
+);
+
+// Execution flow for set():
+// 1. devtools: Log action name, track timing
+// 2. persist: Intercept set, save to storage
+// 3. immer: Convert mutations to immutable updates
+// 4. store: Apply the actual state change
+```
+
+---
+
+## 15. Migration from Redux/Context
+
+### Redux → Zustand Migration
+
+```jsx
+// ─── BEFORE: Redux ───
+
+// store.js
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {
+    increment: (state) => { state.value += 1; },
+    decrement: (state) => { state.value -= 1; },
+    incrementByAmount: (state, action) => {
+      state.value += action.payload;
+    },
+  },
+});
+
+export const { increment, decrement, incrementByAmount } = counterSlice.actions;
+
+export const store = configureStore({
+  reducer: {
+    counter: counterSlice.reducer,
+  },
+});
+
+// Component
+import { useSelector, useDispatch } from 'react-redux';
+
+function Counter() {
+  const count = useSelector((state) => state.counter.value);
+  const dispatch = useDispatch();
+  
+  return (
+    <div>
+      <button onClick={() => dispatch(increment())}>+</button>
+      <span>{count}</span>
+      <button onClick={() => dispatch(decrement())}>-</button>
+    </div>
+  );
+}
+
+// ─── AFTER: Zustand ───
+
+// stores/useCounterStore.js
+import { create } from 'zustand';
+
+export const useCounterStore = create((set) => ({
+  value: 0,
+  increment: () => set((state) => ({ value: state.value + 1 })),
+  decrement: () => set((state) => ({ value: state.value - 1 })),
+  incrementByAmount: (amount) =>
+    set((state) => ({ value: state.value + amount })),
+}));
+
+// Component
+function Counter() {
+  const count = useCounterStore((state) => state.value);
+  const increment = useCounterStore((state) => state.increment);
+  const decrement = useCounterStore((state) => state.decrement);
+  
+  return (
+    <div>
+      <button onClick={increment}>+</button>
+      <span>{count}</span>
+      <button onClick={decrement}>-</button>
+    </div>
+  );
+}
+```
+
+### Context API → Zustand Migration
+
+```jsx
+// ─── BEFORE: Context API ───
+
+// contexts/ThemeContext.js
+import { createContext, useContext, useState } from 'react';
+
+const ThemeContext = createContext(null);
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+  const toggleTheme = () =>
+    setTheme((t) => (t === 'light' ? 'dark' : 'light'));
+  
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export const useTheme = () => {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('Missing ThemeProvider');
+  return ctx;
+};
+
+// App.js — wrap with providers
+<ThemeProvider>
+  <AuthProvider>
+    <CartProvider>
+      <App />
+    </CartProvider>
+  </AuthProvider>
+</ThemeProvider>
+
+// ─── AFTER: Zustand ───
+
+// stores/useThemeStore.js
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export const useThemeStore = create(
+  persist(
+    (set) => ({
+      theme: 'light',
+      toggleTheme: () =>
+        set((state) => ({
+          theme: state.theme === 'light' ? 'dark' : 'light',
+        })),
+      setTheme: (theme) => set({ theme }),
+    }),
+    { name: 'theme-storage' }
+  )
+);
+
+// App.js — no providers needed!
+<App /> // Zustand hooks work anywhere
+
+// Component — simpler
+function ThemeToggle() {
+  const theme = useThemeStore((state) => state.theme);
+  const toggleTheme = useThemeStore((state) => state.toggleTheme);
+  
+  return (
+    <button onClick={toggleTheme}>
+      Switch to {theme === 'light' ? 'dark' : 'light'}
+    </button>
+  );
+}
+```
+
+### Gradual Migration Strategy
+
+```jsx
+// Step 1: Create Zustand store alongside Redux
+// Step 2: Move one feature at a time
+// Step 3: Use adapter pattern during transition
+
+// adapters/zustandToRedux.js
+import { useCounterStore } from '../stores/useCounterStore';
+
+// Adapter: Make Zustand look like Redux for gradual migration
+export function useCounterAdapter() {
+  const count = useCounterStore((state) => state.count);
+  const increment = useCounterStore((state) => state.increment);
+  const decrement = useCounterStore((state) => state.decrement);
+  
+  return {
+    // Redux-style API
+    state: { counter: { value: count } },
+    dispatch: (action) => {
+      switch (action.type) {
+        case 'counter/increment':
+          increment();
+          break;
+        case 'counter/decrement':
+          decrement();
+          break;
+      }
+    },
+  };
+}
+
+// Old component still works during migration
+function LegacyCounter() {
+  const { state, dispatch } = useCounterAdapter();
+  
+  return (
+    <div>
+      <button onClick={() => dispatch({ type: 'counter/decrement' })}>-</button>
+      <span>{state.counter.value}</span>
+      <button onClick={() => dispatch({ type: 'counter/increment' })}>+</button>
+    </div>
+  );
+}
+```

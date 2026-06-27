@@ -1,0 +1,949 @@
+---
+title: Intermediate Level — Real-World Patterns
+description: A guide to real-world tRPC patterns and best practices.
+date: 2026-06-26
+category: "React"
+tags: ["tRPC", "Zod", "React", "Vite"]
+series: "tRPC, Zod & React 19 Guide"
+seriesOrder: 3
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## Chapter 5: Authentication & Context
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 5.1 Building a Context with Authentication
+
+**File: `src/server/context.ts`**
+
+```typescript
+import { CreateHTTPContextOptions } from '@trpc/server/adapters/standalone';
+
+interface User {
+  id: string;
+  email: string;
+  role: 'user' | 'admin';
+}
+
+export async function createContext({ req }: CreateHTTPContextOptions) {
+  // Extract token from header
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader?.startsWith('Bearer ')) {
+    return { user: null }; // Anonymous user
+  }
+  
+  const token = authHeader.slice(7);
+  
+  try {
+    // Verify JWT and get user
+    const payload = await verifyToken(token);
+    const user = await db.user.findUnique({ where: { id: payload.sub } });
+    
+    return { user }; // Authenticated context
+  } catch {
+    return { user: null }; // Invalid token
+  }
+}
+
+export type Context = Awaited<ReturnType<typeof createContext>>;
+```
+
+**File: `src/server/trpc.ts`** — Updated with context
+
+```typescript
+import { initTRPC, TRPCError } from '@trpc/server';
+import type { Context } from './context';
+
+const t = initTRPC.context<Context>().create();
+
+export const router = t.router;
+export const publicProcedure = t.procedure;
+
+// Middleware: require authentication
+const enforceAuth = t.middleware(({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      user: ctx.user, // Now guaranteed non-null
+    },
+  });
+});
+
+// Middleware: require admin role
+const enforceAdmin = t.middleware(({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  if (ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+  }
+  return next({ ctx });
+});
+
+// Create protected procedures
+export const authedProcedure = t.procedure.use(enforceAuth);
+export const adminProcedure = t.procedure.use(enforceAdmin);
+```
+
+### 5.2 Using Protected Procedures
+
+```typescript
+import { router, publicProcedure, authedProcedure, adminProcedure } from '../trpc';
+
+export const userRouter = router({
+  // Public — anyone can call
+  list: publicProcedure.query(async () => {
+    return db.user.findMany({ select: { id: true, name: true } });
+  }),
+
+  // Protected — requires login
+  me: authedProcedure.query(async ({ ctx }) => {
+    // ctx.user is guaranteed to exist
+    return db.user.findUnique({ where: { id: ctx.user.id } });
+  }),
+
+  // Protected — users can only update their own profile
+  update: authedProcedure
+    .input(z.object({
+      name: z.string().min(1).optional(),
+      bio: z.string().max(500).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return db.user.update({
+        where: { id: ctx.user.id },
+        data: input,
+      });
+    }),
+
+  // Admin only
+  delete: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      return db.user.delete({ where: input });
+    }),
+
+  // Admin only — list all emails
+  listEmails: adminProcedure.query(async () => {
+    return db.user.findMany({ select: { id: true, email: true } });
+  }),
+});
+```
+
+### 5.3 React Client with Auth Integration
+
+```typescript
+// src/client/trpc.ts — with auth token management
+import { createTRPCReact } from '@trpc/react-query';
+import { httpBatchLink, retryLink } from '@trpc/client';
+import type { AppRouter } from '../server/routers';
+
+export const trpc = createTRPCReact<AppRouter>();
+
+export function TrpcProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Global error handling
+        meta: {
+          onError: (error: TRPCClientError<AppRouter>) => {
+            if (error.data?.code === 'UNAUTHORIZED') {
+              window.location.href = '/login';
+            }
+          },
+        },
+      },
+    },
+  }));
+
+  const trpcClient = trpc.createClient({
+    links: [
+      // Retry failed requests intelligently
+      retryLink({
+        retry: (opts) => {
+          // Don't retry mutations
+          if (opts.op.type === 'mutation') return false;
+          // Don't retry auth errors
+          if (opts.error.data?.code === 'UNAUTHORIZED') return false;
+          // Default retry logic
+          return opts.attempts < 3;
+        },
+      }),
+      httpBatchLink({
+        url: '/api/trpc',
+        headers() {
+          const token = localStorage.getItem('token');
+          return token ? { Authorization: `Bearer ${token}` } : {};
+        },
+      }),
+    ],
+  });
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+```
+
+---
+
+## Chapter 6: Advanced Zod Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 6.1 Reusable Validation Patterns
+
+```typescript
+import { z } from 'zod';
+
+// Reusable field validators
+export const schemas = {
+  // IDs
+  id: z.string().uuid(),
+  cuid: z.string().cuid2(),
+  
+  // User fields
+  email: z.string().email().toLowerCase().trim(),
+  password: z.string().min(8).max(100)
+    .regex(/[A-Z]/, 'Must contain uppercase')
+    .regex(/[a-z]/, 'Must contain lowercase')
+    .regex(/[0-9]/, 'Must contain number'),
+  
+  username: z.string().min(3).max(30)
+    .regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers, underscores'),
+  
+  // Content
+  title: z.string().min(1).max(200).trim(),
+  description: z.string().max(2000).trim().optional(),
+  
+  // Pagination
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  
+  // Sorting
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+};
+
+// Reusable pagination input
+export const paginationInput = z.object({
+  page: schemas.page,
+  limit: schemas.limit,
+  search: z.string().optional(),
+  sortBy: z.string().optional(),
+  sortOrder: schemas.sortOrder,
+});
+
+export type PaginationInput = z.infer<typeof paginationInput>;
+
+// Usage in routers
+export const postRouter = router({
+  list: publicProcedure
+    .input(paginationInput)
+    .query(async ({ input }) => {
+      const { page, limit } = input;
+      const skip = (page - 1) * limit;
+      
+      const [posts, total] = await Promise.all([
+        db.post.findMany({ skip, take: limit }),
+        db.post.count(),
+      ]);
+      
+      return {
+        data: posts,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    }),
+});
+```
+
+### 6.2 Schema Composition & Refinement
+
+```typescript
+import { z } from 'zod';
+
+// Base schemas that can be extended
+const timestampFields = {
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+};
+
+// Base entity schema
+const entitySchema = z.object({
+  id: z.string().uuid(),
+  ...timestampFields,
+});
+
+// Extending schemas
+type Entity = z.infer<typeof entitySchema>;
+
+const userBaseSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+});
+
+// Create User Input (no ID needed)
+const createUserSchema = userBaseSchema.extend({
+  password: z.string().min(8),
+  role: z.enum(['user', 'admin']).default('user'),
+});
+
+// Update User Input (all fields optional)
+const updateUserSchema = userBaseSchema.partial();
+
+// Full User (from database)
+const userSchema = entitySchema.merge(userBaseSchema).extend({
+  role: z.enum(['user', 'admin']),
+  avatar: z.string().url().nullable(),
+});
+
+// Advanced refinement — custom validation
+const passwordSchema = z.object({
+  password: z.string().min(8),
+  confirmPassword: z.string(),
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: "Passwords don't match",
+    path: ['confirmPassword'], // Error will be attached to this field
+  }
+);
+
+// Transform — modify data after validation
+const slugSchema = z.string()
+  .min(1)
+  .transform((val) => val.toLowerCase().replace(/\s+/g, '-'));
+
+// Async refinement — check against database
+const uniqueEmailSchema = z.string().email()
+  .refine(
+    async (email) => {
+      const existing = await db.user.findUnique({ where: { email } });
+      return existing === null;
+    },
+    { message: 'Email already in use' }
+  );
+```
+
+### 6.3 Zod + tRPC Output Validation
+
+```typescript
+import { z } from 'zod';
+import { router, publicProcedure } from './trpc';
+
+// Define output schemas for API contracts
+const userOutputSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  email: z.string().email(),
+  // Explicitly exclude password from output!
+});
+
+const postOutputSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  content: z.string(),
+  author: userOutputSchema, // Nested validation
+  publishedAt: z.date().nullable(),
+});
+
+export const postRouter = router({
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .output(postOutputSchema) // tRPC validates output against this!
+    .query(async ({ input }) => {
+      const post = await db.post.findUnique({
+        where: input,
+        include: { author: true },
+      });
+      
+      if (!post) throw new TRPCError({ code: 'NOT_FOUND' });
+      
+      // Output is automatically validated against postOutputSchema
+      // If the shape doesn't match, tRPC throws an error
+      return post;
+    }),
+});
+```
+
+---
+
+## Chapter 7: Middleware Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 7.1 Creating Reusable Middleware
+
+```typescript
+import { initTRPC, TRPCError } from '@trpc/server';
+import type { Context } from './context';
+
+const t = initTRPC.context<Context>().create();
+
+// Logging middleware
+const logger = t.middleware(async ({ path, type, rawInput, next }) => {
+  const start = Date.now();
+  
+  console.log(`→ ${type.toUpperCase()} ${path}`);
+  
+  const result = await next();
+  
+  const duration = Date.now() - start;
+  console.log(`← ${type.toUpperCase()} ${path} — ${result.ok ? 'OK' : 'ERR'} (${duration}ms)`);
+  
+  return result;
+});
+
+// Rate limiting middleware
+const rateLimit = t.middleware(async ({ ctx, path, next }) => {
+  const key = `${ctx.user?.id ?? ctx.ip}:${path}`;
+  const limit = await checkRateLimit(key);
+  
+  if (limit.exceeded) {
+    throw new TRPCError({
+      code: 'TOO_MANY_REQUESTS',
+      message: `Rate limit exceeded. Retry after ${limit.retryAfter}s`,
+    });
+  }
+  
+  return next();
+});
+
+// Input sanitization middleware
+const sanitize = t.middleware(async ({ rawInput, next }) => {
+  if (typeof rawInput === 'object' && rawInput !== null) {
+    // Strip HTML tags from string inputs
+    const sanitized = Object.fromEntries(
+      Object.entries(rawInput).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? stripHtml(value) : value,
+      ])
+    );
+    return next({ rawInput: sanitized });
+  }
+  return next();
+});
+
+// Compose middleware into procedures
+export const loggedProcedure = t.procedure.use(logger);
+export const rateLimitedProcedure = t.procedure.use(logger).use(rateLimit);
+export const sanitizedProcedure = t.procedure.use(logger).use(sanitize);
+
+// Usage
+export const apiRouter = router({
+  // All calls are logged
+  health: loggedProcedure.query(() => ({ status: 'ok' })),
+  
+  // Rate limited + logged
+  search: rateLimitedProcedure
+    .input(z.object({ q: z.string().min(1) }))
+    .query(async ({ input }) => {
+      return performSearch(input.q);
+    }),
+  
+  // Sanitized input + logged
+  createPost: sanitizedProcedure
+    .input(z.object({ title: z.string(), content: z.string() }))
+    .mutation(async ({ input }) => {
+      // input.title and input.content are now HTML-safe
+      return db.post.create({ data: input });
+    }),
+});
+```
+
+### 7.2 Context Enrichment Pattern
+
+```typescript
+import { t } from './trpc-init';
+
+// Middleware that enriches context with additional data
+const withPost = t.middleware(async ({ ctx, rawInput, next }) => {
+  const input = rawInput as { postId: string };
+  
+  const post = await db.post.findUnique({
+    where: { id: input.postId },
+  });
+  
+  if (!post) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+  }
+  
+  // Pass post to context so procedures don't need to re-fetch
+  return next({ ctx: { ...ctx, post } });
+});
+
+// Middleware that enriches with user's organization
+const withOrganization = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+  
+  const org = await db.organization.findFirst({
+    where: { members: { some: { userId: ctx.user.id } } },
+  });
+  
+  if (!org) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'No organization found' });
+  }
+  
+  return next({ ctx: { ...ctx, organization: org } });
+});
+
+// Use enriched context
+export const postRouter = router({
+  // post is pre-loaded by middleware
+  getDetails: authedProcedure
+    .input(z.object({ postId: z.string().uuid() }))
+    .use(withPost)
+    .query(async ({ ctx }) => {
+      // ctx.post is available and typed!
+      return {
+        ...ctx.post,
+        canEdit: ctx.post.authorId === ctx.user.id,
+      };
+    }),
+
+  // organization is pre-loaded
+  getOrgPosts: authedProcedure
+    .use(withOrganization)
+    .query(async ({ ctx }) => {
+      // ctx.organization is available!
+      return db.post.findMany({
+        where: { orgId: ctx.organization.id },
+      });
+    }),
+});
+```
+
+---
+
+## Chapter 8: Subscriptions & Real-Time
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 8.1 WebSocket Subscriptions Setup
+
+```typescript
+// Server: WebSocket adapter
+import { applyWSSHandler } from '@trpc/server/adapters/ws';
+import { WebSocketServer } from 'ws';
+import { appRouter } from './routers';
+
+const wss = new WebSocketServer({ port: 3002 });
+
+const handler = applyWSSHandler({
+  wss,
+  router: appRouter,
+  createContext: ({ req }) => {
+    // Extract auth from WebSocket connection
+    const token = req.headers['sec-websocket-protocol'] as string;
+    return createContextFromToken(token);
+  },
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => handler.broadcastReconnectNotification());
+```
+
+```typescript
+// Server: Subscription router
+import { observable } from '@trpc/server/observable';
+import { EventEmitter } from 'events';
+
+const messageEmitter = new EventEmitter();
+
+export const messageRouter = router({
+  onNewMessage: authedProcedure
+    .input(z.object({ roomId: z.string().uuid() }))
+    .subscription(({ input }) => {
+      // Return an observable that emits new messages
+      return observable<{ id: string; content: string; sender: string }>((emit) => {
+        const onMessage = (msg: any) => {
+          if (msg.roomId === input.roomId) {
+            emit.next(msg);
+          }
+        };
+        
+        messageEmitter.on('message', onMessage);
+        
+        // Cleanup when unsubscribed
+        return () => {
+          messageEmitter.off('message', onMessage);
+        };
+      });
+    }),
+
+  send: authedProcedure
+    .input(z.object({
+      roomId: z.string().uuid(),
+      content: z.string().min(1).max(2000),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const message = await db.message.create({
+        data: {
+          ...input,
+          senderId: ctx.user.id,
+        },
+      });
+      
+      // Notify subscribers
+      messageEmitter.emit('message', message);
+      
+      return message;
+    }),
+});
+```
+
+### 8.2 React Client for Subscriptions
+
+```typescript
+'use client';
+
+import { trpc } from './trpc';
+
+export function ChatRoom({ roomId }: { roomId: string }) {
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  // Subscribe to real-time messages
+  trpc.message.onNewMessage.useSubscription(
+    { roomId },
+    {
+      onData: (newMessage) => {
+        setMessages((prev) => [...prev, newMessage]);
+      },
+      onError: (err) => {
+        console.error('Subscription error:', err);
+      },
+    }
+  );
+
+  const sendMessage = trpc.message.send.useMutation();
+
+  return (
+    <div>
+      <div className="messages">
+        {messages.map((msg) => (
+          <div key={msg.id}>
+            <strong>{msg.sender}:</strong> {msg.content}
+          </div>
+        ))}
+      </div>
+      
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const input = e.currentTarget.elements.namedItem('msg') as HTMLInputElement;
+          await sendMessage.mutateAsync({ roomId, content: input.value });
+          input.value = '';
+        }}
+      >
+        <input name="msg" maxLength={2000} />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  );
+}
+```
+
+---
+
+## Chapter 9: React 19 Integration Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 9.1 Server Components + tRPC Architecture
+
+React 19 Server Components (RSC) can directly call tRPC procedures on the server, eliminating client-server waterfalls:
+
+```typescript
+// app/page.tsx — Server Component (no 'use client')
+import { createCaller } from '@/server/routers';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { getQueryClient } from './query-client';
+import { TodoListClient } from './todo-list-client';
+
+export default async function TodoPage() {
+  const queryClient = getQueryClient();
+  const caller = createCaller({});
+
+  // Pre-fetch data on the server
+  await queryClient.prefetchQuery({
+    queryKey: [['todo', 'getAll']],
+    queryFn: () => caller.todo.getAll(),
+  });
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <main>
+        <h1>My Todos</h1>
+        <AddTodoForm /> {/* Client Component for interactivity */}
+        <TodoListClient /> {/* Hydrated with server data */}
+      </main>
+    </HydrationBoundary>
+  );
+}
+```
+
+```typescript
+// app/todo-list-client.tsx — Client Component
+'use client';
+
+import { trpc } from './trpc';
+
+export function TodoListClient() {
+  // Uses server-fetched data initially, then manages cache client-side
+  const { data: todos, isLoading } = trpc.todo.getAll.useQuery();
+
+  if (isLoading) return <TodoSkeleton />;
+
+  return (
+    <ul>
+      {todos?.map((todo) => (
+        <TodoItem key={todo.id} todo={todo} />
+      ))}
+    </ul>
+  );
+}
+```
+
+### 9.2 React 19 Actions + tRPC
+
+```typescript
+// app/actions.ts
+'use server';
+
+import { createCaller } from '@/server/routers';
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+
+const createTodoSchema = z.object({
+  text: z.string().min(1),
+});
+
+export async function createTodoAction(formData: FormData) {
+  const parsed = createTodoSchema.safeParse({
+    text: formData.get('text'),
+  });
+  
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors };
+  }
+  
+  const caller = createCaller({ user: null });
+  await caller.todo.create(parsed.data);
+  
+  revalidatePath('/');
+  return { success: true };
+}
+```
+
+```typescript
+// components/todo-form.tsx
+'use client';
+
+import { useActionState } from 'react';
+import { createTodoAction } from './actions';
+
+export function TodoForm() {
+  const [state, dispatch, isPending] = useActionState(
+    createTodoAction,
+    { error: null, success: false }
+  );
+
+  return (
+    <form action={dispatch}>
+      <input 
+        name="text" 
+        placeholder="Add a todo..."
+        disabled={isPending}
+      />
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Adding...' : 'Add'}
+      </button>
+      {state.error?.text && <p className="error">{state.error.text}</p>}
+    </form>
+  );
+}
+```
+
+### 9.3 Parallel Queries Pattern
+
+```typescript
+'use client';
+
+import { trpc } from './trpc';
+
+// Parallel data fetching — tRPC batches these automatically!
+export function Dashboard() {
+  const utils = trpc.useUtils();
+  
+  // These three queries are batched into ONE HTTP request!
+  const userQuery = trpc.user.me.useQuery();
+  const postsQuery = trpc.post.recent.useQuery({ limit: 5 });
+  const statsQuery = trpc.analytics.overview.useQuery();
+
+  // Wait for all to resolve
+  const isLoading = userQuery.isLoading || postsQuery.isLoading || statsQuery.isLoading;
+
+  if (isLoading) return <DashboardSkeleton />;
+
+  return (
+    <div className="dashboard">
+      <UserCard user={userQuery.data!} />
+      <RecentPosts posts={postsQuery.data!} />
+      <StatsCards stats={statsQuery.data!} />
+    </div>
+  );
+}
+
+// Dependent queries — wait for first to complete
+export function UserPosts({ userId }: { userId: string }) {
+  const userQuery = trpc.user.getById.useQuery({ id: userId });
+  
+  // Only fetch posts after user data is available
+  const postsQuery = trpc.post.byAuthor.useQuery(
+    { authorId: userId },
+    { enabled: userQuery.isSuccess }
+  );
+
+  // ...
+}
+```
+
+---
+
+## Chapter 10: Pagination Strategies
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 10.1 Cursor-Based Pagination (Recommended)
+
+```typescript
+// Server: Cursor pagination implementation
+export const postRouter = router({
+  infiniteList: publicProcedure
+    .input(
+      z.object({
+        cursor: z.string().optional(), // Last item's ID
+        limit: z.number().min(1).max(50).default(10),
+        category: z.string().optional(),
+      })
+    )
+    .query(async ({ input }) => {
+      const { cursor, limit, category } = input;
+
+      const posts = await db.post.findMany({
+        take: limit + 1, // Take one extra to determine if there's more
+        cursor: cursor ? { id: cursor } : undefined,
+        where: category ? { category } : undefined,
+        orderBy: { createdAt: 'desc' },
+      });
+
+      let nextCursor: typeof cursor = undefined;
+
+      // If we got more items than requested, there's a next page
+      if (posts.length > limit) {
+        const nextItem = posts.pop(); // Remove the extra item
+        nextCursor = nextItem!.id;
+      }
+
+      return {
+        items: posts,
+        nextCursor,
+      };
+    }),
+});
+```
+
+```typescript
+// Client: useInfiniteQuery for cursor pagination
+'use client';
+
+import { trpc } from './trpc';
+
+export function InfinitePostList() {
+  const { 
+    data, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage,
+    status,
+  } = trpc.post.infiniteList.useInfiniteQuery(
+    { limit: 10 }, // input without cursor
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  const allPosts = data?.pages.flatMap((page) => page.items) ?? [];
+
+  return (
+    <div>
+      {allPosts.map((post) => (
+        <PostCard key={post.id} post={post} />
+      ))}
+      
+      <button
+        onClick={() => fetchNextPage()}
+        disabled={!hasNextPage || isFetchingNextPage}
+      >
+        {isFetchingNextPage
+          ? 'Loading more...'
+          : hasNextPage
+          ? 'Load More'
+          : 'No more posts'}
+      </button>
+    </div>
+  );
+}
+```
+
+### 10.2 Offset Pagination
+
+```typescript
+// Server
+export const commentRouter = router({
+  list: publicProcedure
+    .input(z.object({
+      postId: z.string().uuid(),
+      page: z.number().min(1).default(1),
+      limit: z.number().min(1).max(100).default(20),
+    }))
+    .query(async ({ input }) => {
+      const { postId, page, limit } = input;
+      const skip = (page - 1) * limit;
+
+      const [items, total] = await Promise.all([
+        db.comment.findMany({
+          where: { postId },
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        db.comment.count({ where: { postId } }),
+      ]);
+
+      return {
+        items,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    }),
+});
+```

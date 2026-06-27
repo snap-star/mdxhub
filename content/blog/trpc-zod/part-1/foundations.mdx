@@ -1,0 +1,751 @@
+---
+title: Junior Level — Foundations
+description: A guide to the basics of tRPC and Zod.
+date: 2026-06-26
+category: "React"
+tags: ["tRPC", "Zod", "React", "Vite"]
+series: "tRPC, Zod & React 19 Guide"
+seriesOrder: 2
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## Chapter 1: Your First tRPC Setup
+
+<Badge variant="green">Junior</Badge>
+
+### 1.1 Project Initialization
+
+Let's create a modern full-stack TypeScript project with tRPC and React 19.
+
+```bash
+# Create a new project with your preferred tool
+# Option A: Using create-t3-app (recommended for beginners)
+npx create-t3-app@latest my-trpc-app
+# Select: App Router, tRPC, Prisma (optional), NextAuth (optional)
+
+# Option B: Manual setup with Vite + Express
+mkdir my-trpc-app && cd my-trpc-app
+npm init -y
+
+# Install core dependencies
+npm install @trpc/server@next @trpc/client@next @trpc/react-query@next @tanstack/react-query@latest zod react@latest react-dom@latest
+npm install -D typescript @types/react @types/react-dom @types/node tsx
+```
+
+### 1.2 The File Structure
+
+```
+my-trpc-app/
+├── src/
+│   ├── server/               # Backend code
+│   │   ├── index.ts          # Server entry point
+│   │   ├── trpc.ts           # tRPC initialization
+│   │   └── routers/          # API routers
+│   │       ├── index.ts      # Root router
+│   │       └── user.ts       # User-specific routes
+│   ├── client/               # Frontend code
+│   │   ├── trpc.ts           # tRPC client setup
+│   │   └── components/       # React components
+│   └── shared/               # Shared between client & server
+│       └── schemas.ts        # Zod schemas
+├── package.json
+└── tsconfig.json
+```
+
+### 1.3 Creating Your First Router
+
+**File: `src/server/trpc.ts`** — The tRPC initialization file
+
+```typescript
+import { initTRPC } from '@trpc/server';
+
+// Create the tRPC instance with context type
+const t = initTRPC.create();
+
+// Export reusable router and procedure helpers
+export const router = t.router;
+export const publicProcedure = t.procedure;
+```
+
+**File: `src/server/routers/user.ts`** — A feature router
+
+```typescript
+import { z } from 'zod';
+import { router, publicProcedure } from '../trpc';
+
+export const userRouter = router({
+  // Query: get a single user by ID
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      // In real apps, this comes from your database
+      const user = await db.user.findUnique({ where: { id: input.id } });
+      return user; // Type: { id: string; name: string; email: string } | null
+    }),
+
+  // Query: list all users
+  list: publicProcedure
+    .query(async () => {
+      const users = await db.user.findMany();
+      return users; // Type: Array<{ id: string; name: string; email: string }>
+    }),
+
+  // Mutation: create a new user
+  create: publicProcedure
+    .input(z.object({
+      name: z.string().min(1, "Name is required").max(100),
+      email: z.string().email("Invalid email address"),
+      age: z.number().int().min(0).max(150).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const user = await db.user.create({ data: input });
+      return user;
+    }),
+});
+```
+
+**File: `src/server/routers/index.ts`** — Root router
+
+```typescript
+import { router } from '../trpc';
+import { userRouter } from './user';
+
+export const appRouter = router({
+  user: userRouter,
+  // Add more routers here: post: postRouter, comment: commentRouter, etc.
+});
+
+// Export type for client usage
+export type AppRouter = typeof appRouter;
+```
+
+**File: `src/server/index.ts`** — Server entry point
+
+```typescript
+import { createHTTPServer } from '@trpc/server/adapters/standalone';
+import { appRouter } from './routers';
+
+const server = createHTTPServer({
+  router: appRouter,
+  createContext: () => ({}), // We'll expand this later
+});
+
+server.listen(3001);
+console.log('tRPC server running on http://localhost:3001');
+```
+
+### 1.4 Client Setup with React 19
+
+**File: `src/client/trpc.ts`** — Client initialization
+
+```typescript
+import { createTRPCReact } from '@trpc/react-query';
+import { httpBatchLink } from '@trpc/client';
+import type { AppRouter } from '../server/routers';
+
+// Create typed React hooks
+export const trpc = createTRPCReact<AppRouter>();
+
+// Create a provider wrapper component
+export function TrpcProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = React.useState(() => new QueryClient());
+  
+  const trpcClient = trpc.createClient({
+    links: [
+      httpBatchLink({
+        url: 'http://localhost:3001',
+        // React 19: Headers can be async for auth tokens
+        async headers() {
+          const token = localStorage.getItem('token');
+          return token ? { Authorization: `Bearer ${token}` } : {};
+        },
+      }),
+    ],
+  });
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+```
+
+### 1.5 Using tRPC in React 19 Components
+
+**File: `src/client/components/UserList.tsx`** — React Server Component (RSC)
+
+```typescript
+// React 19 Server Component — data fetching on the server
+import { trpc } from '../trpc';
+
+// Server Components can directly call tRPC in React 19
+export async function UserListRSC() {
+  const users = await trpc.user.list.fetch();
+
+  return (
+    <div className="user-list">
+      <h2>Users (Server Rendered)</h2>
+      <ul>
+        {users.map((user) => (
+          <li key={user.id}>
+            <strong>{user.name}</strong> — {user.email}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+**File: `src/client/components/UserForm.tsx`** — Client Component with tRPC
+
+```typescript
+'use client'; // Next.js App Router — mark as Client Component
+
+import { trpc } from '../trpc';
+import { useState } from 'react';
+
+export function UserForm() {
+  const utils = trpc.useUtils();
+  
+  // useMutation with React 19's enhanced form handling
+  const createUser = trpc.user.create.useMutation({
+    // React 19: Optimistic updates pattern
+    onMutate: async (newUser) => {
+      // Cancel outgoing refetches
+      await utils.user.list.cancel();
+      
+      // Snapshot previous value
+      const previousUsers = utils.user.list.getData();
+      
+      // Optimistically update
+      utils.user.list.setData(undefined, (old) => [
+        ...(old ?? []),
+        { id: 'temp-id', ...newUser },
+      ]);
+      
+      return { previousUsers };
+    },
+    onError: (err, newUser, context) => {
+      // Rollback on error
+      utils.user.list.setData(undefined, context?.previousUsers);
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      utils.user.list.invalidate();
+    },
+  });
+
+  // React 19: Actions work seamlessly with tRPC mutations
+  const handleSubmit = async (formData: FormData) => {
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    
+    await createUser.mutateAsync({ name, email });
+  };
+
+  return (
+    <form action={handleSubmit}>
+      <input 
+        name="name" 
+        placeholder="Name" 
+        required 
+        minLength={1}
+        maxLength={100}
+      />
+      <input 
+        name="email" 
+        type="email" 
+        placeholder="Email" 
+        required 
+      />
+      <button type="submit" disabled={createUser.isPending}>
+        {createUser.isPending ? 'Creating...' : 'Create User'}
+      </button>
+      
+      {createUser.error && (
+        <p className="error">{createUser.error.message}</p>
+      )}
+    </form>
+  );
+}
+```
+
+---
+
+## Chapter 2: Zod Fundamentals for API Validation
+
+<Badge variant="green">Junior</Badge>
+
+### 2.1 Why Zod?
+
+**Zod is a TypeScript-first schema validation library.** Its superpower is that it validates at **runtime** while simultaneously producing **compile-time types**. This dual nature makes it the perfect companion for tRPC.
+
+```typescript
+import { z } from 'zod';
+
+// Define once — get both runtime validation AND compile-time types
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  email: z.string().email(),
+  age: z.number().int().min(0).optional(),
+});
+
+// Extract the TypeScript type
+type User = z.infer<typeof UserSchema>;
+// Equivalent to: type User = { id: string; name: string; email: string; age?: number }
+
+// Runtime validation
+const result = UserSchema.safeParse({
+  id: '550e8400-e29b-41d4-a716-446655440000',
+  name: 'Alice',
+  email: 'alice@example.com',
+  age: 30,
+});
+
+if (result.success) {
+  console.log(result.data); // Typed as User
+} else {
+  console.error(result.error.issues);
+  // [{ path: ['email'], message: 'Invalid email' }, ...]
+}
+```
+
+### 2.2 Zod Primitives for tRPC Input
+
+These are the building blocks you'll use daily:
+
+```typescript
+import { z } from 'zod';
+
+// String validations
+const name = z.string().min(1).max(100);
+const email = z.string().email();
+const url = z.string().url();
+const uuid = z.string().uuid();
+const regex = z.string().regex(/^[a-zA-Z0-9_]+$/);
+
+// Number validations
+const age = z.number().int().min(0).max(150);
+const price = z.number().positive().multipleOf(0.01); // 2 decimal places
+const rating = z.number().min(1).max(5);
+
+// Coercion — convert strings to numbers (common with form data)
+const queryLimit = z.coerce.number().int().min(1).max(100).default(10);
+
+// Booleans
+const isActive = z.boolean().default(true);
+
+// Dates
+const createdAt = z.coerce.date(); // Accepts ISO strings, converts to Date
+
+// Enums
+const status = z.enum(['pending', 'active', 'archived']);
+
+// Literals (exact values)
+const role = z.literal('admin');
+
+// Arrays
+const tags = z.array(z.string().min(1)).max(10);
+
+// Objects (most common)
+const createUserInput = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(['user', 'admin']).default('user'),
+});
+
+// Optionals and nullables
+const optionalBio = z.string().optional();        // bio?: string
+const nullableBio = z.string().nullable();        // bio: string | null
+const nullishBio = z.string().nullish();          // bio?: string | null | undefined
+```
+
+### 2.3 tRPC Input Validation in Practice
+
+Every tRPC procedure that accepts input should validate it with Zod:
+
+```typescript
+import { z } from 'zod';
+import { router, publicProcedure } from './trpc';
+
+export const postRouter = router({
+  // Pagination pattern — used everywhere
+  list: publicProcedure
+    .input(
+      z.object({
+        cursor: z.string().optional(),       // For cursor-based pagination
+        limit: z.number().min(1).max(50).default(10),
+        search: z.string().optional(),
+        sortBy: z.enum(['createdAt', 'title', 'views']).default('createdAt'),
+        sortOrder: z.enum(['asc', 'desc']).default('desc'),
+      })
+    )
+    .query(async ({ input }) => {
+      // input is fully typed: { cursor?: string; limit: number; search?: string; ... }
+      const { cursor, limit, search, sortBy, sortOrder } = input;
+      
+      return db.post.findMany({
+        take: limit + 1, // Take one extra to check if there's more
+        cursor: cursor ? { id: cursor } : undefined,
+        where: search ? { title: { contains: search } } : undefined,
+        orderBy: { [sortBy]: sortOrder },
+      });
+    }),
+
+  // Nested object validation
+  create: publicProcedure
+    .input(
+      z.object({
+        title: z.string().min(1).max(200),
+        content: z.string().min(1),
+        metadata: z.object({
+          tags: z.array(z.string()).max(10),
+          category: z.string().optional(),
+          publishedAt: z.coerce.date().optional(),
+        }).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // metadata.tags, metadata.category — all fully typed and validated
+      return db.post.create({ data: input });
+    }),
+
+  // Array input for batch operations
+  createMany: publicProcedure
+    .input(
+      z.array(
+        z.object({
+          title: z.string().min(1),
+          content: z.string().min(1),
+        })
+      ).min(1).max(100)
+    )
+    .mutation(async ({ input }) => {
+      // input is an array, validated for length 1-100
+      return db.post.createMany({ data: input });
+    }),
+});
+```
+
+### 2.4 React 19 Form Integration with Zod
+
+React 19 introduces enhanced form handling. Combine it with Zod for bulletproof forms:
+
+```typescript
+'use client';
+
+import { z } from 'zod';
+import { useActionState } from 'react'; // React 19 feature
+import { trpc } from './trpc';
+
+// Define schema once — use everywhere
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+type LoginInput = z.infer<typeof loginSchema>;
+
+// Server action with Zod validation (React 19)
+export function LoginForm() {
+  const login = trpc.auth.login.useMutation();
+  
+  // React 19 useActionState for form state management
+  const [state, submitAction, isPending] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      // Validate with Zod
+      const result = loginSchema.safeParse({
+        email: formData.get('email'),
+        password: formData.get('password'),
+      });
+      
+      if (!result.success) {
+        // Return field errors for display
+        return { 
+          errors: result.error.flatten().fieldErrors,
+          message: null 
+        };
+      }
+      
+      try {
+        await login.mutateAsync(result.data);
+        return { errors: {}, message: 'Login successful!' };
+      } catch (err) {
+        return { 
+          errors: {}, 
+          message: err instanceof Error ? err.message : 'Login failed' 
+        };
+      }
+    },
+    { errors: {}, message: null }
+  );
+
+  return (
+    <form action={submitAction}>
+      <div>
+        <input name="email" type="email" placeholder="Email" />
+        {state.errors?.email && <span>{state.errors.email}</span>}
+      </div>
+      <div>
+        <input name="password" type="password" placeholder="Password" />
+        {state.errors?.password && <span>{state.errors.password}</span>}
+      </div>
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Logging in...' : 'Login'}
+      </button>
+      {state.message && <p>{state.message}</p>}
+    </form>
+  );
+}
+```
+
+---
+
+## Chapter 3: Core tRPC Concepts
+
+<Badge variant="green">Junior</Badge>
+
+### 3.1 Queries vs Mutations
+
+```typescript
+import { router, publicProcedure } from './trpc';
+
+export const todoRouter = router({
+  // QUERY: Read operations (GET equivalent)
+  // - Can be cached by TanStack Query
+  // - Support automatic refetching
+  // - Can be used in Server Components
+  
+  getAll: publicProcedure.query(async () => {
+    return db.todo.findMany();
+  }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      return db.todo.findUnique({ where: input });
+    }),
+
+  // MUTATION: Write operations (POST/PUT/DELETE equivalent)
+  // - Invalidates queries automatically
+  // - Used for create, update, delete
+  // - Only in Client Components
+  
+  create: publicProcedure
+    .input(z.object({ text: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      return db.todo.create({ data: input });
+    }),
+
+  toggle: publicProcedure
+    .input(z.object({ id: z.string(), completed: z.boolean() }))
+    .mutation(async ({ input }) => {
+      return db.todo.update({
+        where: { id: input.id },
+        data: { completed: input.completed },
+      });
+    }),
+
+  delete: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      return db.todo.delete({ where: input });
+    }),
+});
+```
+
+### 3.2 Client-Side Query Usage
+
+```typescript
+'use client';
+
+import { trpc } from './trpc';
+
+export function TodoList() {
+  // Basic query — auto-cached, auto-refetched on window focus
+  const { data: todos, isLoading, error } = trpc.todo.getAll.useQuery();
+
+  // Query with input parameters
+  const { data: singleTodo } = trpc.todo.getById.useQuery(
+    { id: 'some-id' },
+    { enabled: !!todoId } // Only run when todoId exists
+  );
+
+  // Mutations with automatic invalidation
+  const utils = trpc.useUtils();
+  const createTodo = trpc.todo.create.useMutation({
+    onSuccess: () => {
+      // Invalidate and refetch the list
+      utils.todo.getAll.invalidate();
+    },
+  });
+
+  const deleteTodo = trpc.todo.delete.useMutation({
+    onSuccess: () => {
+      utils.todo.getAll.invalidate();
+    },
+  });
+
+  if (isLoading) return <div>Loading todos...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <button 
+        onClick={() => createTodo.mutate({ text: 'New todo' })}
+        disabled={createTodo.isPending}
+      >
+        Add Todo
+      </button>
+      
+      <ul>
+        {todos?.map((todo) => (
+          <li key={todo.id}>
+            {todo.text}
+            <button onClick={() => deleteTodo.mutate({ id: todo.id })}>
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### 3.3 The `useUtils()` Hook — Your Swiss Army Knife
+
+```typescript
+'use client';
+
+function TodoManager() {
+  const utils = trpc.useUtils();
+
+  // Manual invalidation
+  const handleRefresh = () => {
+    utils.todo.getAll.invalidate(); // Refetch all todo.getAll queries
+  };
+
+  // Prefetch on hover (performance optimization)
+  const handleMouseEnter = (todoId: string) => {
+    utils.todo.getById.prefetch({ id: todoId });
+  };
+
+  // Access cached data without a query
+  const handleCheckCache = () => {
+    const cachedTodos = utils.todo.getAll.getData();
+    console.log('Currently cached:', cachedTodos);
+  };
+
+  // Set data directly (for optimistic updates)
+  const handleOptimisticAdd = (newTodo: Todo) => {
+    utils.todo.getAll.setData(undefined, (old) => 
+      old ? [...old, newTodo] : [newTodo]
+    );
+  };
+
+  // Cancel outgoing queries
+  const handleCancelAll = () => {
+    utils.todo.getAll.cancel();
+  };
+
+  return (/* ... */);
+}
+```
+
+---
+
+## Chapter 4: Error Handling Basics
+
+<Badge variant="green">Junior</Badge>
+
+### 4.1 tRPC Error Types
+
+```typescript
+import { TRPCError } from '@trpc/server';
+
+export const userRouter = router({
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const user = await db.user.findUnique({ where: input });
+      
+      if (!user) {
+        // Throw structured errors
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `User with ID ${input.id} not found`,
+        });
+      }
+      
+      return user;
+    }),
+
+  create: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      const existing = await db.user.findUnique({
+        where: { email: input.email },
+      });
+      
+      if (existing) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Email already registered',
+        });
+      }
+      
+      return db.user.create({ data: input });
+    }),
+});
+```
+
+### 4.2 Error Handling on the Client
+
+```typescript
+'use client';
+
+export function UserProfile({ userId }: { userId: string }) {
+  const { data, isLoading, error, isError } = trpc.user.getById.useQuery(
+    { id: userId },
+    {
+      // Handle specific error types
+      retry: (failureCount, error) => {
+        // Don't retry on 404s
+        if (error.data?.code === 'NOT_FOUND') return false;
+        return failureCount < 3;
+      },
+    }
+  );
+
+  if (isLoading) return <Skeleton />;
+  
+  if (isError) {
+    // Type-safe error handling!
+    switch (error.data?.code) {
+      case 'NOT_FOUND':
+        return <div>User not found. <Link href="/users">Browse users</Link></div>;
+      case 'UNAUTHORIZED':
+        return <div>Please <Link href="/login">log in</Link> to view this profile.</div>;
+      case 'FORBIDDEN':
+        return <div>You don't have permission to view this profile.</div>;
+      default:
+        return <div>Something went wrong: {error.message}</div>;
+    }
+  }
+
+  return (
+    <div>
+      <h1>{data.name}</h1>
+      <p>{data.email}</p>
+    </div>
+  );
+}
+```

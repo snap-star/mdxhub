@@ -1,0 +1,948 @@
+---
+title: Junior Level — Foundations
+description: "Learn the basics of Tailwind CSS v4 and React 19, and get started with utility-first CSS development."
+date: 2026-06-27
+category: "Tailwindcss"
+tags: ["Tailwindcss", "React 19"]
+series: "Tailwind CSS v4 & React 19"
+seriesOrder: 3
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## Chapter 1: Your First Tailwind CSS v4 Setup
+
+<Badge variant="green">Junior</Badge>
+
+### 1.1 Installation with Vite + React 19
+
+```bash
+# Create a new Vite project with React 19
+npm create vite@latest my-app -- --template react-ts
+cd my-app
+
+# Install Tailwind CSS v4 (PostCSS plugin)
+npm install tailwindcss@latest @tailwindcss/postcss@latest postcss
+
+# For Vite projects, use the Vite plugin instead (recommended)
+npm install @tailwindcss/vite
+
+# Install React 19 (if not already latest)
+npm install react@latest react-dom@latest
+npm install -D @types/react@latest @types/react-dom@latest
+```
+
+### 1.2 Configuration: The CSS-First Way
+
+**File: `src/styles.css`** — Your configuration AND styles in one file
+
+```css
+/* ============================================
+   Tailwind CSS v4 — CSS-First Configuration
+   ============================================ */
+
+/* Import Tailwind CSS — replaces @tailwind directives */
+@import "tailwindcss";
+
+/* ============================================
+   THEME CUSTOMIZATION
+   Define your design tokens directly in CSS
+   ============================================ */
+
+@theme {
+  /* Custom colors */
+  --color-brand: #0ea5e9;
+  --color-brand-dark: #0284c7;
+  --color-brand-light: #7dd3fc;
+  
+  /* Custom fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, monospace;
+  
+  /* Custom spacing scale */
+  --spacing-18: 4.5rem;
+  --spacing-88: 22rem;
+  
+  /* Custom breakpoints */
+  --breakpoint-3xl: 120rem;
+  
+  /* Custom animations */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.4s ease-out;
+}
+
+/* Define the keyframes for custom animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   CUSTOM UTILITIES
+   Define your own utility classes
+   ============================================ */
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility text-pretty {
+  text-wrap: pretty;
+}
+
+@utility container-tight {
+  margin-inline: auto;
+  padding-inline: 1rem;
+  max-width: 65ch;
+}
+
+/* ============================================
+   BASE STYLES (replaces @layer base)
+   ============================================ */
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* React 19: Prevent layout shifts with Suspense boundaries */
+[data-suspense-boundary] {
+  contain: layout style;
+}
+```
+
+### 1.3 Vite Configuration
+
+**File: `vite.config.ts`**
+
+```typescript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(), // Tailwind CSS v4 Vite plugin
+  ],
+});
+```
+
+**File: `postcss.config.mjs`** (if using PostCSS instead of Vite plugin)
+
+```javascript
+/** @type {import('postcss-load-config').Config} */
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+```
+
+### 1.4 Entry Point Setup
+
+**File: `src/main.tsx`**
+
+```typescript
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './styles.css'; // Import your Tailwind CSS
+import App from './App';
+
+// React 19: createRoot API (same as v18)
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
+}
+```
+
+### 1.5 First Component with Tailwind v4
+
+**File: `src/App.tsx`**
+
+```typescript
+import { Card } from './components/Card';
+
+function App() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Container utility with responsive padding */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          Welcome to Tailwind CSS v4
+        </h1>
+        
+        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <Card 
+            title="Utility-First" 
+            description="Build complex components from primitive utilities."
+          />
+          <Card 
+            title="CSS Configuration" 
+            description="Configure everything directly in your CSS file."
+          />
+          <Card 
+            title="React 19 Ready" 
+            description="Optimized for modern React patterns."
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+```
+
+**File: `src/components/Card.tsx`**
+
+```typescript
+interface CardProps {
+  title: string;
+  description: string;
+}
+
+export function Card({ title, description }: CardProps) {
+  return (
+    <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-950/5">
+      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+      <p className="mt-2 text-sm leading-relaxed text-gray-600">
+        {description}
+      </p>
+    </div>
+  );
+}
+```
+
+---
+
+## Chapter 2: The Utility-First Methodology
+
+<Badge variant="green">Junior</Badge>
+
+### 2.1 What Is Utility-First?
+
+**Utility-first CSS** means building interfaces using small, single-purpose utility classes rather than writing custom CSS. Instead of:
+
+```css
+/* Traditional approach: custom CSS */
+.alert {
+  padding: 1rem;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #991b1b;
+}
+```
+
+You compose utilities directly in your HTML/JSX:
+
+```tsx
+// Utility-first approach: compose in JSX
+<div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+  This is an alert message.
+</div>
+```
+
+### 2.2 Core Utility Categories
+
+Tailwind v4 organizes utilities into these categories:
+
+#### Layout
+
+```tsx
+/* === Container === */
+<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+  {/* mx-auto: center horizontally */}
+  {/* max-w-7xl: max-width 80rem */}
+  {/* px-4: padding-x 1rem, sm:px-6: 1.5rem on sm+, lg:px-8: 2rem on lg+ */}
+</div>
+
+/* === Display === */
+<div className="flex">           {/* display: flex */}
+<div className="grid">           {/* display: grid */}
+<div className="hidden">         {/* display: none */}
+<div className="block">          {/* display: block */}
+<div className="inline-flex">    {/* display: inline-flex */}
+
+/* === Position === */
+<div className="relative">       {/* position: relative */}
+<div className="absolute top-0 left-0"> {/* position: absolute, top: 0, left: 0 */}
+<div className="fixed inset-0">  {/* position: fixed, inset: 0 */}
+<div className="sticky top-0">   {/* position: sticky, top: 0 */}
+```
+
+#### Flexbox & Grid
+
+```tsx
+/* === Flexbox === */
+<div className="flex items-center justify-between gap-4">
+  {/* flex: display flex */}
+  {/* items-center: align-items center */}
+  {/* justify-between: justify-content space-between */}
+  {/* gap-4: gap 1rem */}
+  
+  <div className="flex-1">       {/* flex: 1 1 0% */}
+  <div className="flex-shrink-0"> {/* flex-shrink: 0 */}
+  <div className="grow">         {/* flex-grow: 1 */}
+</div>
+
+<div className="flex flex-col items-start">
+  {/* flex-col: flex-direction column */}
+  {/* items-start: align-items flex-start */}
+</div>
+
+/* === Grid === */
+<div className="grid grid-cols-3 gap-4">
+  {/* grid-cols-3: 3 equal columns */}
+  
+  <div className="col-span-2">   {/* span 2 columns */}
+  <div className="row-span-2">   {/* span 2 rows */}
+  <div className="col-start-2">  {/* start at column 2 */}
+</div>
+
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+  {/* Responsive: 1 col mobile, 2 col tablet, 4 col desktop */}
+</div>
+```
+
+#### Spacing (Padding & Margin)
+
+```tsx
+/* === Padding === */
+<div className="p-4">            {/* padding: 1rem (all sides) */}
+<div className="px-4 py-2">      {/* padding-x: 1rem, padding-y: 0.5rem */}
+<div className="pt-8 pr-4 pb-6 pl-2"> {/* individual sides */}
+
+/* === Margin === */
+<div className="m-4">            {/* margin: 1rem */}
+<div className="mx-auto">        {/* margin-x: auto (center) */}
+<div className="mt-4 mb-2">      {/* margin-top: 1rem, margin-bottom: 0.5rem */}
+<div className="-ml-2">          {/* negative margin-left: -0.5rem */}
+<div className="space-y-4">      {/* adds vertical spacing between children */}
+<div className="space-x-2">      {/* adds horizontal spacing between children */}
+```
+
+#### Sizing
+
+```tsx
+/* === Width === */
+<div className="w-full">         {/* width: 100% */}
+<div className="w-64">           {/* width: 16rem (256px) */}
+<div className="w-1/2">          {/* width: 50% */}
+<div className="w-fit">          {/* width: fit-content */}
+<div className="w-screen">       {/* width: 100vw */}
+<div className="min-w-0">        {/* min-width: 0 (prevents flex overflow) */}
+
+/* === Height === */
+<div className="h-full">         {/* height: 100% */}
+<div className="h-32">           {/* height: 8rem (128px) */}
+<div className="h-screen">       {/* height: 100vh */}
+<div className="min-h-[400px]">  {/* min-height: 400px (arbitrary value) */}
+<div className="max-h-96 overflow-y-auto"> {/* max-height + scroll */}
+```
+
+#### Typography
+
+```tsx
+/* === Font Size === */
+<p className="text-sm">          {/* font-size: 0.875rem (14px) */}
+<p className="text-base">        {/* font-size: 1rem (16px) */}
+<p className="text-lg">          {/* font-size: 1.125rem (18px) */}
+<p className="text-xl">          {/* font-size: 1.25rem (20px) */}
+<p className="text-2xl">         {/* font-size: 1.5rem (24px) */}
+
+/* === Font Weight === */
+<p className="font-light">       {/* font-weight: 300 */}
+<p className="font-normal">      {/* font-weight: 400 */}
+<p className="font-medium">      {/* font-weight: 500 */}
+<p className="font-semibold">    {/* font-weight: 600 */}
+<p className="font-bold">        {/* font-weight: 700 */}
+
+/* === Line Height === */
+<p className="leading-none">     {/* line-height: 1 */}
+<p className="leading-tight">    {/* line-height: 1.25 */}
+<p className="leading-snug">     {/* line-height: 1.375 */}
+<p className="leading-normal">   {/* line-height: 1.5 */}
+<p className="leading-relaxed">  {/* line-height: 1.625 */}
+
+/* === Text Color === */
+<p className="text-gray-900">    {/* dark gray */}
+<p className="text-gray-500">    {/* medium gray */}
+<p className="text-gray-400">    {/* light gray */}
+<p className="text-red-600">     {/* red */}
+<p className="text-blue-600">    {/* blue */}
+<p className="text-white">       {/* white */}
+
+/* === Text Alignment === */
+<p className="text-left">        {/* text-align: left */}
+<p className="text-center">      {/* text-align: center */}
+<p className="text-right">       {/* text-align: right */}
+
+/* === Text Decoration === */
+<p className="underline underline-offset-4 decoration-blue-500">
+  {/* underlined text with offset and colored underline */}
+</p>
+```
+
+#### Backgrounds & Borders
+
+```tsx
+/* === Background Color === */
+<div className="bg-white">       {/* background-color: white */}
+<div className="bg-gray-50">     {/* very light gray */}
+<div className="bg-gray-900">    {/* very dark gray / near black */}
+<div className="bg-blue-600">    {/* blue background */}
+<div className="bg-transparent"> {/* transparent */}
+
+/* === Background with opacity (v4: use CSS color syntax) */
+<div className="bg-blue-600/10"> {/* blue background at 10% opacity */}
+<div className="bg-black/50">    {/* black background at 50% opacity */}
+
+/* === Border === */
+<div className="border">         {/* border: 1px solid current color */}
+<div className="border-2">       {/* border-width: 2px */}
+<div className="border-b">       {/* border-bottom: 1px solid */}
+<div className="border-b-2">     {/* border-bottom-width: 2px */}
+<div className="border-gray-200">{/* border-color: gray-200 */}
+<div className="border-red-500"> {/* border-color: red-500 */}
+
+/* === Border Radius === */
+<div className="rounded">        {/* border-radius: 0.25rem */}
+<div className="rounded-lg">     {/* border-radius: 0.5rem */}
+<div className="rounded-xl">     {/* border-radius: 0.75rem */}
+<div className="rounded-2xl">    {/* border-radius: 1rem */}
+<div className="rounded-full">   {/* border-radius: 9999px (circle) */}
+```
+
+#### Effects
+
+```tsx
+/* === Shadow === */
+<div className="shadow-sm">      {/* small shadow */}
+<div className="shadow">         {/* default shadow */}
+<div className="shadow-md">      {/* medium shadow */}
+<div className="shadow-lg">      {/* large shadow */}
+<div className="shadow-xl">      {/* extra large shadow */}
+
+/* === Ring (focus outlines) === */
+<button className="ring-2 ring-blue-500 ring-offset-2">
+  {/* focus ring with offset */}
+</button>
+
+/* === Opacity === */
+<div className="opacity-50">     {/* 50% opacity */}
+<div className="opacity-0">      {/* invisible */}
+<div className="opacity-100">    {/* fully opaque */}
+```
+
+### 2.3 Hover, Focus & States
+
+```tsx
+/* === Hover State === */
+<button className="bg-blue-600 hover:bg-blue-700 text-white">
+  Hover me — turns darker blue
+</button>
+
+/* === Focus State === */
+<input 
+  className="border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+  placeholder="Focus to see ring"
+/>
+
+/* === Active State === */
+<button className="bg-blue-600 active:bg-blue-800">
+  Click me — turns even darker while pressed
+</button>
+
+/* === Disabled State === */
+<button 
+  className="bg-blue-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+  disabled
+>
+  Disabled button
+</button>
+
+/* === First/Last/Even/Odd === */
+<ul className="divide-y divide-gray-200">
+  {items.map((item) => (
+    <li 
+      key={item.id} 
+      className="py-3 first:pt-0 last:pb-0 even:bg-gray-50"
+    >
+      {item.name}
+    </li>
+  ))}
+</ul>
+```
+
+---
+
+## Chapter 3: Responsive Design
+
+<Badge variant="green">Junior</Badge>
+
+### 3.1 Mobile-First Breakpoints
+
+Tailwind v4 uses a **mobile-first** approach. You design for mobile by default, then add breakpoints for larger screens.
+
+```tsx
+/* Breakpoint prefixes (mobile-first):
+   (none)  = 0px+      (default / mobile)
+   sm:     = 40rem+    (640px)
+   md:     = 48rem+    (768px)
+   lg:     = 64rem+    (1024px)
+   xl:     = 80rem+    (1280px)
+   2xl:    = 96rem+    (1536px)
+*/
+
+<div className="w-full sm:w-1/2 lg:w-1/3">
+  {/* Mobile: full width, Tablet: half, Desktop: third */}
+</div>
+
+<h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl">
+  {/* Responsive font sizes */}
+</h1>
+
+<div className="p-4 sm:p-6 md:p-8 lg:p-12">
+  {/* Responsive padding */}
+</div>
+```
+
+### 3.2 Hidden/Visible Patterns
+
+```tsx
+{/* Show on desktop, hide on mobile */}
+<nav className="hidden md:flex">
+  Desktop navigation links
+</nav>
+
+{/* Show on mobile, hide on desktop */}
+<button className="md:hidden">
+  Mobile menu button
+</button>
+
+{/* Different layouts per breakpoint */}
+<div className="flex flex-col md:flex-row">
+  <aside className="w-full md:w-64">Sidebar</aside>
+  <main className="flex-1">Main content</main>
+</div>
+```
+
+### 3.3 Container Queries (Built-in v4!)
+
+Tailwind v4 includes **container queries** out of the box — no plugin needed:
+
+```tsx
+/* Mark an element as a container */
+<div className="@container">
+  {/* Child uses container query: @sm means 24rem container width */}
+  <div className="grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 gap-4">
+    <Card />
+    <Card />
+    <Card />
+  </div>
+</div>
+
+/* Named containers for precise control */
+<div className="@container/card">
+  <div className="flex flex-col @sm/card:flex-row">
+    <img className="w-full @sm/card:w-1/3" src="..." />
+    <div className="flex-1">Content</div>
+  </div>
+</div>
+
+/* Container size breakpoints:
+   @xs  = 20rem  (320px)
+   @sm  = 24rem  (384px)
+   @md  = 28rem  (448px)
+   @lg  = 32rem  (512px)
+   @xl  = 36rem  (576px)
+   @2xl = 42rem  (672px)
+   @3xl = 48rem  (768px)
+   @4xl = 56rem  (896px)
+   @5xl = 64rem  (1024px)
+   @6xl = 72rem  (1152px)
+   @7xl = 80rem  (1280px)
+*/
+```
+
+---
+
+## Chapter 4: Colors, Theme & Design Tokens
+
+<Badge variant="green">Junior</Badge>
+
+### 4.1 The Default Color Palette
+
+Tailwind v4 ships with a comprehensive color system:
+
+```tsx
+{/* === Neutrals === */}
+<div className="bg-white">White</div>
+<div className="bg-black">Black</div>
+<div className="bg-gray-50 text-gray-900">Gray scale: 50-950</div>
+<div className="bg-slate-50 text-slate-900">Slate: blue-ish gray</div>
+<div className="bg-zinc-50 text-zinc-900">Zinc: neutral gray</div>
+<div className="bg-neutral-50 text-neutral-900">Neutral: pure gray</div>
+<div className="bg-stone-50 text-stone-900">Stone: warm gray</div>
+
+{/* === Colors (50-950 scale) === */}
+<div className="bg-red-500">Red</div>
+<div className="bg-orange-500">Orange</div>
+<div className="bg-amber-500">Amber</div>
+<div className="bg-yellow-500">Yellow</div>
+<div className="bg-lime-500">Lime</div>
+<div className="bg-green-500">Green</div>
+<div className="bg-emerald-500">Emerald</div>
+<div className="bg-teal-500">Teal</div>
+<div className="bg-cyan-500">Cyan</div>
+<div className="bg-sky-500">Sky</div>
+<div className="bg-blue-500">Blue</div>
+<div className="bg-indigo-500">Indigo</div>
+<div className="bg-violet-500">Violet</div>
+<div className="bg-purple-500">Purple</div>
+<div className="bg-fuchsia-500">Fuchsia</div>
+<div className="bg-pink-500">Pink</div>
+<div className="bg-rose-500">Rose</div>
+```
+
+### 4.2 Understanding Color Scales
+
+Each color has 10 steps: **50 (lightest) through 950 (darkest)**
+
+| Step | Usage |
+|------|-------|
+| 50 | Backgrounds, subtle fills |
+| 100 | Hover states on 50, light borders |
+| 200 | Borders, dividers |
+| 300 | Placeholder text |
+| 400 | Muted text |
+| 500 | Primary accents |
+| 600 | Hover states, primary buttons |
+| 700 | Active states |
+| 800 | Strong emphasis |
+| 900 | Headings, high contrast |
+| 950 | Deepest shade |
+
+```tsx
+{/* Common color patterns */}
+<button className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white">
+  Primary button
+</button>
+
+<div className="border border-red-200 bg-red-50 text-red-800">
+  Error alert (200 border, 50 bg, 800 text)
+</div>
+
+<div className="border border-green-200 bg-green-50 text-green-800">
+  Success alert (200 border, 50 bg, 800 text)
+</div>
+```
+
+### 4.3 Custom Theme Colors (CSS-First)
+
+```css
+/* styles.css — Define custom colors in your theme */
+@import "tailwindcss";
+
+@theme {
+  /* Brand colors */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
+  
+  /* Semantic colors */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* Surface colors */
+  --color-surface: #ffffff;
+  --color-surface-elevated: #fafafa;
+  --color-surface-overlay: rgba(0, 0, 0, 0.5);
+}
+```
+
+```tsx
+/* Usage in components */
+<button className="bg-brand-600 hover:bg-brand-700 text-white">
+  Brand button
+</button>
+
+<div className="text-error bg-error/10 border border-error/20">
+  Error state with opacity
+</div>
+```
+
+### 4.4 Arbitrary Values
+
+When you need a one-off value not in the default scale:
+
+```tsx
+{/* Use square brackets for arbitrary values */}
+<div className="w-[420px]">Custom width</div>
+<div className="h-[calc(100vh-4rem)]">Full height minus header</div>
+<div className="text-[#1da1f2]">Twitter blue</div>
+<div className="bg-[url('/hero.jpg')]">Custom background image</div>
+<div className="grid-cols-[1fr_300px]">Custom grid template</div>
+
+{/* Arbitrary values with modifiers */}
+<div className="text-[length:var(--font-size)]">CSS variable</div>
+<div className="bg-[color:hsl(200_100%_50%)]">HSL color</div>
+<div className="mt-[clamp(1rem,5vw,3rem)]">CSS clamp()</div>
+```
+
+---
+
+## Chapter 5: React 19 + Tailwind v4 Basics
+
+<Badge variant="green">Junior</Badge>
+
+### 5.1 Server Components Styling
+
+React 19 Server Components (RSC) render on the server. Tailwind CSS works seamlessly because utilities are just CSS classes:
+
+```tsx
+// ServerComponent.tsx — No 'use client' needed!
+// Tailwind classes work because they're just CSS
+
+export async function ProductList() {
+  // Fetch data on the server
+  const products = await db.product.findMany();
+
+  return (
+    <section className="py-12 px-4 sm:px-6 lg:px-8">
+      <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+        Featured Products
+      </h2>
+      
+      <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+        {products.map((product) => (
+          <article key={product.id} className="group relative">
+            <div className="aspect-square w-full overflow-hidden rounded-lg bg-gray-200">
+              <img
+                src={product.image}
+                alt={product.name}
+                className="h-full w-full object-cover object-center 
+                           group-hover:opacity-75 transition-opacity"
+              />
+            </div>
+            <div className="mt-4 flex justify-between">
+              <div>
+                <h3 className="text-sm text-gray-700">
+                  <span aria-hidden="true" className="absolute inset-0" />
+                  {product.name}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">{product.category}</p>
+              </div>
+              <p className="text-sm font-medium text-gray-900">
+                ${product.price}
+              </p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+```
+
+### 5.2 Client Components with Interactive States
+
+When you need interactivity, use Client Components with Tailwind:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+
+export function TabPanel() {
+  const [activeTab, setActiveTab] = useState('overview');
+  const tabs = ['overview', 'features', 'reviews'];
+
+  return (
+    <div className="w-full">
+      {/* Tab list */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`
+                whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium
+                transition-colors duration-200
+                ${
+                  activeTab === tab
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }
+              `}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tab content */}
+      <div className="mt-6">
+        {activeTab === 'overview' && (
+          <div className="prose prose-blue max-w-none">
+            <p>Overview content here...</p>
+          </div>
+        )}
+        {activeTab === 'features' && (
+          <ul className="space-y-3">
+            <li className="flex items-start gap-3">
+              <CheckIcon className="h-5 w-5 text-green-500 mt-0.5" />
+              <span className="text-gray-700">Feature one description</span>
+            </li>
+          </ul>
+        )}
+        {activeTab === 'reviews' && <ReviewList />}
+      </div>
+    </div>
+  );
+}
+
+/* Extracting repeated patterns with template literals is fine for small components,
+   but for larger apps, use the cn() utility (see Chapter 9) */
+```
+
+### 5.3 Form Styling with Tailwind
+
+```tsx
+'use client';
+
+import { useActionState } from 'react'; // React 19
+
+export function ContactForm() {
+  const [state, dispatch, isPending] = useActionState(
+    async (prevState: unknown, formData: FormData) => {
+      // Form action logic
+      const name = formData.get('name') as string;
+      const email = formData.get('email') as string;
+      // ... validate and submit
+      return { success: true };
+    },
+    null
+  );
+
+  return (
+    <form action={dispatch} className="space-y-6 max-w-md">
+      <div>
+        <label 
+          htmlFor="name" 
+          className="block text-sm font-medium leading-6 text-gray-900"
+        >
+          Name
+        </label>
+        <div className="mt-2">
+          <input
+            type="text"
+            name="name"
+            id="name"
+            required
+            className="block w-full rounded-md border-0 py-1.5 px-3
+                       text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                       placeholder:text-gray-400
+                       focus:ring-2 focus:ring-inset focus:ring-blue-600
+                       sm:text-sm sm:leading-6"
+            placeholder="Jane Smith"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label 
+          htmlFor="email" 
+          className="block text-sm font-medium leading-6 text-gray-900"
+        >
+          Email
+        </label>
+        <div className="mt-2">
+          <input
+            type="email"
+            name="email"
+            id="email"
+            required
+            className="block w-full rounded-md border-0 py-1.5 px-3
+                       text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                       placeholder:text-gray-400
+                       focus:ring-2 focus:ring-inset focus:ring-blue-600
+                       sm:text-sm sm:leading-6"
+            placeholder="jane@example.com"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label 
+          htmlFor="message" 
+          className="block text-sm font-medium leading-6 text-gray-900"
+        >
+          Message
+        </label>
+        <div className="mt-2">
+          <textarea
+            name="message"
+            id="message"
+            rows={4}
+            required
+            className="block w-full rounded-md border-0 py-1.5 px-3
+                       text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                       placeholder:text-gray-400
+                       focus:ring-2 focus:ring-inset focus:ring-blue-600
+                       sm:text-sm sm:leading-6 resize-y"
+            placeholder="Your message..."
+          />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={isPending}
+        className="flex w-full justify-center rounded-md bg-blue-600 
+                   px-3 py-2 text-sm font-semibold text-white shadow-sm
+                   hover:bg-blue-500 focus-visible:outline 
+                   focus-visible:outline-2 focus-visible:outline-offset-2 
+                   focus-visible:outline-blue-600
+                   disabled:bg-gray-300 disabled:cursor-not-allowed
+                   transition-colors"
+      >
+        {isPending ? 'Sending...' : 'Send Message'}
+      </button>
+
+      {state?.success && (
+        <p className="text-sm text-green-600 text-center">
+          Message sent successfully!
+        </p>
+      )}
+    </form>
+  );
+}
+```

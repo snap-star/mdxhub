@@ -1,0 +1,893 @@
+---
+title: "Junior Level — Foundations"
+date: 2026-06-26
+category: "React"
+tags: ["Zustand", "React", "Vite"]
+series: "Zustand Guide"
+seriesOrder: 2
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## 1. Getting Started with Zustand
+
+### Why Zustand?
+
+Zustand (German for "state") is a minimal, unopinionated state management library for React. In the React 19 era, it complements React's built-in features perfectly:
+
+| Feature | Zustand | Context API | Redux Toolkit |
+|---------|---------|-------------|---------------|
+| Bundle size | ~1KB | Built-in | ~14KB |
+| Boilerplate | None | Medium | Medium |
+| Middleware | Built-in | None | Rich ecosystem |
+| TypeScript | Excellent | Good | Excellent |
+| DevTools | Via middleware | None | Excellent |
+| Selectors | Native | useMemo | Reselect |
+| React 19 Ready | Yes | Yes | Yes |
+
+### Installation with React 19
+
+```bash
+# Install Zustand alongside React 19
+npm install zustand
+
+# Optional middleware
+npm install immer zustand/middleware
+
+# For devtools
+npm install @redux-devtools/extension  # (usually optional, included)
+```
+
+```json
+// package.json
+{
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "immer": "^10.0.0"
+  }
+}
+```
+
+### Zustand in a React 19 Project Structure
+
+```
+src/
+├── stores/
+│   ├── index.ts              # Store exports
+│   ├── useAuthStore.ts       # Auth domain store
+│   ├── useCartStore.ts       # Cart domain store
+│   ├── useUIStore.ts         # UI state store
+│   └── slices/               # Modular slices
+│       ├── userSlice.ts
+│       ├── productSlice.ts
+│       └── cartSlice.ts
+├── components/
+│   ├── Counter.tsx
+│   └── UserProfile.tsx
+├── hooks/
+│   └── useStoreSelectors.ts  # Shared selectors
+└── main.tsx
+```
+
+### Your First Zustand Import
+
+```jsx
+// Zustand works with React 19's Client Components
+'use client'; // Required when using with Next.js App Router
+
+import { create } from 'zustand';
+
+// create() returns a hook — use it anywhere in your component tree
+const useStore = create((set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  decrement: () => set((state) => ({ count: state.count - 1 })),
+}));
+
+function Counter() {
+  const { count, increment, decrement } = useStore();
+
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={increment}>+</button>
+      <button onClick={decrement}>-</button>
+    </div>
+  );
+}
+```
+
+### How Zustand Works with React 19
+
+```
+┌─────────────────────────────────────────────┐
+│               React 19 App                  │
+│                                             │
+│  ┌─────────────┐    ┌───────────────────┐   │
+│  │   Server    │    │   Client ('use    │   │
+│  │ Components  │    │    client')       │   │
+│  │             │    │                   │   │
+│  │ - Fetch DB  │    │  ┌─────────────┐  │   │
+│  │ - Render    │    │  │  Zustand    │  │   │
+│  │   static    │    │  │   Store     │  │   │
+│  │   content   │    │  │             │  │   │
+│  │             │    │  │  ┌───────┐  │  │   │
+│  │ ❌ No hooks │    │  │  │ State │  │  │   │
+│  │ ❌ No store │    │  │  ├───────┤  │  │   │
+│  │             │    │  │  │Actions│  │  │   │
+│  └─────────────┘    │  │  ├───────┤  │  │   │
+│                     │  │  │Getters│  │  │   │
+│                     │  │  └───────┘  │  │   │
+│                     │  └─────────────┘  │   │
+│                     │                   │   │
+│                     │  - useState       │   │
+│                     │  - useEffect      │   │
+│                     │  - Zustand hooks  │   │
+│                     │  - Event handlers │   │
+│                     └───────────────────┘   │
+└─────────────────────────────────────────────┘
+```
+
+**Key Rule**: Zustand stores live in Client Components only. Server Components can pass initial data as props to client components that initialize the store.
+
+---
+
+## 2. Your First Store  
+
+### The create() Function
+
+`create()` is the heart of Zustand. It takes a store initializer function and returns a React hook.
+
+```jsx
+import { create } from 'zustand';
+
+// Store initializer receives `set`, `get`, and `store` APIs
+const useBearStore = create((set, get, api) => ({
+  // ─── State ───
+  bears: 0,
+  fish: 100,
+  
+  // ─── Actions (modify state) ───
+  increasePopulation: () =>
+    set((state) => ({ bears: state.bears + 1 })),
+  
+  removeAllBears: () =>
+    set({ bears: 0 }), // Direct object replaces specified keys
+  
+  // ─── Computed via get() ───
+  getBearFishRatio: () => {
+    const { bears, fish } = get();
+    return bears > 0 ? fish / bears : 0;
+  },
+}));
+```
+
+### The Three APIs: set, get, store
+
+```jsx
+const useStore = create((set, get, store) => ({
+  name: 'Zustand',
+  
+  // ─── set() — update state ───
+  // Replace specific keys (merges automatically)
+  setName: (newName) => set({ name: newName }),
+  
+  // Functional update (access current state)
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  
+  // Replace entire state (rarely used)
+  reset: () => set({ name: 'Zustand', count: 0 }, true), // true = replace
+  
+  // ─── get() — read current state ───
+  // Use inside actions, not during render
+  logCurrentState: () => {
+    const current = get();
+    console.log('Current state:', current);
+  },
+  
+  // Conditional update based on current state
+  safeIncrement: () => {
+    const { count } = get();
+    if (count < 100) {
+      set({ count: count + 1 });
+    }
+  },
+  
+  // ─── store (api) — advanced operations ───
+  // Direct access to the underlying store API
+  subscribeToChanges: () => {
+    return store.subscribe((newState, prevState) => {
+      console.log('State changed from', prevState, 'to', newState);
+    });
+  },
+}));
+```
+
+### Reading State in Components
+
+```jsx
+function BearCounter() {
+  // Subscribe to ALL state changes (not recommended for large stores)
+  const state = useBearStore();
+  
+  return <h1>{state.bears} bears around here</h1>;
+}
+
+// Better: Subscribe to specific slices
+function BearCounter() {
+  const bears = useBearStore((state) => state.bears);
+  
+  return <h1>{bears} bears around here</h1>;
+  // This component ONLY re-renders when `bears` changes
+}
+
+// Even better: Subscribe to multiple values with a single selector
+function BearStats() {
+  const { bears, fish } = useBearStore(
+    (state) => ({ bears: state.bears, fish: state.fish })
+    // Note: This creates a new object every time — causes re-renders!
+    // Solution in Section 4
+  );
+  
+  return (
+    <div>
+      <p>Bears: {bears}</p>
+      <p>Fish: {fish}</p>
+    </div>
+  );
+}
+```
+
+### Calling Actions
+
+```jsx
+function BearControls() {
+  // Select actions individually (no re-renders from state changes)
+  const increasePopulation = useBearStore((state) => state.increasePopulation);
+  const removeAllBears = useBearStore((state) => state.removeAllBears);
+  
+  return (
+    <div>
+      <button onClick={increasePopulation}>Add Bear</button>
+      <button onClick={removeAllBears}>Remove All</button>
+    </div>
+  );
+}
+
+// Actions don't cause subscriptions — selecting them is stable
+// The BearControls component will NOT re-render when bears change
+```
+
+### Complete Counter Example
+
+```jsx
+// stores/useCounterStore.js
+import { create } from 'zustand';
+
+export const useCounterStore = create((set, get) => ({
+  // State
+  count: 0,
+  step: 1,
+  max: 100,
+  min: 0,
+  
+  // Actions
+  increment: () => {
+    const { count, step, max } = get();
+    if (count + step <= max) {
+      set({ count: count + step });
+    }
+  },
+  
+  decrement: () => {
+    const { count, step, min } = get();
+    if (count - step >= min) {
+      set({ count: count - step });
+    }
+  },
+  
+  setStep: (newStep) => set({ step: Math.max(1, newStep) }),
+  
+  reset: () => set({ count: 0 }),
+  
+  setCount: (value) => {
+    const { min, max } = get();
+    set({ count: Math.min(max, Math.max(min, value)) });
+  },
+}));
+```
+
+```jsx
+// components/Counter.jsx
+import { useCounterStore } from '../stores/useCounterStore';
+
+export default function Counter() {
+  const count = useCounterStore((state) => state.count);
+  const step = useCounterStore((state) => state.step);
+  const increment = useCounterStore((state) => state.increment);
+  const decrement = useCounterStore((state) => state.decrement);
+  const setStep = useCounterStore((state) => state.setStep);
+  const reset = useCounterStore((state) => state.reset);
+
+  return (
+    <div className="counter">
+      <h1>{count}</h1>
+      
+      <div className="controls">
+        <button onClick={decrement}>-{step}</button>
+        <button onClick={increment}>+{step}</button>
+      </div>
+      
+      <div className="config">
+        <label>
+          Step:
+          <input
+            type="number"
+            value={step}
+            onChange={(e) => setStep(Number(e.target.value))}
+            min={1}
+            max={10}
+          />
+        </label>
+      </div>
+      
+      <button onClick={reset} className="reset">Reset</button>
+    </div>
+  );
+}
+```
+
+---
+
+## 3. Reading and Writing State
+
+### The set() Function Deep Dive
+
+```jsx
+const useStore = create((set, get) => ({
+  // ─── Simple replacement ───
+  name: 'Alice',
+  setName: (name) => set({ name }),
+  
+  // ─── Functional update (recommended) ───
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  
+  // ─── Multiple properties at once ───
+  firstName: 'Alice',
+  lastName: 'Johnson',
+  updateFullName: (first, last) =>
+    set({ firstName: first, lastName: last }),
+  
+  // ─── Updating nested objects ───
+  user: {
+    profile: {
+      name: 'Alice',
+      settings: {
+        theme: 'dark',
+      },
+    },
+  },
+  
+  // ⚠️ Must spread all levels of nesting!
+  setTheme: (theme) =>
+    set((state) => ({
+      user: {
+        ...state.user,
+        profile: {
+          ...state.user.profile,
+          settings: {
+            ...state.user.profile.settings,
+            theme,
+          },
+        },
+      },
+    })),
+  // This is verbose! See Section 7 for Immer middleware solution
+  
+  // ─── Replace entire state (use with caution) ───
+  fullReset: () => set({ count: 0, name: '', items: [] }, true),
+  // Second argument `true` replaces the entire state object
+}));
+```
+
+### Selectors — The Key to Performance
+
+```jsx
+const useStore = create((set) => ({
+  user: { name: 'Alice', email: 'alice@example.com', age: 30 },
+  posts: [{ id: 1, title: 'Hello' }, { id: 2, title: 'World' }],
+  theme: 'dark',
+  sidebarOpen: true,
+  notifications: 5,
+}));
+
+// ❌ BAD: Subscribe to entire store — re-renders on ANY change
+function BadComponent() {
+  const { user, theme } = useStore(); // Re-renders when notifications change!
+  return <div className={theme}>{user.name}</div>;
+}
+
+// ✅ GOOD: Subscribe to only what you need
+function GoodUser() {
+  const name = useStore((state) => state.user.name); // Only re-renders when name changes
+  return <span>{name}</span>;
+}
+
+function GoodTheme() {
+  const theme = useStore((state) => state.theme); // Only re-renders when theme changes
+  return <div className={theme}>Content</div>;
+}
+
+// ✅ BEST: Extract selectors as constants for reusability
+const selectors = {
+  user: (state) => state.user,
+  userName: (state) => state.user.name,
+  userEmail: (state) => state.user.email,
+  posts: (state) => state.posts,
+  theme: (state) => state.theme,
+  sidebarOpen: (state) => state.sidebarOpen,
+  notifications: (state) => state.notifications,
+};
+
+function UserCard() {
+  const name = useStore(selectors.userName);
+  const email = useStore(selectors.userEmail);
+  
+  return (
+    <div>
+      <h3>{name}</h3>
+      <p>{email}</p>
+    </div>
+  );
+}
+```
+
+### Subscribing Outside Components
+
+```jsx
+// Subscribe to store changes outside React (e.g., in utility functions)
+const unsubscribe = useStore.subscribe(
+  (newState, prevState) => {
+    console.log('Store updated:', prevState, '→', newState);
+  }
+);
+
+// Subscribe to specific slice changes
+const unsubscribe = useStore.subscribe(
+  (state) => state.count,
+  (count, prevCount) => {
+    console.log(`Count changed: ${prevCount} → ${count}`);
+  }
+);
+
+// Later: cleanup
+unsubscribe();
+```
+
+```jsx
+// Subscribe in a React component
+useEffect(() => {
+  const unsub = useStore.subscribe(
+    (state) => state.notifications,
+    (count) => {
+      if (count > 0) {
+        toast.info(`You have ${count} new notifications`);
+      }
+    }
+  );
+  return unsub;
+}, []);
+```
+
+### get() vs Selector Patterns
+
+```jsx
+const useStore = create((set, get) => ({
+  items: [],
+  filter: 'all',
+  
+  // Use get() inside actions to read current state
+  addItem: (item) => {
+    const current = get().items;
+    // Check for duplicates before adding
+    if (!current.find((i) => i.id === item.id)) {
+      set({ items: [...current, item] });
+    }
+  },
+  
+  // ❌ Don't use get() in component render!
+  // This won't subscribe to changes:
+  // const count = useStore.getState().count // Bad in render!
+}));
+
+// ✅ Correct: use selector in component
+function ItemCount() {
+  const count = useStore((state) => state.items.length);
+  return <span>{count} items</span>;
+}
+
+// ✅ getState() is fine for one-off reads outside React
+// (e.g., in event handlers, API calls, callbacks)
+function handleExternalEvent() {
+  const currentItems = useStore.getState().items;
+  // Process without subscribing or causing re-render
+}
+```
+
+---
+
+## 4. Computed Values and Selectors
+
+### Derived State with Selectors
+
+```jsx
+const useCartStore = create((set) => ({
+  items: [],
+  taxRate: 0.08,
+  discountCode: null,
+  
+  // Actions
+  addItem: (item) =>
+    set((state) => ({ items: [...state.items, item] })),
+  removeItem: (id) =>
+    set((state) => ({
+      items: state.items.filter((item) => item.id !== id),
+    })),
+  setDiscountCode: (code) => set({ discountCode: code }),
+}));
+
+// ─── Basic selectors ───
+const useCartItems = () => useCartStore((state) => state.items);
+const useCartTaxRate = () => useCartStore((state) => state.taxRate);
+
+// ─── Computed selectors (derived values) ───
+// These are just selectors that compute from multiple values
+const useCartSubtotal = () =>
+  useCartStore((state) =>
+    state.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  );
+
+const useCartItemCount = () =>
+  useCartStore((state) =>
+    state.items.reduce((count, item) => count + item.quantity, 0)
+  );
+
+// ─── Multi-value selectors ───
+// ⚠️ Returns new object every time — causes re-renders!
+const useCartBad = () =>
+  useCartStore((state) => ({
+    subtotal: state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+    taxRate: state.taxRate,
+  }));
+
+// ✅ Solution 1: Split into separate selectors
+const useCartSummary = () => {
+  const subtotal = useCartSubtotal();
+  const taxRate = useCartTaxRate();
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax;
+  
+  return { subtotal, tax, total };
+};
+```
+
+### Shallow Comparison for Object Selectors
+
+```jsx
+import { shallow } from 'zustand/shallow';
+
+const useCartStore = create((set) => ({
+  items: [],
+  coupon: null,
+  shipping: 10,
+}));
+
+// ❌ Without shallow: new object every render → infinite re-renders
+const { items, coupon } = useCartStore(
+  (state) => ({ items: state.items, coupon: state.coupon })
+);
+
+// ✅ With shallow: only re-renders if values actually change
+const { items, coupon } = useCartStore(
+  (state) => ({ items: state.items, coupon: state.coupon }),
+  shallow
+);
+
+// shallow does a shallow comparison: {a: 1, b: 2} vs {a: 1, b: 2}
+// If top-level values are the same (by reference for objects),
+// it prevents the re-render
+```
+
+### Custom Comparison Functions
+
+```jsx
+// For complex selectors, provide your own comparison
+const useSortedItems = () =>
+  useCartStore(
+    (state) => [...state.items].sort((a, b) => b.price - a.price),
+    // Custom compare: array length + every element's ID
+    (a, b) => a.length === b.length && a.every((item, i) => item.id === b[i]?.id)
+  );
+```
+
+### Selector File Pattern
+
+```jsx
+// stores/cartSelectors.js
+// Centralize all selectors for consistency and reusability
+
+export const cartSelectors = {
+  // Raw state
+  items: (state) => state.items,
+  coupon: (state) => state.coupon,
+  shipping: (state) => state.shipping,
+  
+  // Computed
+  itemCount: (state) =>
+    state.items.reduce((c, i) => c + i.quantity, 0),
+  subtotal: (state) =>
+    state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+  discount: (state) => {
+    const subtotal = cartSelectors.subtotal(state);
+    return state.coupon?.type === 'percent'
+      ? subtotal * (state.coupon.value / 100)
+      : state.coupon?.value || 0;
+  },
+  tax: (state) => {
+    const taxable = cartSelectors.subtotal(state) - cartSelectors.discount(state);
+    return taxable * state.taxRate;
+  },
+  total: (state) => {
+    const subtotal = cartSelectors.subtotal(state);
+    const discount = cartSelectors.discount(state);
+    const tax = cartSelectors.tax(state);
+    return subtotal - discount + tax + state.shipping;
+  },
+  isEmpty: (state) => state.items.length === 0,
+};
+```
+
+```jsx
+// components/CartSummary.jsx
+import { useCartStore } from '../stores/useCartStore';
+import { cartSelectors } from '../stores/cartSelectors';
+
+export default function CartSummary() {
+  const itemCount = useCartStore(cartSelectors.itemCount);
+  const subtotal = useCartStore(cartSelectors.subtotal);
+  const discount = useCartStore(cartSelectors.discount);
+  const tax = useCartStore(cartSelectors.tax);
+  const total = useCartStore(cartSelectors.total);
+  const isEmpty = useCartStore(cartSelectors.isEmpty);
+
+  if (isEmpty) return <p>Your cart is empty</p>;
+
+  return (
+    <div className="cart-summary">
+      <div className="row">
+        <span>Items ({itemCount})</span>
+        <span>${subtotal.toFixed(2)}</span>
+      </div>
+      {discount > 0 && (
+        <div className="row discount">
+          <span>Discount</span>
+          <span>-${discount.toFixed(2)}</span>
+        </div>
+      )}
+      <div className="row">
+        <span>Tax</span>
+        <span>${tax.toFixed(2)}</span>
+      </div>
+      <div className="row total">
+        <span>Total</span>
+        <span>${total.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## 5. Zustand and React 19 Basics
+
+### The 'use client' Directive
+
+In Next.js 15 with React 19, Zustand stores must be used in Client Components:
+
+```jsx
+// ❌ Server Component — CANNOT use Zustand directly
+export default async function ServerPage() {
+  const count = useCounterStore((state) => state.count); // ❌ Error!
+  return <div>{count}</div>;
+}
+
+// ✅ Client Component — CAN use Zustand
+'use client';
+
+import { useCounterStore } from '../stores/useCounterStore';
+
+export default function ClientCounter() {
+  const count = useCounterStore((state) => state.count);
+  const increment = useCounterStore((state) => state.increment);
+  
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={increment}>Increment</button>
+    </div>
+  );
+}
+```
+
+### Server-to-Client State Passing
+
+```jsx
+// Server Component fetches data
+export default async function ProductPage({ params }) {
+  const product = await fetch(`https://api.example.com/products/${params.id}`)
+    .then(r => r.json());
+  
+  // Pass server data to client component
+  return (
+    <div>
+      <h1>{product.name}</h1>
+      
+      {/* Pass initial data as prop — client component initializes store */}
+      <ProductReviews productId={product.id} initialReviews={product.reviews} />
+      
+      {/* Interactive cart — uses Zustand */}
+      <AddToCart product={product} />
+    </div>
+  );
+}
+```
+
+```jsx
+// components/ProductReviews.jsx — Client Component with server initial data
+'use client';
+
+import { useRef } from 'react';
+import { create } from 'zustand';
+
+// Create store with initialization function
+const useReviewsStore = create((set) => ({
+  reviews: [],
+  isLoading: false,
+  hasMore: true,
+  page: 1,
+  
+  initialize: (initialReviews) => set({
+    reviews: initialReviews,
+    page: 1,
+    hasMore: initialReviews.length >= 10,
+  }),
+  
+  loadMore: async (productId) => {
+    const { page, reviews } = useReviewsStore.getState();
+    set({ isLoading: true });
+    
+    const newReviews = await fetchReviews(productId, page + 1);
+    set({
+      reviews: [...reviews, ...newReviews],
+      page: page + 1,
+      hasMore: newReviews.length >= 10,
+      isLoading: false,
+    });
+  },
+}));
+
+export default function ProductReviews({ productId, initialReviews }) {
+  const initialized = useRef(false);
+  
+  // Initialize store with server data (once)
+  const initialize = useReviewsStore((state) => state.initialize);
+  
+  if (!initialized.current) {
+    initialize(initialReviews);
+    initialized.current = true;
+  }
+  
+  const { reviews, isLoading, hasMore, loadMore } = useReviewsStore();
+  
+  return (
+    <div>
+      <h2>Reviews ({reviews.length})</h2>
+      {reviews.map((review) => (
+        <ReviewCard key={review.id} review={review} />
+      ))}
+      {hasMore && (
+        <button onClick={() => loadMore(productId)} disabled={isLoading}>
+          {isLoading ? 'Loading...' : 'Load More'}
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+### Zustand + React 19 Context Bridge
+
+For complex apps, bridge Zustand with React Context for server data injection:
+
+```jsx
+// providers/StoreProvider.jsx
+'use client';
+
+import { createContext, useContext, useRef } from 'react';
+import { createStore } from 'zustand';
+import { useStoreWithEqualityFn } from 'zustand/traditional';
+
+// Create a context to hold the store instance
+const StoreContext = createContext(null);
+
+// Factory function to create a fresh store (for SSR safety)
+const createAppStore = (initialState = {}) =>
+  createStore((set) => ({
+    user: null,
+    theme: 'light',
+    sidebarOpen: false,
+    ...initialState,
+    
+    setUser: (user) => set({ user }),
+    setTheme: (theme) => set({ theme }),
+    toggleSidebar: () =>
+      set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  }));
+
+// Provider — each request gets its own store instance
+export function StoreProvider({ children, initialState }) {
+  const storeRef = useRef(null);
+  
+  if (!storeRef.current) {
+    storeRef.current = createAppStore(initialState);
+  }
+  
+  return (
+    <StoreContext.Provider value={storeRef.current}>
+      {children}
+    </StoreContext.Provider>
+  );
+}
+
+// Hook to use the store from context
+export function useAppStore(selector, equalityFn) {
+  const store = useContext(StoreContext);
+  if (!store) throw new Error('Missing StoreProvider');
+  return useStoreWithEqualityFn(store, selector, equalityFn);
+}
+```
+
+```jsx
+// Server Component provides initial state
+export default async function Layout({ children }) {
+  const user = await getCurrentUser(); // Server-side auth check
+  
+  return (
+    <StoreProvider initialState={{ user, theme: user?.preferences?.theme }}>
+      <AppShell>{children}</AppShell>
+    </StoreProvider>
+  );
+}
+
+// Any client component uses the store
+'use client';
+
+function UserMenu() {
+  const user = useAppStore((state) => state.user);
+  const theme = useAppStore((state) => state.theme);
+  
+  return (
+    <div className={theme}>
+      <span>{user?.name}</span>
+      <ThemeToggle />
+    </div>
+  );
+}
+```

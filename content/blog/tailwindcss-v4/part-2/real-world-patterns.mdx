@@ -1,0 +1,947 @@
+---
+title: Intermediate Level — Real-World Patterns
+description: "Learn advanced Tailwind CSS v4 & React 19 patterns, and build real-world applications with ease."
+date: 2026-06-27
+category: "Tailwindcss"
+tags: ["Tailwindcss", "React 19"]
+series: "Tailwind CSS v4 & React 19"
+seriesOrder: 4
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## Chapter 6: Component Extraction Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 6.1 The `cn()` Utility (clsx + tailwind-merge)
+
+For conditional class merging, you need a utility that handles Tailwind class conflicts:
+
+```bash
+npm install clsx tailwind-merge
+```
+
+**File: `src/lib/utils.ts`**
+
+```typescript
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+/**
+ * Combines clsx (conditional classes) with tailwind-merge
+ * (resolves conflicting Tailwind classes).
+ * 
+ * Usage: cn('text-red-500', isActive && 'text-blue-500')
+ * Result: 'text-blue-500' (tailwind-merge resolves the conflict)
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+```
+
+### 6.2 Building a Design System with Variants
+
+Use `class-variance-authority` (CVA) for component variants:
+
+```bash
+npm install class-variance-authority
+```
+
+**File: `src/components/Button.tsx`**
+
+```tsx
+import { type VariantProps, cva } from 'class-variance-authority';
+import { cn } from '../lib/utils';
+
+/**
+ * Button variants using CVA.
+ * Defines all visual states as type-safe props.
+ */
+const buttonVariants = cva(
+  // Base styles applied to all variants
+  'inline-flex items-center justify-center rounded-lg font-medium 
+   transition-colors focus-visible:outline focus-visible:outline-2 
+   focus-visible:outline-offset-2 disabled:pointer-events-none 
+   disabled:opacity-50 active:scale-[0.98]',
+  {
+    variants: {
+      variant: {
+        primary: 
+          'bg-blue-600 text-white hover:bg-blue-700 
+           focus-visible:outline-blue-600 shadow-sm',
+        secondary: 
+          'bg-white text-gray-900 ring-1 ring-inset ring-gray-300 
+           hover:bg-gray-50 focus-visible:outline-gray-600',
+        destructive: 
+          'bg-red-600 text-white hover:bg-red-700 
+           focus-visible:outline-red-600 shadow-sm',
+        ghost: 
+          'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+        link: 
+          'text-blue-600 underline-offset-4 hover:underline 
+           p-0 h-auto',
+      },
+      size: {
+        sm: 'h-8 px-3 text-xs gap-1.5',
+        md: 'h-10 px-4 text-sm gap-2',
+        lg: 'h-12 px-6 text-base gap-2',
+        icon: 'h-10 w-10',
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+    },
+  }
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+export function Button({ 
+  className, 
+  variant, 
+  size, 
+  ...props 
+}: ButtonProps) {
+  return (
+    <button
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  );
+}
+
+// Usage:
+// <Button>Default</Button>
+// <Button variant="secondary" size="lg">Large Secondary</Button>
+// <Button variant="destructive" size="sm">Delete</Button>
+// <Button variant="ghost">Cancel</Button>
+// <Button variant="link" asChild><a href="/">Link</a></Button>
+```
+
+### 6.3 Input Component with Variants
+
+```tsx
+// src/components/Input.tsx
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '../lib/utils';
+import { forwardRef } from 'react';
+
+const inputVariants = cva(
+  'flex w-full rounded-lg border-0 bg-white px-3 py-2 
+   text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+   placeholder:text-gray-400
+   focus:ring-2 focus:ring-inset focus:ring-blue-600
+   disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500
+   sm:text-sm sm:leading-6',
+  {
+    variants: {
+      error: {
+        true: 'ring-red-300 focus:ring-red-500 text-red-900 
+               placeholder:text-red-300',
+        false: '',
+      },
+    },
+    defaultVariants: {
+      error: false,
+    },
+  }
+);
+
+interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement>,
+    VariantProps<typeof inputVariants> {
+  label?: string;
+  helperText?: string;
+}
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ className, error, label, helperText, ...props }, ref) => {
+    return (
+      <div className="space-y-1.5">
+        {label && (
+          <label className="block text-sm font-medium text-gray-900">
+            {label}
+          </label>
+        )}
+        <input
+          ref={ref}
+          className={cn(inputVariants({ error, className }))}
+          {...props}
+        />
+        {helperText && (
+          <p className={cn('text-sm', error ? 'text-red-600' : 'text-gray-500')}>
+            {helperText}
+          </p>
+        )}
+      </div>
+    );
+  }
+);
+Input.displayName = 'Input';
+
+// Usage:
+// <Input label="Email" type="email" placeholder="you@example.com" />
+// <Input label="Name" error helperText="Name is required" />
+```
+
+### 6.4 Card Component Pattern
+
+```tsx
+// src/components/Card.tsx
+import { cn } from '../lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
+
+const cardVariants = cva(
+  'rounded-xl bg-white',
+  {
+    variants: {
+      padding: {
+        none: '',
+        sm: 'p-4',
+        md: 'p-6',
+        lg: 'p-8',
+      },
+      shadow: {
+        none: '',
+        sm: 'shadow-sm',
+        md: 'shadow',
+        lg: 'shadow-lg',
+      },
+      ring: {
+        none: '',
+        default: 'ring-1 ring-gray-950/5',
+      },
+    },
+    defaultVariants: {
+      padding: 'md',
+      shadow: 'sm',
+      ring: 'default',
+    },
+  }
+);
+
+interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+export function Card({ className, padding, shadow, ring, ...props }: CardProps) {
+  return (
+    <div className={cn(cardVariants({ padding, shadow, ring, className }))} {...props} />
+  );
+}
+
+export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('flex items-center justify-between', className)} {...props} />;
+}
+
+export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+  return <h3 className={cn('text-lg font-semibold text-gray-900', className)} {...props} />;
+}
+
+export function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
+  return <p className={cn('mt-1 text-sm text-gray-500', className)} {...props} />;
+}
+
+export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('mt-4', className)} {...props} />;
+}
+
+export function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn('mt-6 flex items-center gap-3', className)} {...props} />;
+}
+
+// Compound component usage:
+// <Card>
+//   <CardHeader>
+//     <CardTitle>Revenue</CardTitle>
+//   </CardHeader>
+//   <CardContent>$12,345</CardContent>
+//   <CardFooter><Button>View Details</Button></CardFooter>
+// </Card>
+```
+
+---
+
+## Chapter 7: Dark Mode
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 7.1 Built-in Dark Mode Support
+
+Tailwind v4 has dark mode built-in. Enable it with the `@variant` directive:
+
+```css
+/* styles.css */
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+/* or for media-query-based (system preference): */
+/* @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *)); */
+
+@theme {
+  /* Dark-aware colors */
+  --color-bg-primary: white;
+  --color-bg-secondary: #f9fafb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+}
+
+/* Dark theme overrides */
+.dark {
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-border: #334155;
+}
+```
+
+```tsx
+// Dark mode toggle component
+'use client';
+
+import { useState, useEffect } from 'react';
+
+export function ThemeToggle() {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  return (
+    <button
+      onClick={() => setIsDark(!isDark)}
+      className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 
+                 dark:text-gray-400 dark:hover:bg-gray-800
+                 transition-colors"
+      aria-label="Toggle dark mode"
+    >
+      {isDark ? (
+        <SunIcon className="h-5 w-5" />
+      ) : (
+        <MoonIcon className="h-5 w-5" />
+      )}
+    </button>
+  );
+}
+```
+
+### 7.2 Using `dark:` Modifier
+
+```tsx
+// Apply different styles in dark mode
+<div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+  Content that adapts to theme
+</div>
+
+// Complete dark mode card
+<div className="
+  rounded-xl bg-white dark:bg-gray-800
+  ring-1 ring-gray-200 dark:ring-gray-700
+  p-6
+">
+  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+    Card Title
+  </h3>
+  <p className="mt-2 text-gray-600 dark:text-gray-300">
+    Card description
+  </p>
+  <button className="
+    mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white
+    hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600
+  ">
+    Action
+  </button>
+</div>
+
+// Dark mode with arbitrary values
+<div className="bg-[#fafafa] dark:bg-[#0a0a0a]">
+  Custom dark mode colors
+</div>
+```
+
+### 7.3 React 19: Server-Side Theme Resolution
+
+```tsx
+// app/layout.tsx — Resolve theme on the server
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Prevent flash of wrong theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('theme') || 'system';
+                const isDark = theme === 'dark' || 
+                  (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) document.documentElement.classList.add('dark');
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 
+                       transition-colors duration-300">
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+---
+
+## Chapter 8: Animation & Transitions
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 8.1 Tailwind Transition Utilities
+
+```tsx
+{/* === Transition Properties === */}
+<div className="transition-all duration-300 ease-in-out">
+  {/* transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) */}
+</div>
+
+<div className="transition-colors duration-200">
+  {/* Only transitions color properties */}
+</div>
+
+<div className="transition-transform duration-500 ease-out">
+  {/* Only transitions transform */}
+</div>
+
+<div className="transition-opacity duration-150">
+  {/* Only transitions opacity */}
+</div>
+
+{/* === Hover Animations === */}
+<button className="
+  bg-blue-600 hover:bg-blue-700 
+  transition-colors duration-200
+">
+  Smooth color transition
+</button>
+
+<div className="
+  hover:scale-105 hover:shadow-lg
+  transition-all duration-300 ease-out
+">
+  Scale up on hover
+</div>
+
+{/* === Transform Utilities === */}
+<div className="hover:translate-y-[-2px] transition-transform">
+  Lift up on hover
+</div>
+
+<div className="hover:rotate-3 transition-transform duration-300">
+  Slight rotation on hover
+</div>
+
+{/* === Opacity Transitions === */}
+<div className="opacity-0 hover:opacity-100 transition-opacity duration-500">
+  Fade in on hover
+</div>
+```
+
+### 8.2 Custom Animations with @theme
+
+```css
+/* styles.css */
+@import "tailwindcss";
+
+@theme {
+  /* Custom animations */
+  --animate-fade-in: fade-in 0.3s ease-out forwards;
+  --animate-fade-out: fade-out 0.2s ease-in forwards;
+  --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-down: slide-down 0.3s ease-out;
+  --animate-scale-in: scale-in 0.2s ease-out;
+  --animate-bounce-subtle: bounce-subtle 2s ease-in-out infinite;
+  --animate-spin-slow: spin 3s linear infinite;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-stagger: stagger 0.5s ease-out forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes stagger {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+```
+
+```tsx
+// Usage in components
+function AnimatedCard() {
+  return (
+    <div className="animate-fade-in">
+      <div className="animate-slide-up">
+        <h2>Fades and slides in</h2>
+      </div>
+    </div>
+  );
+}
+
+// Staggered list animation
+function StaggeredList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-2">
+      {items.map((item, i) => (
+        <li 
+          key={item} 
+          className="animate-stagger opacity-0"
+          style={{ animationDelay: `${i * 100}ms` }}
+        >
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// Loading shimmer effect
+function SkeletonCard() {
+  return (
+    <div className="rounded-xl bg-gray-200 p-6">
+      <div 
+        className="h-4 w-3/4 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 
+                   bg-[length:200%_100%] animate-shimmer"
+      />
+      <div 
+        className="mt-3 h-3 w-1/2 rounded bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 
+                   bg-[length:200%_100%] animate-shimmer"
+        style={{ animationDelay: '0.2s' }}
+      />
+    </div>
+  );
+}
+```
+
+### 8.3 React 19: useTransition for UI States
+
+```tsx
+'use client';
+
+import { useTransition } from 'react';
+
+export function FilterableList({ items }: { items: Item[] }) {
+  const [isPending, startTransition] = useTransition();
+  const [filter, setFilter] = useState('');
+  const [filteredItems, setFilteredItems] = useState(items);
+
+  const handleFilter = (value: string) => {
+    setFilter(value);
+    
+    // Use transition for non-urgent updates
+    startTransition(() => {
+      const filtered = items.filter((item) =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredItems(filtered);
+    });
+  };
+
+  return (
+    <div>
+      <input
+        type="text"
+        value={filter}
+        onChange={(e) => handleFilter(e.target.value)}
+        className="w-full rounded-lg border border-gray-300 px-4 py-2
+                   focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+        placeholder="Filter items..."
+      />
+      
+      {/* Show pending state with reduced opacity */}
+      <div className={cn('transition-opacity duration-200', isPending && 'opacity-50')}>
+        {filteredItems.map((item) => (
+          <div key={item.id} className="py-2 border-b border-gray-100">
+            {item.name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## Chapter 9: Layout Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 9.1 Common Layout Components
+
+```tsx
+// === Application Shell ===
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Fixed header */}
+      <header className="fixed top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
+        <div className="flex h-16 items-center gap-4 px-4 sm:px-6 lg:px-8">
+          <Logo />
+          <nav className="hidden md:flex items-center gap-6 ml-8">
+            <NavLink href="/">Dashboard</NavLink>
+            <NavLink href="/projects">Projects</NavLink>
+            <NavLink href="/team">Team</NavLink>
+          </nav>
+          <div className="ml-auto flex items-center gap-4">
+            <ThemeToggle />
+            <UserMenu />
+          </div>
+        </div>
+      </header>
+
+      {/* Sidebar + Main content */}
+      <div className="flex pt-16">
+        <aside className="hidden lg:block w-64 fixed h-[calc(100vh-4rem)] 
+                          border-r border-gray-200 bg-white overflow-y-auto">
+          <SidebarNav />
+        </aside>
+        
+        <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+// === Page Header Pattern ===
+export function PageHeader({
+  title,
+  description,
+  actions,
+}: {
+  title: string;
+  description?: string;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="md:flex md:items-center md:justify-between mb-8">
+      <div className="min-w-0 flex-1">
+        <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl">
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-1 text-sm text-gray-500">{description}</p>
+        )}
+      </div>
+      {actions && (
+        <div className="mt-4 flex md:ml-4 md:mt-0 gap-3">{actions}</div>
+      )}
+    </div>
+  );
+}
+
+// === Empty State Pattern ===
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="text-center py-16">
+      <div className="mx-auto h-12 w-12 text-gray-400">{icon}</div>
+      <h3 className="mt-2 text-sm font-semibold text-gray-900">{title}</h3>
+      <p className="mt-1 text-sm text-gray-500">{description}</p>
+      {action && <div className="mt-6">{action}</div>}
+    </div>
+  );
+}
+
+// === Data Table Pattern ===
+export function DataTable<T>({
+  data,
+  columns,
+}: {
+  data: T[];
+  columns: { key: keyof T; header: string; render?: (item: T) => React.ReactNode }[];
+}) {
+  return (
+    <div className="overflow-x-auto rounded-lg ring-1 ring-gray-200">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {columns.map((col) => (
+              <th
+                key={String(col.key)}
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                {col.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 bg-white">
+          {data.map((item, i) => (
+            <tr key={i} className="hover:bg-gray-50 transition-colors">
+              {columns.map((col) => (
+                <td key={String(col.key)} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {col.render ? col.render(item) : String(item[col.key])}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+### 9.2 Grid Layouts
+
+```tsx
+// === Dashboard Grid ===
+export function DashboardGrid() {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stat cards */}
+      <StatCard title="Revenue" value="$48,290" change="+12%" />
+      <StatCard title="Users" value="2,420" change="+8%" />
+      <StatCard title="Orders" value="1,210" change="-3%" negative />
+      <StatCard title="Conversion" value="3.2%" change="+0.4%" />
+    </div>
+  );
+}
+
+// === Content + Sidebar ===
+export function ContentLayout() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2">
+        {/* Main content */}
+        <article className="prose prose-lg max-w-none">
+          <h1>Article Title</h1>
+          <p>Article content...</p>
+        </article>
+      </div>
+      <aside className="space-y-6">
+        {/* Sidebar */}
+        <div className="rounded-xl bg-white p-6 ring-1 ring-gray-200">
+          <h3 className="font-semibold text-gray-900">Related</h3>
+          {/* ... */}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+// === Masonry-like Grid ===
+export function MasonryGrid({ items }: { items: Item[] }) {
+  return (
+    <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+      {items.map((item) => (
+        <div key={item.id} className="break-inside-avoid">
+          <Card>
+            <img src={item.image} alt="" className="w-full rounded-lg" />
+            <h3 className="mt-2 font-medium">{item.title}</h3>
+          </Card>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## Chapter 10: React 19 Specific Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 10.1 Suspense Boundaries with Loading States
+
+React 19 enhances Suspense. Style your loading fallbacks with Tailwind:
+
+```tsx
+// components/LoadingFallback.tsx
+export function CardSkeleton() {
+  return (
+    <div className="rounded-xl bg-white p-6 ring-1 ring-gray-200 animate-pulse">
+      <div className="h-4 w-1/3 bg-gray-200 rounded" />
+      <div className="mt-4 h-3 w-full bg-gray-200 rounded" />
+      <div className="mt-2 h-3 w-2/3 bg-gray-200 rounded" />
+    </div>
+  );
+}
+
+export function PageSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-8 w-48 bg-gray-200 rounded" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <CardSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    </div>
+  );
+}
+
+// Usage in layout:
+<Suspense fallback={<PageSkeleton />}>
+  <DashboardContent />
+</Suspense>
+```
+
+### 10.2 Error Boundaries with Styled Fallbacks
+
+```tsx
+// components/ErrorFallback.tsx
+export function ErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+  return (
+    <div className="min-h-[400px] flex items-center justify-center p-4">
+      <div className="text-center max-w-md">
+        <div className="mx-auto h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+          <ExclamationIcon className="h-6 w-6 text-red-600" />
+        </div>
+        <h3 className="mt-4 text-lg font-semibold text-gray-900">
+          Something went wrong
+        </h3>
+        <p className="mt-2 text-sm text-gray-500">
+          {error.message || 'An unexpected error occurred.'}
+        </p>
+        <button
+          onClick={reset}
+          className="mt-6 inline-flex items-center rounded-lg bg-blue-600 
+                     px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+### 10.3 Action-Based Forms with Optimistic UI
+
+```tsx
+'use client';
+
+import { useOptimistic } from 'react'; // React 19
+
+interface Todo {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
+  const [optimisticTodos, addOptimisticTodo] = useOptimistic(
+    initialTodos,
+    (state, newTodo: Todo) => [...state, newTodo]
+  );
+
+  async function addTodo(formData: FormData) {
+    const text = formData.get('text') as string;
+    const id = crypto.randomUUID();
+    
+    // Optimistically add
+    addOptimisticTodo({ id, text, completed: false });
+    
+    // Server action
+    await createTodoAction({ text });
+  }
+
+  return (
+    <div className="max-w-md mx-auto">
+      <form action={addTodo} className="flex gap-2 mb-6">
+        <input
+          name="text"
+          required
+          className="flex-1 rounded-lg border border-gray-300 px-4 py-2
+                     focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+          placeholder="Add a todo..."
+        />
+        <button
+          type="submit"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-white 
+                     hover:bg-blue-700 transition-colors"
+        >
+          Add
+        </button>
+      </form>
+
+      <ul className="space-y-2">
+        {optimisticTodos.map((todo) => (
+          <li
+            key={todo.id}
+            className={cn(
+              'flex items-center gap-3 p-3 rounded-lg border transition-all',
+              todo.completed
+                ? 'bg-gray-50 border-gray-200 opacity-60'
+                : 'bg-white border-gray-300'
+            )}
+          >
+            <span className={cn(todo.completed && 'line-through text-gray-500')}>
+              {todo.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```

@@ -1,0 +1,220 @@
+---
+title: Practical Projects
+description: "Build real-world applications with Tailwind CSS v4 & React 19."
+date: 2026-06-27
+category: "Tailwindcss"
+tags: ["Tailwindcss", "React 19"]
+series: "Tailwind CSS v4 & React 19"
+seriesOrder: 6
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## Project 1: SaaS Dashboard
+
+<Badge variant="orange">Intermediate</Badge>
+
+### Features
+
+```tsx
+// app/dashboard/page.tsx
+import { Suspense } from 'react';
+import { StatCards } from './StatCards';
+import { RevenueChart } from './RevenueChart';
+import { RecentActivity } from './RecentActivity';
+import { PageSkeleton } from './PageSkeleton';
+
+export default function DashboardPage() {
+  return (
+    <div className="space-y-6">
+      <PageHeader 
+        title="Dashboard" 
+        description="Overview of your business metrics."
+      />
+      
+      <Suspense fallback={<StatsSkeleton />}>
+        <StatCards />
+      </Suspense>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Suspense fallback={<ChartSkeleton />}>
+            <RevenueChart />
+          </Suspense>
+        </div>
+        <div>
+          <Suspense fallback={<ListSkeleton />}>
+            <RecentActivity />
+          </Suspense>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// components/dashboard/StatCard.tsx
+export function StatCard({
+  title,
+  value,
+  change,
+  changeType = 'positive',
+  icon,
+}: {
+  title: string;
+  value: string;
+  change: string;
+  changeType?: 'positive' | 'negative' | 'neutral';
+  icon: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <div className="flex items-center justify-between">
+        <CardTitle className="text-sm font-medium text-gray-600">
+          {title}
+        </CardTitle>
+        <div className="p-2 bg-gray-50 rounded-lg text-gray-600">
+          {icon}
+        </div>
+      </div>
+      <div className="mt-4 flex items-baseline gap-2">
+        <span className="text-2xl font-semibold text-gray-900">{value}</span>
+        <span
+          className={cn(
+            'text-sm font-medium',
+            changeType === 'positive' && 'text-green-600',
+            changeType === 'negative' && 'text-red-600',
+            changeType === 'neutral' && 'text-gray-500'
+          )}
+        >
+          {change}
+        </span>
+      </div>
+    </Card>
+  );
+}
+```
+
+---
+
+## Project 2: E-Commerce Product Page
+
+<Badge variant="red">Expert</Badge>
+
+```tsx
+// app/products/[id]/page.tsx — Server Component
+import { ImageGallery } from './ImageGallery';
+import { AddToCartButton } from './AddToCartButton';
+import { ReviewSection } from './ReviewSection';
+import { cn } from '@/lib/utils';
+
+export default async function ProductPage({ 
+  params 
+}: { 
+  params: { id: string } 
+}) {
+  const product = await getProduct(params.id);
+
+  return (
+    <div className="bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 lg:items-start">
+          {/* Image Gallery — Server-rendered, interactive client component */}
+          <ImageGallery images={product.images} />
+
+          {/* Product Info */}
+          <div className="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
+            <nav aria-label="Breadcrumb" className="text-sm text-gray-500">
+              {product.category} / {product.subcategory}
+            </nav>
+
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900">
+              {product.name}
+            </h1>
+
+            <div className="mt-3 flex items-center gap-4">
+              <p className="text-3xl tracking-tight text-gray-900">
+                ${product.price}
+              </p>
+              {product.originalPrice && (
+                <p className="text-lg text-gray-400 line-through">
+                  ${product.originalPrice}
+                </p>
+              )}
+            </div>
+
+            {/* Rating */}
+            <div className="mt-3 flex items-center gap-2">
+              <div className="flex items-center">
+                {[...Array(5)].map((_, i) => (
+                  <StarIcon
+                    key={i}
+                    className={cn(
+                      'h-5 w-5',
+                      i < product.rating
+                        ? 'text-yellow-400 fill-yellow-400'
+                        : 'text-gray-200 fill-gray-200'
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-gray-500">
+                {product.reviewCount} reviews
+              </span>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="sr-only">Description</h3>
+              <p className="text-base text-gray-700 leading-relaxed">
+                {product.description}
+              </p>
+            </div>
+
+            {/* Color Selection — Client Component */}
+            <ColorSelector colors={product.colors} />
+
+            {/* Size Selection — Client Component */}
+            <SizeSelector sizes={product.sizes} />
+
+            {/* Add to Cart — Client Component with Server Action */}
+            <div className="mt-10 flex gap-4">
+              <AddToCartButton product={product} />
+              <Button variant="secondary" size="lg" className="aspect-square px-0">
+                <HeartIcon className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Shipping Info */}
+            <div className="mt-8 border-t border-gray-200 pt-8">
+              <dl className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="flex items-start gap-3">
+                  <TruckIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
+                  <div>
+                    <dt className="font-medium text-gray-900">Free shipping</dt>
+                    <dd className="mt-1 text-sm text-gray-500">
+                      On orders over $50
+                    </dd>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <ShieldCheckIcon className="h-6 w-6 text-gray-400 flex-shrink-0" />
+                  <div>
+                    <dt className="font-medium text-gray-900">2 year warranty</dt>
+                    <dd className="mt-1 text-sm text-gray-500">
+                      Full coverage included
+                    </dd>
+                  </div>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews */}
+        <div className="mt-16 border-t border-gray-200 pt-16">
+          <ReviewSection productId={product.id} />
+        </div>
+      </div>
+    </div>
+  );
+}
+```

@@ -1,0 +1,2182 @@
+---
+title: "Expert Level — Advanced Architecture"
+date: 2026-06-26
+category: "React"
+tags: ["Zustand", "React", "Vite"]
+series: "Zustand Guide"
+seriesOrder: 4
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## 16. Custom Middleware Development
+
+### Complete Middleware Template
+
+```jsx
+// middleware/template.js
+/**
+ * Custom Zustand Middleware Template
+ * 
+ * @param {Function} config - Store initializer function
+ * @param {Object} options - Middleware options
+ * @returns {Function} Enhanced store initializer
+ */
+const customMiddleware = (config, options = {}) => (set, get, api) => {
+  // ─── Setup: Initialize middleware state ───
+  const middlewareState = {
+    callCount: 0,
+    startTime: Date.now(),
+  };
+
+  // ─── Wrap set() ───
+  const customSet = (...args) => {
+    // Before set
+    middlewareState.callCount++;
+    const prevState = get();
+
+    // Call original set
+    set(...args);
+
+    // After set
+    const nextState = get();
+
+    // Post-processing
+    console.log(`[Middleware] Set call #${middlewareState.callCount}`);
+
+    return nextState;
+  };
+
+  // ─── Wrap get() ───
+  const customGet = () => {
+    // Can add logging, tracking, etc.
+    return get();
+  };
+
+  // ─── Enhance API ───
+  const enhancedApi = {
+    ...api,
+    // Add custom methods to the store API
+    getMiddlewareStats: () => ({
+      calls: middlewareState.callCount,
+      uptime: Date.now() - middlewareState.startTime,
+    }),
+  };
+
+  // ─── Create store with wrapped functions ───
+  const store = config(customSet, customGet, enhancedApi);
+
+  // ─── Return enhanced store ───
+  return {
+    ...store,
+    // Expose middleware methods on the store
+    getMiddlewareStats: enhancedApi.getMiddlewareStats,
+  };
+};
+```
+
+### Comprehensive Logger Middleware
+
+```jsx
+// middleware/comprehensiveLogger.js
+const comprehensiveLogger = (config, options = {}) => (set, get, api) => {
+  const {
+    enabled = process.env.NODE_ENV === 'development',
+    collapsed = true,
+    colors = {
+      title: '#03A9F4',
+      prev: '#9E9E9E',
+      action: '#03A9F4',
+      next: '#4CAF50',
+      error: '#F20404',
+    },
+    logger = console,
+    actionFilter = () => true,
+  } = options;
+
+  if (!enabled) return config(set, get, api);
+
+  return config(
+    (...args) => {
+      const prevState = get();
+
+      // Determine action name
+      const actionName =
+        typeof args[1] === 'string'
+          ? args[1]
+          : typeof args[0] === 'function'
+            ? args[0].name || 'anonymous'
+            : 'set';
+
+      if (!actionFilter(actionName)) {
+        set(...args);
+        return;
+      }
+
+      // Log start
+      if (collapsed) {
+        logger.groupCollapsed(
+          `%caction %c${actionName} %c@ ${new Date().toLocaleTimeString()}`,
+          `color: ${colors.title}; font-weight: bold;`,
+          `color: ${colors.action}; font-weight: bold;`,
+          `color: ${colors.title};`
+        );
+      } else {
+        logger.group(
+          `%caction %c${actionName}`,
+          `color: ${colors.title};`,
+          `color: ${colors.action}; font-weight: bold;`
+        );
+      }
+
+      logger.log(
+        '%cprev state',
+        `color: ${colors.prev}; font-weight: bold;`,
+        prevState
+      );
+
+      // Execute set
+      set(...args);
+      const nextState = get();
+
+      // Log result
+      logger.log(
+        '%cnext state',
+        `color: ${colors.next}; font-weight: bold;`,
+        nextState
+      );
+
+      // Show diff
+      const diff = {};
+      const allKeys = new Set([
+        ...Object.keys(prevState),
+        ...Object.keys(nextState),
+      ]);
+      for (const key of allKeys) {
+        if (prevState[key] !== nextState[key]) {
+          diff[key] = {
+            from: prevState[key],
+            to: nextState[key],
+          };
+        }
+      }
+      if (Object.keys(diff).length > 0) {
+        logger.log(
+          '%cdiff',
+          'color: #FF9800; font-weight: bold;',
+          diff
+        );
+      }
+
+      logger.groupEnd();
+    },
+    get,
+    api
+  );
+};
+
+// Usage
+const useStore = create(
+  comprehensiveLogger(
+    (set) => ({
+      count: 0,
+      increment: () => set((s) => ({ count: s.count + 1 }), false, 'count/inc'),
+    }),
+    {
+      enabled: true,
+      collapsed: false,
+      actionFilter: (name) => !name.includes('ui/'), // Exclude UI actions
+    }
+  )
+);
+```
+
+### Undo/Redo Middleware
+
+```jsx
+// middleware/undoRedo.js
+const undoRedo = (config, options = {}) => (set, get, api) => {
+  const { limit = 50, include = [], exclude = [] } = options;
+
+  const history = {
+    past: [],
+    future: [],
+    isUndoing: false,
+    isRedoing: false,
+  };
+
+  const shouldTrack = (actionName) => {
+    if (exclude.length && exclude.some((p) => actionName.includes(p)))
+      return false;
+    if (include.length) return include.some((p) => actionName.includes(p));
+    return true;
+  };
+
+  return config(
+    (...args) => {
+      const actionName = typeof args[1] === 'string' ? args[1] : '';
+
+      // Don't track undo/redo operations
+      if (history.isUndoing || history.isRedoing) {
+        set(...args);
+        return;
+      }
+
+      const currentState = get();
+      set(...args);
+
+      // Track in history
+      if (shouldTrack(actionName)) {
+        history.past.push(currentState);
+        if (history.past.length > limit) history.past.shift();
+        history.future = []; // Clear future on new action
+      }
+    },
+    get,
+    {
+      ...api,
+      undo: () => {
+        if (history.past.length === 0) return;
+
+        history.isUndoing = true;
+        const previous = history.past.pop();
+        const current = get();
+        history.future.push(current);
+
+        // Replace entire state
+        set(previous, true);
+        history.isUndoing = false;
+      },
+      redo: () => {
+        if (history.future.length === 0) return;
+
+        history.isRedoing = true;
+        const next = history.future.pop();
+        const current = get();
+        history.past.push(current);
+
+        set(next, true);
+        history.isRedoing = false;
+      },
+      canUndo: () => history.past.length > 0,
+      canRedo: () => history.future.length > 0,
+    }
+  );
+};
+
+// Usage
+const useStore = create(
+  undoRedo(
+    (set) => ({
+      text: '',
+      setText: (text) => set({ text }, false, 'text/set'),
+    }),
+    { limit: 100, exclude: ['selection/'] }
+  )
+);
+
+// Component
+function TextEditor() {
+  const text = useStore((s) => s.text);
+  const setText = useStore((s) => s.setText);
+
+  // Access undo/redo from the API (not state)
+  const handleUndo = () => useStore.getState().undo?.();
+  const handleRedo = () => useStore.getState().redo?.();
+
+  return (
+    <div>
+      <textarea value={text} onChange={(e) => setText(e.target.value)} />
+      <button onClick={handleUndo}>Undo</button>
+      <button onClick={handleRedo}>Redo</button>
+    </div>
+  );
+}
+```
+
+---
+
+## 17. Zustand with React Compiler
+
+### Understanding React Compiler + Zustand
+
+React 19's Compiler automatically memoizes components. When combined with Zustand's efficient selectors, you get optimal performance with minimal boilerplate.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│               React 19 Compiler                             │
+│                                                             │
+│  Component                                                  │
+│     │                                                       │
+│     │  Selector: (state) => state.count                    │
+│     ▼                                                       │
+│  ┌──────────────────────┐                                   │
+│  │  Auto-memoization    │ ← Compiler adds memoization       │
+│  │  (no manual useMemo) │   automatically                   │
+│  └──────────────────────┘                                   │
+│     │                                                       │
+│     │  useStore(selector)                                    │
+│     ▼                                                       │
+│  Zustand (built-in selector comparison)                     │
+│     │                                                       │
+│     ▼                                                       │
+│  Re-render only if selected value changes                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### React Compiler Compatible Patterns
+
+```jsx
+// React 19 with Compiler — Zustand works seamlessly!
+
+// Before (React 18): Manual memoization needed
+import { useMemo } from 'react';
+
+function CartSummaryReact18() {
+  const selector = useMemo(
+    () => (state) => ({
+      subtotal: state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+      count: state.items.length,
+    }),
+    []
+  );
+
+  const { subtotal, count } = useCartStore(selector, shallow);
+  // ...
+}
+
+// After (React 19 + Compiler): No manual memoization!
+function CartSummaryReact19() {
+  // Compiler automatically memoizes the selector function
+  const { subtotal, count } = useCartStore(
+    (state) => ({
+      subtotal: state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+      count: state.items.length,
+    }),
+    shallow
+  );
+
+  return (
+    <div>
+      <span>{count} items</span>
+      <span>${subtotal.toFixed(2)}</span>
+    </div>
+  );
+}
+```
+
+### Best Practices with React Compiler
+
+```jsx
+// ✅ Extract selectors outside components (compiler-safe)
+// stores/selectors.js
+export const selectCartSummary = (state) => ({
+  subtotal: state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+  tax: state.items.reduce((s, i) => s + i.price * i.quantity, 0) * state.taxRate,
+  count: state.items.reduce((c, i) => c + i.quantity, 0),
+});
+
+export const selectUserProfile = (state) => state.user;
+export const selectIsAdmin = (state) => state.user?.role === 'admin';
+
+// components/CartSummary.jsx — React 19 + Compiler
+import { selectCartSummary } from '../stores/selectors';
+import { shallow } from 'zustand/shallow';
+
+function CartSummary() {
+  // Compiler handles optimization — just write naturally
+  const { subtotal, tax, count } = useCartStore(selectCartSummary, shallow);
+
+  return (
+    <div className="cart-summary">
+      <div>Items: {count}</div>
+      <div>Subtotal: ${subtotal.toFixed(2)}</div>
+      <div>Tax: ${tax.toFixed(2)}</div>
+      <div>Total: ${(subtotal + tax).toFixed(2)}</div>
+    </div>
+  );
+}
+
+// ✅ Prefer individual selectors over object selectors
+function OptimizedProductList() {
+  // Compiler auto-memoizes each selector
+  const products = useProductStore((s) => s.products);
+  const selectedId = useProductStore((s) => s.selectedId);
+  const setSelected = useProductStore((s) => s.setSelectedId);
+
+  return products.map((product) => (
+    <ProductCard
+      key={product.id}
+      product={product}
+      isSelected={product.id === selectedId}
+      onSelect={() => setSelected(product.id)}
+    />
+  ));
+}
+```
+
+### React Compiler Configuration for Zustand
+
+```js
+// react-compiler.config.js
+module.exports = {
+  sources: (filename) => {
+    // Compile all source files
+    return filename.includes('src/');
+  },
+  
+  // Zustand hooks are automatically compatible
+  // No special configuration needed!
+  
+  // Optional: Exclude files that use advanced Zustand patterns
+  exclude: [
+    'src/stores/internals/**',
+  ],
+};
+```
+
+---
+
+## 18. SSR and Streaming Hydration
+
+### Zustand with Next.js 15 App Router
+
+```jsx
+// ─── Server Component (no Zustand) ───
+// app/products/page.jsx
+export default async function ProductsPage() {
+  const products = await fetchProducts();
+
+  return (
+    <div>
+      <h1>Products</h1>
+      {/* Pass server data to client component */}
+      <ProductList initialProducts={products} />
+    </div>
+  );
+}
+```
+
+```jsx
+// ─── Client Component with Zustand ───
+// app/products/ProductList.jsx
+'use client';
+
+import { useRef } from 'react';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+const useProductStore = create(
+  persist(
+    (set, get) => ({
+      products: [],
+      initialized: false,
+
+      initialize: (products) =>
+        set({ products, initialized: true }),
+
+      setProducts: (products) => set({ products }),
+
+      // Derived state as getter
+      getByCategory: (category) =>
+        get().products.filter((p) => p.category === category),
+    }),
+    {
+      name: 'products-storage',
+      // Don't hydrate from storage — use server data
+      skipHydration: true,
+    }
+  )
+);
+
+export default function ProductList({ initialProducts }) {
+  const initialized = useRef(false);
+  const { products, initialize } = useProductStore();
+
+  // Initialize with server data once
+  if (!initialized.current) {
+    initialize(initialProducts);
+    initialized.current = true;
+  }
+
+  return (
+    <ul>
+      {products.map((product) => (
+        <li key={product.id}>{product.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### SSR-Safe Store Creation
+
+```jsx
+// stores/createSSRStore.js
+import { create } from 'zustand';
+
+/**
+ * Creates a Zustand store that works safely with SSR
+ * Each request gets its own store instance
+ */
+export function createSSRStore(storeFactory) {
+  // On server: create new store per request
+  // On client: use global singleton
+  const isServer = typeof window === 'undefined';
+
+  if (isServer) {
+    return () => storeFactory();
+  }
+
+  // Client: singleton
+  let clientStore;
+  return () => {
+    if (!clientStore) {
+      clientStore = storeFactory();
+    }
+    return clientStore;
+  };
+}
+
+// Usage
+const createProductStore = () =>
+  create((set) => ({
+    products: [],
+    setProducts: (products) => set({ products }),
+  }));
+
+export const useProductStore = createSSRStore(createProductStore)();
+```
+
+### State Hydration Pattern
+
+```jsx
+// providers/StoreHydration.jsx
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useProductStore } from '../stores/useProductStore';
+import { useCartStore } from '../stores/useCartStore';
+
+/**
+ * Hydrates Zustand stores from server data
+ * Place this component high in your tree (e.g., in layout)
+ */
+export default function StoreHydration({ serverData }) {
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // Hydrate stores with server data
+    if (serverData.products) {
+      useProductStore.setState({
+        products: serverData.products,
+        initialized: true,
+      });
+    }
+
+    if (serverData.cart) {
+      useCartStore.setState({ items: serverData.cart });
+    }
+
+    setHydrated(true);
+  }, []);
+
+  // Optional: Show nothing until hydrated, or a skeleton
+  if (!hydrated) {
+    return null; // Or <Skeleton />
+  }
+
+  return null; // This is a logic-only component
+}
+
+// Server layout provides data
+// app/layout.jsx
+export default async function RootLayout({ children }) {
+  const [products, cart] = await Promise.all([
+    fetchProducts(),
+    fetchCart(), // If user is authenticated
+  ]);
+
+  return (
+    <html>
+      <body>
+        <StoreHydration
+          serverData={{ products, cart }}
+        />
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+### Streaming with Suspense Boundaries
+
+```jsx
+// components/ProductSection.jsx
+'use client';
+
+import { Suspense } from 'react';
+import { useProductStore } from '../stores/useProductStore';
+
+// This component suspends until products are available
+function ProductGrid() {
+  const products = useProductStore((state) => state.products);
+
+  if (products.length === 0) {
+    return <EmptyState />;
+  }
+
+  return (
+    <div className="product-grid">
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+}
+
+// Wrapper with Suspense boundary
+export default function ProductSection({ category }) {
+  return (
+    <section>
+      <h2>{category}</h2>
+
+      <Suspense fallback={<ProductGridSkeleton />}>
+        <ProductGrid />
+      </Suspense>
+
+      {/* Other content loads independently */}
+      <Suspense fallback={<ReviewsSkeleton />}>
+        <ProductReviews category={category} />
+      </Suspense>
+    </section>
+  );
+}
+```
+
+---
+
+## 19. Advanced Persist Patterns
+
+### Custom Storage Adapters
+
+```jsx
+// storage/customStorage.js
+
+/**
+ * localStorage adapter with encryption
+ */
+const encryptedStorage = {
+  getItem: (name) => {
+    const encrypted = localStorage.getItem(name);
+    if (!encrypted) return null;
+
+    try {
+      // Decrypt (using a library like crypto-js)
+      const decrypted = decrypt(encrypted, process.env.VITE_STORAGE_KEY);
+      return decrypted;
+    } catch {
+      // If decryption fails, remove corrupted data
+      localStorage.removeItem(name);
+      return null;
+    }
+  },
+
+  setItem: (name, value) => {
+    const encrypted = encrypt(value, process.env.VITE_STORAGE_KEY);
+    localStorage.setItem(name, encrypted);
+  },
+
+  removeItem: (name) => {
+    localStorage.removeItem(name);
+  },
+};
+
+/**
+ * sessionStorage adapter
+ */
+const sessionStorage = {
+  getItem: (name) => window.sessionStorage.getItem(name),
+  setItem: (name, value) => window.sessionStorage.setItem(name, value),
+  removeItem: (name) => window.sessionStorage.removeItem(name),
+};
+
+/**
+ * Cookie storage adapter
+ */
+const cookieStorage = {
+  getItem: (name) => {
+    const match = document.cookie.match(new RegExp(`${name}=([^;]+)`));
+    return match ? decodeURIComponent(match[1]) : null;
+  },
+
+  setItem: (name, value, days = 7) => {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires};path=/;SameSite=Strict`;
+  },
+
+  removeItem: (name) => {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+  },
+};
+
+/**
+ * IndexedDB adapter for large data
+ */
+const indexedDBStorage = {
+  db: null,
+
+  async getDB() {
+    if (this.db) return this.db;
+
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('ZustandStore', 1);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        this.db = request.result;
+        resolve(this.db);
+      };
+      request.onupgradeneeded = (event) => {
+        event.target.result.createObjectStore('data');
+      };
+    });
+  },
+
+  async getItem(name) {
+    const db = await this.getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('data', 'readonly');
+      const store = tx.objectStore('data');
+      const request = store.get(name);
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async setItem(name, value) {
+    const db = await this.getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('data', 'readwrite');
+      const store = tx.objectStore('data');
+      const request = store.put(value, name);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async removeItem(name) {
+    const db = await this.getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('data', 'readwrite');
+      const store = tx.objectStore('data');
+      const request = store.delete(name);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+};
+```
+
+### Advanced Persist Configuration
+
+```jsx
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+const useAppStore = create(
+  persist(
+    (set, get) => ({
+      // State
+      user: null,
+      preferences: { theme: 'light', lang: 'en' },
+      cart: { items: [], lastUpdated: null },
+      drafts: {},
+      cache: {},
+
+      // Actions
+      setUser: (user) => set({ user }),
+      updatePreferences: (prefs) =>
+        set((state) => ({
+          preferences: { ...state.preferences, ...prefs },
+        })),
+    }),
+    {
+      name: 'app-v2-storage',
+
+      // ─── Custom Storage ───
+      // storage: encryptedStorage,  // Encrypt sensitive data
+      // storage: sessionStorage,    // Only for session
+      // storage: indexedDBStorage,  // Large data
+
+      // ─── Partial Persistence ───
+      // Only persist specific fields
+      partialize: (state) => ({
+        user: state.user,
+        preferences: state.preferences,
+        // Don't persist: cart, drafts, cache
+      }),
+
+      // ─── Transform (serialize/deserialize) ───
+      serialize: (state) => {
+        return JSON.stringify({
+          ...state,
+          timestamp: Date.now(),
+        });
+      },
+
+      deserialize: (str) => {
+        const parsed = JSON.parse(str);
+        // Check if data is stale (> 7 days)
+        const age = Date.now() - (parsed.timestamp || 0);
+        if (age > 7 * 24 * 60 * 60 * 1000) {
+          return { state: null, version: parsed.version };
+        }
+        return parsed;
+      },
+
+      // ─── Version Migration ───
+      version: 2,
+
+      migrate: (persistedState, version) => {
+        // v0 → v1: Added preferences object
+        if (version === 0) {
+          return {
+            ...persistedState,
+            preferences: { theme: 'light', lang: 'en' },
+          };
+        }
+
+        // v1 → v2: Renamed 'settings' to 'preferences'
+        if (version === 1) {
+          const { settings, ...rest } = persistedState;
+          return {
+            ...rest,
+            preferences: settings || { theme: 'light', lang: 'en' },
+          };
+        }
+
+        return persistedState;
+      },
+
+      // ─── Merge Strategy ───
+      // How to merge persisted state with initial state
+      merge: (persistedState, currentState) => {
+        return {
+          ...currentState,
+          ...persistedState.state,
+          // Always use current state for these
+          cache: currentState.cache,
+          drafts: currentState.drafts,
+        };
+      },
+
+      // ─── On Rehydration ───
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error('Failed to rehydrate store:', error);
+        } else {
+          console.log('Store rehydrated successfully');
+          state?.onHydrated?.();
+        }
+      },
+    }
+  )
+);
+```
+
+### Multi-Storage Strategy
+
+```jsx
+// Different data goes to different storage backends
+
+// stores/useSecureStore.js — Sensitive data → encrypted localStorage
+import { persist } from 'zustand/middleware';
+import { encryptedStorage } from '../storage/customStorage';
+
+export const useSecureStore = create(
+  persist(
+    (set) => ({
+      authToken: null,
+      setAuthToken: (token) => set({ authToken: token }),
+    }),
+    {
+      name: 'secure-storage',
+      storage: encryptedStorage,
+      partialize: (state) => ({ authToken: state.authToken }),
+    }
+  )
+);
+
+// stores/useSessionStore.js — Session data → sessionStorage
+import { persist } from 'zustand/middleware';
+import { sessionStorage } from '../storage/customStorage';
+
+export const useSessionStore = create(
+  persist(
+    (set) => ({
+      formDrafts: {},
+      activeTab: 'home',
+      scrollPositions: {},
+      setActiveTab: (tab) => set({ activeTab: tab }),
+      saveDraft: (key, value) =>
+        set((state) => ({
+          formDrafts: { ...state.formDrafts, [key]: value },
+        })),
+    }),
+    {
+      name: 'session-storage',
+      storage: sessionStorage,
+    }
+  )
+);
+
+// stores/useCacheStore.js — Large cache → IndexedDB
+import { persist } from 'zustand/middleware';
+import { indexedDBStorage } from '../storage/customStorage';
+
+export const useCacheStore = create(
+  persist(
+    (set) => ({
+      productCache: {},
+      searchCache: {},
+      cacheProduct: (id, data) =>
+        set((state) => ({
+          productCache: { ...state.productCache, [id]: data },
+        })),
+    }),
+    {
+      name: 'cache-storage',
+      storage: indexedDBStorage,
+    }
+  )
+);
+```
+
+---
+
+## 20. Zustand in Micro-frontends
+
+### Shared Store via Module Federation
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Host App (Shell)                      │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐ │
+│  │  Auth MFE    │ │  Cart MFE    │ │  Product MFE     │ │
+│  │              │ │              │ │                  │ │
+│  │  useAuth()   │ │  useCart()   │ │  useProducts()   │ │
+│  │      │       │ │      │       │ │                  │ │
+│  │      ▼       │ │      ▼       │ │                  │ │
+│  │  ┌────────┐  │ │  ┌────────┐  │ │                  │ │
+│  │  │Shared  │  │ │  │Shared  │  │ │                  │ │
+│  │  │ Store  │◀─┼─┼──│ Store  │  │ │                  │ │
+│  │  │ (User) │  │ │  │(Cart)  │  │ │                  │ │
+│  │  └────────┘  │ │  └────────┘  │ │                  │ │
+│  └──────────────┘ └──────────────┘ └──────────────────┘ │
+│                                                          │
+│  Shared Dependencies: react, react-dom, zustand          │
+└─────────────────────────────────────────────────────────┘
+```
+
+```js
+// Shell app — webpack.config.js
+const { ModuleFederationPlugin } = require('webpack').container;
+
+module.exports = {
+  plugins: [
+    new ModuleFederationPlugin({
+      name: 'shell',
+      remotes: {
+        auth: 'auth@https://auth.example.com/remoteEntry.js',
+        cart: 'cart@https://cart.example.com/remoteEntry.js',
+        products: 'products@https://products.example.com/remoteEntry.js',
+      },
+      shared: {
+        react: { singleton: true, requiredVersion: '^19.0.0' },
+        'react-dom': { singleton: true, requiredVersion: '^19.0.0' },
+        zustand: { singleton: true, requiredVersion: '^5.0.0' },
+      },
+    }),
+  ],
+};
+```
+
+```jsx
+// shared-stores/useAuthStore.js — Shared between MFEs
+import { create } from 'zustand';
+
+// Singleton pattern ensures single store instance across MFEs
+let storeInstance = null;
+
+const createAuthStore = () =>
+  create((set, get) => ({
+    user: null,
+    isAuthenticated: false,
+    permissions: [],
+
+    login: async (credentials) => {
+      const user = await api.login(credentials);
+      set({ user, isAuthenticated: true, permissions: user.permissions });
+    },
+
+    logout: () => {
+      set({ user: null, isAuthenticated: false, permissions: [] });
+    },
+
+    hasPermission: (permission) =>
+      get().permissions.includes(permission),
+  }));
+
+export const getAuthStore = () => {
+  if (!storeInstance) {
+    storeInstance = createAuthStore();
+  }
+  return storeInstance;
+};
+
+export const useAuthStore = (selector) =>
+  getAuthStore()(selector);
+```
+
+```jsx
+// auth-mfe/components/LoginButton.jsx
+import { useAuthStore } from 'shared-stores/useAuthStore';
+
+export default function LoginButton() {
+  const login = useAuthStore((state) => state.login);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  return (
+    <button onClick={() => login()}>
+      {isAuthenticated ? 'Logged In' : 'Login'}
+    </button>
+  );
+}
+
+// cart-mfe/components/CartBadge.jsx
+// Reads from the same auth store instance!
+import { useAuthStore } from 'shared-stores/useAuthStore';
+import { useCartStore } from 'shared-stores/useCartStore';
+
+export default function CartBadge() {
+  // Cross-store read: Show cart only when authenticated
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const itemCount = useCartStore((state) => state.getItemCount());
+
+  if (!isAuthenticated) return null;
+
+  return <span className="badge">{itemCount}</span>;
+}
+```
+
+### Store Isolation Pattern
+
+```jsx
+// For isolated stores per MFE instance (multi-tenant)
+import { create } from 'zustand';
+
+class StoreRegistry {
+  stores = new Map();
+
+  getStore(tenantId, factory) {
+    const key = `${factory.name}-${tenantId}`;
+    if (!this.stores.has(key)) {
+      this.stores.set(key, factory());
+    }
+    return this.stores.get(key);
+  }
+
+  clearStore(tenantId, factory) {
+    const key = `${factory.name}-${tenantId}`;
+    this.stores.delete(key);
+  }
+}
+
+const registry = new StoreRegistry();
+
+// Create isolated stores per tenant
+export function useTenantStore(tenantId, selector) {
+  const store = registry.getStore(tenantId, createAppStore);
+  return store(selector);
+}
+```
+
+---
+
+## 21. State Machines with Zustand
+
+### Finite State Machine Pattern
+
+```jsx
+// stores/useOrderMachine.js
+import { create } from 'zustand';
+
+// Define states
+const OrderStates = {
+  IDLE: 'idle',
+  SELECTING: 'selecting',
+  CHECKOUT: 'checkout',
+  PROCESSING: 'processing',
+  CONFIRMED: 'confirmed',
+  FAILED: 'failed',
+};
+
+// Define valid transitions
+const transitions = {
+  [OrderStates.IDLE]: ['SELECTING'],
+  [OrderStates.SELECTING]: ['CHECKOUT', 'IDLE'],
+  [OrderStates.CHECKOUT]: ['PROCESSING', 'SELECTING'],
+  [OrderStates.PROCESSING]: ['CONFIRMED', 'FAILED'],
+  [OrderStates.CONFIRMED]: ['IDLE'],
+  [OrderStates.FAILED]: ['CHECKOUT', 'IDLE'],
+};
+
+export const useOrderMachine = create((set, get) => ({
+  // Current state
+  state: OrderStates.IDLE,
+  previousState: null,
+  context: {
+    items: [],
+    shippingAddress: null,
+    paymentMethod: null,
+    error: null,
+    orderId: null,
+  },
+
+  // Check if transition is valid
+  canTransition: (event) => {
+    const { state: currentState } = get();
+    return transitions[currentState]?.includes(event) || false;
+  },
+
+  // Transition to new state
+  transition: (event, contextUpdates = {}) => {
+    const { state: currentState } = get();
+
+    if (!transitions[currentState]?.includes(event)) {
+      console.warn(
+        `Invalid transition: ${currentState} → ${event}`
+      );
+      return false;
+    }
+
+    set({
+      previousState: currentState,
+      state: OrderStates[event] || event,
+      context: {
+        ...get().context,
+        ...contextUpdates,
+      },
+    });
+
+    return true;
+  },
+
+  // Context setters
+  setItems: (items) =>
+    set((s) => ({ context: { ...s.context, items } })),
+  setShippingAddress: (address) =>
+    set((s) => ({ context: { ...s.context, shippingAddress: address } })),
+  setPaymentMethod: (method) =>
+    set((s) => ({ context: { ...s.context, paymentMethod: method } })),
+
+  // Convenience actions that include transitions
+  startShopping: () => get().transition('SELECTING'),
+
+  proceedToCheckout: () => {
+    const { context } = get();
+    if (context.items.length === 0) return false;
+    return get().transition('CHECKOUT');
+  },
+
+  placeOrder: async () => {
+    const { transition, context } = get();
+    transition('PROCESSING');
+
+    try {
+      const order = await api.createOrder({
+        items: context.items,
+        shippingAddress: context.shippingAddress,
+        paymentMethod: context.paymentMethod,
+      });
+
+      transition('CONFIRMED', { orderId: order.id, error: null });
+      return order;
+    } catch (error) {
+      transition('FAILED', { error: error.message });
+      throw error;
+    }
+  },
+
+  reset: () =>
+    set({
+      state: OrderStates.IDLE,
+      previousState: null,
+      context: {
+        items: [],
+        shippingAddress: null,
+        paymentMethod: null,
+        error: null,
+        orderId: null,
+      },
+    }),
+}));
+
+// Component usage
+function OrderFlow() {
+  const { state, context, startShopping, proceedToCheckout, placeOrder, reset }
+    = useOrderMachine();
+
+  return (
+    <div className="order-flow">
+      <div className={`state-indicator ${state}`}>
+        Current: {state}
+      </div>
+
+      {state === 'idle' && (
+        <button onClick={startShopping}>Start Shopping</button>
+      )}
+
+      {state === 'selecting' && (
+        <>
+          <ProductSelector />
+          <button onClick={proceedToCheckout}>
+            Checkout ({context.items.length} items)
+          </button>
+        </>
+      )}
+
+      {state === 'checkout' && (
+        <>
+          <ShippingForm />
+          <PaymentForm />
+          <button onClick={placeOrder}>Place Order</button>
+        </>
+      )}
+
+      {state === 'processing' && <Spinner />}
+
+      {state === 'confirmed' && (
+        <>
+          <h2>Order #{context.orderId} Confirmed!</h2>
+          <button onClick={reset}>New Order</button>
+        </>
+      )}
+
+      {state === 'failed' && (
+        <>
+          <p className="error">{context.error}</p>
+          <button onClick={() => useOrderMachine.getState().transition('CHECKOUT')}>
+            Try Again
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+```
+
+### State Machine with Guards
+
+```jsx
+// Enhanced FSM with guards
+const useAuthMachine = create((set, get) => ({
+  state: 'unauthenticated',
+  context: {
+    user: null,
+    error: null,
+    retryCount: 0,
+  },
+
+  transitions: {
+    unauthenticated: {
+      LOGIN: {
+        target: 'authenticating',
+        guard: (ctx, creds) => creds.email?.includes('@') && creds.password?.length > 0,
+      },
+    },
+    authenticating: {
+      SUCCESS: { target: 'authenticated' },
+      FAILURE: {
+        target: 'error',
+        action: (ctx, error) => ({ error, retryCount: ctx.retryCount + 1 }),
+      },
+    },
+    authenticated: {
+      LOGOUT: { target: 'unauthenticated' },
+      TOKEN_EXPIRED: { target: 'refreshing' },
+    },
+    refreshing: {
+      REFRESH_SUCCESS: { target: 'authenticated' },
+      REFRESH_FAILURE: { target: 'unauthenticated' },
+    },
+    error: {
+      RETRY: {
+        target: 'authenticating',
+        guard: (ctx) => ctx.retryCount < 3,
+      },
+      GIVE_UP: { target: 'unauthenticated' },
+    },
+  },
+
+  dispatch: (actionType, payload) => {
+    const { state, context, transitions } = get();
+    const transition = transitions[state]?.[actionType];
+
+    if (!transition) {
+      console.warn(`No transition for ${state}.${actionType}`);
+      return false;
+    }
+
+    // Check guard
+    if (transition.guard && !transition.guard(context, payload)) {
+      console.warn(`Guard failed for ${state}.${actionType}`);
+      return false;
+    }
+
+    // Execute action if present
+    const contextUpdates = transition.action
+      ? transition.action(context, payload)
+      : payload;
+
+    set({
+      state: transition.target,
+      context: { ...context, ...contextUpdates },
+    });
+
+    return true;
+  },
+
+  // Convenience actions
+  login: (credentials) => get().dispatch('LOGIN', credentials),
+  logout: () => get().dispatch('LOGOUT'),
+}));
+```
+
+---
+
+## 22. Zustand DevTools and Debugging
+
+### Redux DevTools Integration
+
+```jsx
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+const useStore = create(
+  devtools(
+    (set, get) => ({
+      count: 0,
+      name: 'Zustand',
+
+      increment: () =>
+        set(
+          (state) => ({ count: state.count + 1 }),
+          false, // Not replacing state
+          'count/increment' // Action name
+        ),
+
+      decrement: () =>
+        set(
+          (state) => ({ count: state.count - 1 }),
+          false,
+          'count/decrement'
+        ),
+
+      setName: (name) =>
+        set({ name }, false, 'name/set'),
+
+      // Async action with devtools tracking
+      fetchUser: async (id) => {
+        // Track async start
+        set({ isLoading: true }, false, 'user/fetch:start');
+
+        try {
+          const user = await api.getUser(id);
+          set({ user, isLoading: false }, false, 'user/fetch:success');
+        } catch (error) {
+          set(
+            { error: error.message, isLoading: false },
+            false,
+            'user/fetch:error'
+          );
+        }
+      },
+    }),
+    {
+      name: 'MyAppStore',          // Store name in DevTools
+      enabled: true,               // Enable in all environments
+      // enabled: process.env.NODE_ENV === 'development',
+      store: 'my-store',           // Unique store identifier
+    }
+  )
+);
+```
+
+### Advanced Debugging Utilities
+
+```jsx
+// utils/storeDebugger.js
+export function createStoreDebugger(storeName, store) {
+  if (process.env.NODE_ENV === 'production') return {};
+
+  const history = [];
+  const maxHistory = 100;
+
+  // Subscribe to all changes
+  const unsubscribe = store.subscribe(
+    (state) => state, // Select entire state
+    (current, previous) => {
+      const entry = {
+        timestamp: Date.now(),
+        previous,
+        current,
+        diff: computeDiff(previous, current),
+      };
+
+      history.push(entry);
+      if (history.length > maxHistory) history.shift();
+    }
+  );
+
+  return {
+    getHistory: () => [...history],
+
+    getHistoryForKey: (key) =>
+      history
+        .filter((h) => h.diff[key])
+        .map((h) => ({
+          timestamp: h.timestamp,
+          from: h.diff[key].from,
+          to: h.diff[key].to,
+        })),
+
+    getStateAt: (timestamp) => {
+      const entry = history.find((h) => h.timestamp >= timestamp);
+      return entry?.current;
+    },
+
+    replay: (index) => {
+      if (history[index]) {
+        store.setState(history[index].current, true);
+      }
+    },
+
+    export: () => JSON.stringify(history, null, 2),
+
+    import: (data) => {
+      const parsed = JSON.parse(data);
+      history.push(...parsed);
+    },
+
+    destroy: () => unsubscribe(),
+  };
+}
+
+function computeDiff(prev, next) {
+  const diff = {};
+  const allKeys = new Set([...Object.keys(prev), ...Object.keys(next)]);
+  for (const key of allKeys) {
+    if (prev[key] !== next[key]) {
+      diff[key] = { from: prev[key], to: next[key] };
+    }
+  }
+  return diff;
+}
+
+// Usage
+const debugger = createStoreDebugger('myStore', useMyStore);
+
+// In browser console:
+// debugger.getHistory() — see all state changes
+// debugger.getHistoryForKey('user') — see only user changes
+// debugger.replay(5) — restore state to 5th change
+// debugger.export() — export history as JSON
+```
+
+### Store Inspection Component
+
+```jsx
+// components/StoreInspector.jsx — Dev-only component
+'use client';
+
+import { useEffect, useState } from 'react';
+
+export default function StoreInspector({ store, name = 'Store' }) {
+  const [snapshot, setSnapshot] = useState({});
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const unsub = store.subscribe(
+      (state) => state,
+      (state) => setSnapshot(state)
+    );
+    return unsub;
+  }, [store]);
+
+  if (process.env.NODE_ENV === 'production') return null;
+
+  return (
+    <div className="store-inspector">
+      <button onClick={() => setIsOpen(!isOpen)}>
+        🔍 {name} {isOpen ? '▲' : '▼'}
+      </button>
+
+      {isOpen && (
+        <pre className="inspector-content">
+          {JSON.stringify(snapshot, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+// Usage in app
+function App() {
+  return (
+    <>
+      <StoreInspector store={useAuthStore} name="Auth" />
+      <StoreInspector store={useCartStore} name="Cart" />
+      <YourApp />
+    </>
+  );
+}
+```
+
+---
+
+## 23. Optimistic Updates Pattern
+
+### Zustand + React 19 useOptimistic Bridge
+
+```jsx
+// React 19 provides useOptimistic, but Zustand can manage
+// the full optimistic update lifecycle
+
+// stores/useOptimisticStore.js
+import { create } from 'zustand';
+
+export const useOptimisticStore = create((set, get) => ({
+  // ─── State ───
+  items: [],
+  pendingOperations: new Map(), // Track in-flight operations
+
+  // ─── Optimistic Add ───
+  optimisticAdd: (item, operationId) => {
+    const tempId = `temp-${operationId}`;
+
+    // 1. Immediately add to UI
+    set((state) => ({
+      items: [...state.items, { ...item, id: tempId, optimistic: true }],
+      pendingOperations: new Map(state.pendingOperations).set(operationId, {
+        type: 'add',
+        tempId,
+        timestamp: Date.now(),
+      }),
+    }));
+
+    return tempId;
+  },
+
+  // ─── Confirm Operation ───
+  confirmOperation: (operationId, serverItem) => {
+    set((state) => {
+      const pending = state.pendingOperations.get(operationId);
+      if (!pending) return state;
+
+      const newPending = new Map(state.pendingOperations);
+      newPending.delete(operationId);
+
+      // Replace temp item with server-confirmed item
+      return {
+        items: state.items.map((item) =>
+          item.id === pending.tempId
+            ? { ...serverItem, optimistic: false }
+            : item
+        ),
+        pendingOperations: newPending,
+      };
+    });
+  },
+
+  // ─── Rollback Operation ───
+  rollbackOperation: (operationId) => {
+    set((state) => {
+      const pending = state.pendingOperations.get(operationId);
+      if (!pending) return state;
+
+      const newPending = new Map(state.pendingOperations);
+      newPending.delete(operationId);
+
+      return {
+        // Remove the optimistic item
+        items: state.items.filter((item) => item.id !== pending.tempId),
+        pendingOperations: newPending,
+      };
+    });
+  },
+
+  // ─── Optimistic Update ───
+  optimisticUpdate: (id, updates, operationId) => {
+    // Save original for rollback
+    const originalItem = get().items.find((i) => i.id === id);
+
+    set((state) => ({
+      items: state.items.map((item) =>
+        item.id === id ? { ...item, ...updates, optimistic: true } : item
+      ),
+      pendingOperations: new Map(state.pendingOperations).set(operationId, {
+        type: 'update',
+        id,
+        original: originalItem,
+        timestamp: Date.now(),
+      }),
+    }));
+  },
+
+  confirmUpdate: (operationId) => {
+    set((state) => {
+      const newPending = new Map(state.pendingOperations);
+      newPending.delete(operationId);
+
+      return {
+        items: state.items.map((item) =>
+          item.optimistic ? { ...item, optimistic: false } : item
+        ),
+        pendingOperations: newPending,
+      };
+    });
+  },
+
+  rollbackUpdate: (operationId) => {
+    set((state) => {
+      const pending = state.pendingOperations.get(operationId);
+      if (!pending) return state;
+
+      const newPending = new Map(state.pendingOperations);
+      newPending.delete(operationId);
+
+      return {
+        items: state.items.map((item) =>
+          item.id === pending.id ? pending.original : item
+        ),
+        pendingOperations: newPending,
+      };
+    });
+  },
+
+  // ─── Optimistic Delete ───
+  optimisticDelete: (id, operationId) => {
+    const originalItem = get().items.find((i) => i.id === id);
+
+    set((state) => ({
+      items: state.items.filter((item) => item.id !== id),
+      pendingOperations: new Map(state.pendingOperations).set(operationId, {
+        type: 'delete',
+        id,
+        original: originalItem,
+        timestamp: Date.now(),
+      }),
+    }));
+  },
+
+  rollbackDelete: (operationId) => {
+    set((state) => {
+      const pending = state.pendingOperations.get(operationId);
+      if (!pending) return state;
+
+      const newPending = new Map(state.pendingOperations);
+      newPending.delete(operationId);
+
+      // Restore the deleted item
+      return {
+        items: [...state.items, pending.original],
+        pendingOperations: newPending,
+      };
+    });
+  },
+}));
+```
+
+```jsx
+// components/TodoList.jsx
+'use client';
+
+import { useOptimisticStore } from '../stores/useOptimisticStore';
+
+export default function TodoList() {
+  const items = useOptimisticStore((state) => state.items);
+  const optimisticAdd = useOptimisticStore((state) => state.optimisticAdd);
+  const confirmOperation = useOptimisticStore((state) => state.confirmOperation);
+  const rollbackOperation = useOptimisticStore((state) => state.rollbackOperation);
+  const optimisticDelete = useOptimisticStore((state) => state.optimisticDelete);
+  const rollbackDelete = useOptimisticStore((state) => state.rollbackDelete);
+
+  const handleAdd = async (text) => {
+    const operationId = crypto.randomUUID();
+
+    // 1. Optimistically add
+    optimisticAdd({ text, completed: false }, operationId);
+
+    try {
+      // 2. Send to server
+      const serverItem = await api.createTodo({ text });
+
+      // 3. Confirm — replace temp with real
+      confirmOperation(operationId, serverItem);
+    } catch (error) {
+      // 4. Rollback on error
+      rollbackOperation(operationId);
+      toast.error('Failed to add todo');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const operationId = crypto.randomUUID();
+
+    // 1. Optimistically remove
+    optimisticDelete(id, operationId);
+
+    try {
+      await api.deleteTodo(id);
+      // Delete confirmed — nothing more to do
+    } catch (error) {
+      // Rollback — restore the item
+      rollbackDelete(operationId);
+      toast.error('Failed to delete todo');
+    }
+  };
+
+  return (
+    <div>
+      <AddTodoForm onAdd={handleAdd} />
+      <ul>
+        {items.map((item) => (
+          <li
+            key={item.id}
+            className={item.optimistic ? 'opacity-50' : ''}
+          >
+            {item.text}
+            {item.optimistic && <span> (saving...)</span>}
+            <button onClick={() => handleDelete(item.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
+## 24. Advanced TypeScript Patterns
+
+### Generic Store Factory
+
+```tsx
+// stores/createEntityStore.ts
+import { create } from 'zustand';
+
+interface EntityState<T> {
+  items: T[];
+  selectedId: string | null;
+  isLoading: boolean;
+  error: string | null;
+
+  setItems: (items: T[]) => void;
+  addItem: (item: T) => void;
+  updateItem: (id: string, updates: Partial<T>) => void;
+  removeItem: (id: string) => void;
+  selectItem: (id: string | null) => void;
+  setLoading: (isLoading: boolean) => void;
+  setError: (error: string | null) => void;
+
+  getById: (id: string) => T | undefined;
+  getSelected: () => T | undefined;
+}
+
+export function createEntityStore<T extends { id: string }>(name: string) {
+  return create<EntityState<T>>((set, get) => ({
+    items: [],
+    selectedId: null,
+    isLoading: false,
+    error: null,
+
+    setItems: (items) => set({ items }),
+
+    addItem: (item) =>
+      set((state) => ({ items: [...state.items, item] })),
+
+    updateItem: (id, updates) =>
+      set((state) => ({
+        items: state.items.map((item) =>
+          item.id === id ? { ...item, ...updates } : item
+        ),
+      })),
+
+    removeItem: (id) =>
+      set((state) => ({
+        items: state.items.filter((item) => item.id !== id),
+        selectedId: state.selectedId === id ? null : state.selectedId,
+      })),
+
+    selectItem: (id) => set({ selectedId: id }),
+    setLoading: (isLoading) => set({ isLoading }),
+    setError: (error) => set({ error }),
+
+    getById: (id) => get().items.find((item) => item.id === id),
+    getSelected: () =>
+      get().items.find((item) => item.id === get().selectedId),
+  }));
+}
+
+// Usage
+type Product = { id: string; name: string; price: number };
+type User = { id: string; name: string; email: string };
+
+export const useProductStore = createEntityStore<Product>('products');
+export const useUserStore = createEntityStore<User>('users');
+
+// Fully typed!
+function ProductList() {
+  const products = useProductStore((state) => state.items); // Product[]
+  const selected = useProductStore((state) => state.getSelected()); // Product | undefined
+  const updateProduct = useProductStore((state) => state.updateItem); // (id: string, updates: Partial<Product>) => void
+  // ...
+}
+```
+
+### Type-Safe Slice Composition
+
+```tsx
+// stores/types.ts
+type SliceCreator<TSlice, TStore extends TSlice = TSlice> = (
+  set: (fn: (state: TStore) => Partial<TStore>) => void,
+  get: () => TStore
+) => TSlice;
+
+// stores/slices/counterSlice.ts
+type CounterSlice = {
+  count: number;
+  increment: () => void;
+  decrement: () => void;
+};
+
+const createCounterSlice: SliceCreator<CounterSlice> = (set) => ({
+  count: 0,
+  increment: () => set((state) => ({ count: state.count + 1 })),
+  decrement: () => set((state) => ({ count: state.count - 1 })),
+});
+
+// stores/slices/userSlice.ts
+type UserSlice = {
+  user: { name: string } | null;
+  setUser: (user: { name: string }) => void;
+};
+
+const createUserSlice: SliceCreator<UserSlice> = (set) => ({
+  user: null,
+  setUser: (user) => set(() => ({ user })),
+});
+
+// stores/useAppStore.ts
+type AppStore = CounterSlice & UserSlice;
+
+export const useAppStore = create<AppStore>((set, get) => ({
+  ...createCounterSlice(set as any, get as any),
+  ...createUserSlice(set as any, get as any),
+}));
+```
+
+### Conditional Types for Middleware
+
+```tsx
+// Middleware-aware typing
+type DevtoolsConfig = {
+  name?: string;
+  enabled?: boolean;
+};
+
+type PersistConfig<T> = {
+  name: string;
+  partialize?: (state: T) => Partial<T>;
+  version?: number;
+};
+
+function createAdvancedStore<T extends object>(
+  initializer: (set: any, get: any) => T,
+  options: {
+    devtools?: DevtoolsConfig;
+    persist?: PersistConfig<T>;
+  } = {}
+) {
+  let store = create<T>(initializer as any);
+
+  if (options.persist) {
+    store = create<T>(
+      persist(initializer as any, options.persist) as any
+    );
+  }
+
+  if (options.devtools) {
+    store = create<T>(
+      devtools(
+        options.persist
+          ? persist(initializer as any, options.persist) as any
+          : initializer as any,
+        options.devtools
+      ) as any
+    );
+  }
+
+  return store;
+}
+
+// Usage
+const useMyStore = createAdvancedStore(
+  (set) => ({
+    value: 0,
+    setValue: (v: number) => set({ value: v }),
+  }),
+  {
+    devtools: { name: 'MyStore' },
+    persist: { name: 'my-store', version: 1 },
+  }
+);
+```
+
+---
+
+## 25. Production Patterns
+
+### Store Reset Pattern
+
+```jsx
+// stores/useAppStore.js
+const initialState = {
+  user: null,
+  isAuthenticated: false,
+  cart: { items: [], isOpen: false },
+  preferences: { theme: 'light', lang: 'en' },
+  notifications: [],
+};
+
+const useAppStore = create((set, get) => ({
+  ...initialState,
+
+  // Actions
+  setUser: (user) => set({ user, isAuthenticated: !!user }),
+
+  // Reset entire store to initial state
+  reset: () => set(initialState),
+
+  // Reset specific slice
+  resetAuth: () =>
+    set({
+      user: initialState.user,
+      isAuthenticated: initialState.isAuthenticated,
+    }),
+
+  // Reset everything except preferences
+  resetExceptPreferences: () =>
+    set({
+      ...initialState,
+      preferences: get().preferences, // Keep current preferences
+    }),
+}));
+
+// Usage — reset on logout
+function LogoutButton() {
+  const logout = () => {
+    // Clear auth
+    useAuthStore.getState().reset();
+    // Clear cart
+    useCartStore.getState().clearCart();
+    // Reset UI
+    useUIStore.getState().reset();
+  };
+
+  return <button onClick={logout}>Logout</button>;
+}
+```
+
+### State Hydration Pattern
+
+```jsx
+// stores/useHydration.js
+import { useState, useEffect } from 'react';
+
+export function useHydration(store) {
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // Check if store has been rehydrated from storage
+    const unsub = store.persist?.onFinishHydration?.(() => {
+      setHydrated(true);
+    });
+
+    // If no persist or already hydrated
+    if (!store.persist) {
+      setHydrated(true);
+    }
+
+    return () => unsub?.();
+  }, [store]);
+
+  return hydrated;
+}
+
+// Usage in component
+function CartDrawer() {
+  const hydrated = useHydration(useCartStore);
+  const items = useCartStore((state) => state.items);
+  const isOpen = useCartStore((state) => state.isOpen);
+
+  // Show skeleton until hydrated (prevents hydration mismatch)
+  if (!hydrated) {
+    return <CartSkeleton />;
+  }
+
+  return (
+    <aside className={isOpen ? 'open' : ''}>
+      <h2>Cart ({items.length})</h2>
+      {items.map((item) => (
+        <CartItem key={item.id} item={item} />
+      ))}
+    </aside>
+  );
+}
+```
+
+### Store Monitoring and Health Checks
+
+```jsx
+// utils/storeMonitor.js
+class StoreMonitor {
+  metrics = {
+    setCalls: 0,
+    subscriptions: 0,
+    errors: [],
+    performance: [],
+  };
+
+  attach(store, name) {
+    const originalSet = store.setState;
+
+    store.setState = (...args) => {
+      const start = performance.now();
+      this.metrics.setCalls++;
+
+      try {
+        originalSet.apply(store, args);
+      } catch (error) {
+        this.metrics.errors.push({
+          timestamp: Date.now(),
+          error: error.message,
+          store: name,
+        });
+        throw error;
+      }
+
+      const duration = performance.now() - start;
+      this.metrics.performance.push(duration);
+
+      // Keep last 100 measurements
+      if (this.metrics.performance.length > 100) {
+        this.metrics.performance.shift();
+      }
+    };
+
+    return this;
+  }
+
+  getReport() {
+    const perf = this.metrics.performance;
+    return {
+      totalSetCalls: this.metrics.setCalls,
+      averageSetTime: perf.length > 0
+        ? perf.reduce((a, b) => a + b, 0) / perf.length
+        : 0,
+      maxSetTime: perf.length > 0 ? Math.max(...perf) : 0,
+      recentErrors: this.metrics.errors.slice(-10),
+    };
+  }
+
+  reset() {
+    this.metrics = {
+      setCalls: 0,
+      subscriptions: 0,
+      errors: [],
+      performance: [],
+    };
+  }
+}
+
+export const storeMonitor = new StoreMonitor();
+
+// Usage
+if (process.env.NODE_ENV !== 'production') {
+  storeMonitor.attach(useAuthStore, 'auth');
+  storeMonitor.attach(useCartStore, 'cart');
+
+  // Expose to window for debugging
+  window.storeMonitor = storeMonitor;
+  // In console: storeMonitor.getReport()
+}
+```
+
+### Production Store Setup Template
+
+```jsx
+// stores/createProductionStore.js
+import { create } from 'zustand';
+import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+
+export function createProductionStore(name, config, options = {}) {
+  const {
+    persist: persistOptions,
+    devtools: devtoolsOptions = { name },
+    enableDevTools = process.env.NODE_ENV === 'development',
+  } = options;
+
+  let store = subscribeWithSelector(immer(config));
+
+  if (persistOptions) {
+    store = persist(store, {
+      name: `${name}-storage`,
+      ...persistOptions,
+    });
+  }
+
+  if (enableDevTools) {
+    store = devtools(store, devtoolsOptions);
+  }
+
+  return create(store, options);
+}
+
+// Usage
+const useUserStore = createProductionStore(
+  'user',
+  (set, get) => ({
+    profile: null,
+    preferences: {},
+
+    setProfile: (profile) => set({ profile }),
+    updatePreferences: (prefs) =>
+      set((draft) => {
+        draft.preferences = { ...draft.preferences, ...prefs };
+      }),
+  }),
+  {
+    persist: {
+      partialize: (state) => ({
+        preferences: state.preferences,
+      }),
+    },
+  }
+);
+```

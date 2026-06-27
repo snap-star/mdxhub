@@ -1,0 +1,211 @@
+---
+title: Practical Projects
+description: "Practical projects for tRPC and Zod in Tailwind CSS v4 & React 19."
+date: 2026-06-26
+category: "React"
+tags: ["tRPC", "Zod", "React", "Vite"]
+series: "tRPC, Zod & React 19 Guide"
+seriesOrder: 5
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+
+# Part 4: Practical Projects
+
+## Project 1: Full-Stack Task Manager
+
+<Badge variant="orange">Intermediate</Badge>
+
+Build a complete task management app with the following features:
+
+```typescript
+// Complete router implementation
+export const taskRouter = router({
+  // Board CRUD
+  board: router({
+    list: authedProcedure.query(async ({ ctx }) => {
+      return db.board.findMany({
+        where: { ownerId: ctx.user.id },
+        include: { 
+          _count: { select: { tasks: true } } 
+        },
+      });
+    }),
+
+    create: authedProcedure
+      .input(z.object({ name: z.string().min(1).max(100), color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        return db.board.create({
+          data: { ...input, ownerId: ctx.user.id },
+        });
+      }),
+  }),
+
+  // Task CRUD with drag-and-drop
+  task: router({
+    list: authedProcedure
+      .input(z.object({ boardId: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        return db.task.findMany({
+          where: { boardId: input.boardId, board: { ownerId: ctx.user.id } },
+          orderBy: { position: 'asc' },
+        });
+      }),
+
+    create: authedProcedure
+      .input(z.object({
+        boardId: z.string().uuid(),
+        title: z.string().min(1).max(200),
+        description: z.string().max(5000).optional(),
+        status: z.enum(['todo', 'in-progress', 'done']).default('todo'),
+        priority: z.enum(['low', 'medium', 'high']).default('medium'),
+        dueDate: z.coerce.date().optional(),
+        assigneeId: z.string().uuid().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Get max position for the status column
+        const lastTask = await db.task.findFirst({
+          where: { boardId: input.boardId, status: input.status },
+          orderBy: { position: 'desc' },
+        });
+
+        return db.task.create({
+          data: {
+            ...input,
+            position: (lastTask?.position ?? 0) + 1,
+          },
+        });
+      }),
+
+    // Drag and drop reordering
+    reorder: authedProcedure
+      .input(z.object({
+        taskId: z.string().uuid(),
+        newStatus: z.enum(['todo', 'in-progress', 'done']),
+        newPosition: z.number().int().min(0),
+      }))
+      .mutation(async ({ input }) => {
+        return db.$transaction(async (tx) => {
+          // Update all affected positions
+          await tx.task.updateMany({
+            where: { 
+              status: input.newStatus,
+              position: { gte: input.newPosition },
+            },
+            data: { position: { increment: 1 } },
+          });
+
+          await tx.task.update({
+            where: { id: input.taskId },
+            data: {
+              status: input.newStatus,
+              position: input.newPosition,
+            },
+          });
+        });
+      }),
+
+    search: authedProcedure
+      .input(z.object({
+        boardId: z.string().uuid(),
+        query: z.string().min(1),
+        filters: z.object({
+          status: z.array(z.enum(['todo', 'in-progress', 'done'])).optional(),
+          priority: z.array(z.enum(['low', 'medium', 'high'])).optional(),
+          assigneeId: z.array(z.string().uuid()).optional(),
+        }).optional(),
+      }))
+      .query(async ({ input }) => {
+        return db.task.findMany({
+          where: {
+            boardId: input.boardId,
+            title: { contains: input.query, mode: 'insensitive' },
+            ...input.filters,
+          },
+        });
+      }),
+  }),
+});
+```
+
+---
+
+## Project 2: Real-Time Collaborative Editor
+
+<Badge variant="red">Expert</Badge>
+
+```typescript
+// Server: Operational Transform router
+export const documentRouter = router({
+  // Real-time collaboration via WebSocket
+  onChange: authedProcedure
+    .input(z.object({ documentId: z.string().uuid() }))
+    .subscription(({ ctx, input }) => {
+      return observable<DocumentChange>((emit) => {
+        const room = getOrCreateRoom(input.documentId);
+        
+        const handler = (change: DocumentChange) => {
+          // Only emit changes from other users
+          if (change.userId !== ctx.user.id) {
+            emit.next(change);
+          }
+        };
+        
+        room.on('change', handler);
+        
+        return () => room.off('change', handler);
+      });
+    }),
+
+  applyOperation: authedProcedure
+    .input(z.object({
+      documentId: z.string().uuid(),
+      operation: z.object({
+        type: z.enum(['insert', 'delete', 'retain']),
+        position: z.number().int().min(0),
+        content: z.string().optional(),
+        length: z.number().int().min(1).optional(),
+      }),
+      version: z.number().int().min(0), // Document version for OT
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const room = getOrCreateRoom(input.documentId);
+      
+      // Transform operation against concurrent operations
+      const transformed = room.transform(input.operation, input.version);
+      
+      // Apply to document
+      const newVersion = await room.apply(transformed, ctx.user.id);
+      
+      // Broadcast to all subscribers
+      room.broadcast({
+        type: 'change',
+        operation: transformed,
+        version: newVersion,
+        userId: ctx.user.id,
+      });
+      
+      return { version: newVersion };
+    }),
+
+  // Cursor presence
+  updateCursor: authedProcedure
+    .input(z.object({
+      documentId: z.string().uuid(),
+      position: z.number().int().min(0),
+      selection: z.object({ start: z.number(), end: z.number() }).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const room = getOrCreateRoom(input.documentId);
+      room.updateCursor(ctx.user.id, {
+        position: input.position,
+        selection: input.selection,
+        color: ctx.user.color,
+        name: ctx.user.name,
+      });
+      return { success: true };
+    }),
+});
+```

@@ -1,0 +1,108 @@
+---
+title: Common Pitfalls & Solutions
+description: "Learn common Tailwind CSS v4 & React 19 pitfalls, and find solutions to avoid them."
+date: 2026-06-27
+category: "Tailwindcss"
+tags: ["Tailwindcss", "React 19"]
+series: "Tailwind CSS v4 & React 19"
+seriesOrder: 7
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## 1. Class Conflict Resolution
+
+```tsx
+// WRONG: Duplicate/conflicting classes
+<div className="p-4 p-6">     {/* p-4 is ignored, but order is unpredictable */}
+<div className="px-4 px-6">   {/* px-6 wins (last), but don't rely on this */}
+
+// RIGHT: Use cn() (tailwind-merge)
+<div className={cn('p-4', isLarge && 'p-6')}>
+  {/* cn resolves conflicts — p-6 wins when isLarge is true */}
+</div>
+```
+
+## 2. Arbitrary Value Abuse
+
+```tsx
+// WRONG: Using arbitrary values for things in the default scale
+<div className="w-[100%]">    {/* Use w-full instead */}
+<div className="p-[1rem]">    {/* Use p-4 instead (1rem = 4 units) */}
+<div className="text-[red]">  {/* Use text-red-500 instead */}
+
+// RIGHT: Use the design system
+<div className="w-full p-4 text-red-500">
+  {/* Consistent, maintainable, and theme-aware */}
+</div>
+
+// Arbitrary values are for ONE-OFF cases:
+<div className="w-[420px]">   {/* Custom width not in scale */}
+<div className="top-[calc(100%+8px)]"> {/* Calculated position */}
+```
+
+## 3. Responsive Design Mistakes
+
+```tsx
+// WRONG: Desktop-first approach
+<div className="lg:w-1/3 w-full"> {/* Works but harder to maintain */}
+
+// RIGHT: Mobile-first
+<div className="w-full lg:w-1/3"> {/* Start mobile, add breakpoints */}
+
+// WRONG: Over-specifying
+<div className="text-sm sm:text-sm md:text-sm lg:text-lg">
+  {/* Redundant — only specify where it changes */}
+</div>
+
+// RIGHT: Minimal specification
+<div className="text-sm lg:text-lg">
+  {/* text-sm applies to mobile, tablet, desktop */}
+  {/* lg:text-lg only overrides at lg+ */}
+</div>
+```
+
+## 4. Missing `shrink-0` on Icons
+
+```tsx
+// WRONG: Icons shrink in flex containers
+<div className="flex items-center gap-2">
+  <Icon className="h-5 w-5" />  {/* Icon shrinks if text is long! */}
+  <span>Long text that might cause issues</span>
+</div>
+
+// RIGHT: Prevent icon shrinking
+<div className="flex items-center gap-2">
+  <Icon className="h-5 w-5 shrink-0" />  {/* Icon keeps its size */}
+  <span>Long text that might cause issues</span>
+</div>
+```
+
+## 5. Server vs Client Component Confusion
+
+```tsx
+// WRONG: Using browser APIs in Server Components
+export function ServerComponent() {
+  const [count, setCount] = useState(0); // ❌ Can't use hooks in RSC!
+  return <div>{count}</div>;
+}
+
+// RIGHT: Split into Server and Client parts
+// ServerComponent.tsx — data fetching, static layout
+export async function ServerComponent() {
+  const data = await fetchData();
+  return (
+    <div>
+      <h1>{data.title}</h1>
+      <ClientCounter initial={data.count} /> {/* Client part */}
+    </div>
+  );
+}
+
+// ClientCounter.tsx — interactive part
+'use client';
+export function ClientCounter({ initial }: { initial: number }) {
+  const [count, setCount] = useState(initial); // ✓ Hooks work here
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+}
+```

@@ -1,0 +1,98 @@
+---
+title: "The Complete Guide to tRPC, Zod & React 19"
+description: "A complete guide to tRPC v11, Zod v3.24+, and React 19, covering the fundamentals to advanced topics."
+date: 2026-06-26
+category: "React"
+tags: ["tRPC", "Zod", "React", "Vite"]
+series: "tRPC, Zod & React 19 Guide"
+seriesOrder: 1
+coverImage: 
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## What This Guide Covers
+
+This guide is your comprehensive journey through **tRPC v11**, **Zod v3.24+**, and **React 19** — three technologies that, when combined, create a developer experience that feels like magic. We progress from absolute fundamentals through production-grade architecture patterns.
+
+### The Stack
+| Technology | Role | Why It Matters |
+|-----------|------|----------------|
+| **tRPC v11** | Type-safe API layer | End-to-end types without code generation |
+| **Zod v3.24+** | Schema validation | Runtime safety with inferred TypeScript types |
+| **React 19** | UI framework | Server Components, Actions, and Suspense integration |
+| **TanStack Query v5** | Data fetching | The engine behind tRPC's React hooks |
+| **TypeScript 5.7+** | Type system | The glue that makes everything work |
+
+### The Philosophy: Type Safety as a Feature
+
+Before we write code, understand this: **tRPC doesn't just add types to your API — it eliminates an entire class of bugs and cognitive overhead.** When your frontend and backend share types:
+
+- **No more API documentation drift** — types ARE the documentation
+- **No more `as any` to silence TypeScript** — the types flow from your database to your UI
+- **Refactoring becomes fearless** — change a field name, and every usage breaks immediately
+- **Autocompletion becomes telepathy** — your editor knows what's available before you do
+
+### How to Read This Guide
+
+We use a **level badge system** to indicate difficulty:
+
+<Badge variant="green">Junior</Badge> — Fundamental concepts, first-time setup, basic usage  
+<Badge variant="orange">Intermediate</Badge> — Patterns, configuration, real-world scenarios  
+<Badge variant="red">Expert</Badge> — Architecture, performance, edge cases, production concerns  
+
+Each section builds on the previous. Junior sections must be mastered before Intermediate. Intermediate patterns are assumed knowledge in Expert sections.
+
+## Prerequisites Checklist
+
+Before starting, ensure you're comfortable with:
+
+- [x] TypeScript basics (generics, utility types, `infer` keyword)
+- [x] React fundamentals (hooks, components, state management)
+- [x] Node.js and npm/pnpm/bun package management
+- [x] Basic understanding of HTTP and REST concepts
+- [x] React Server Components concept (new in React 19)
+
+## Glossary
+
+| Term | Definition |
+|------|------------|
+| **tRPC** | TypeScript RPC — end-to-end typesafe APIs |
+| **Zod** | TypeScript-first schema validation with static type inference |
+| **Procedure** | A tRPC endpoint (query, mutation, or subscription) |
+| **Router** | A collection of procedures, organized hierarchically |
+| **Middleware** | Functions that run before/after procedures, can modify context |
+| **Context** | Shared data passed to all procedures (user, db, etc.) |
+| **Input** | Validated input data for a procedure |
+| **Output** | Validated response data from a procedure |
+| **Batching** | Combining multiple requests into a single HTTP request |
+| **Subscription** | Real-time data flow using WebSocket or SSE |
+| **Hydration** | Passing server-fetched data to client-side React |
+| **Optimistic Update** | Updating UI before server confirmation for perceived speed |
+
+## Resources & Further Reading
+
+## Official Documentation
+- [tRPC Documentation](https://trpc.io/docs)
+- [Zod Documentation](https://zod.dev)
+- [React 19 Documentation](https://react.dev)
+- [TanStack Query Documentation](https://tanstack.com/query/latest)
+
+## Community
+- [tRPC Discord](https://trpc.io/discord)
+- [Zod GitHub Discussions](https://github.com/colinhacks/zod/discussions)
+- [Awesome tRPC](https://github.com/trpc/awesome-trpc)
+
+## Related Tools
+- **Prisma**: Type-safe database ORM — pairs perfectly with tRPC
+- **Next.js**: Full-stack React framework with tRPC integration
+- **Drizzle**: Lightweight ORM alternative
+- **SuperJSON**: Handles Date, Map, Set, BigInt serialization in tRPC
+- **Zod Prisma**: Generate Zod schemas from Prisma models
+
+---
+<Callout type="warning" title="Read Me">
+*This guide is a living document. The tRPC, Zod, and React ecosystems evolve rapidly. Always check the official documentation for the latest APIs and best practices.*
+</Callout>
+
+<Badge variant="info">Last updated: June 2026</Badge>

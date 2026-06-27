@@ -1,0 +1,103 @@
+---
+title: Common Problems
+description: "Common common problems with tRPC and Zod."
+date: 2026-06-26
+category: "React"
+tags: ["tRPC", "Zod", "React", "Vite"]
+series: "tRPC, Zod & React 19 Guide"
+seriesOrder: 6
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+
+# Part 5: Common Pitfalls & Solutions
+
+## 1. The `undefined` vs `null` Trap
+
+```typescript
+// WRONG: Prisma returns null, Zod optional expects undefined
+const schema = z.object({
+  bio: z.string().optional(), // undefined | string
+});
+
+// Prisma returns: { bio: null }
+// Zod fails because null is not undefined!
+
+// RIGHT: Use nullable or transform
+const schema = z.object({
+  bio: z.string().nullable(), // null | string
+});
+
+// OR transform null to undefined
+const schema = z.object({
+  bio: z.string().nullish().transform((v) => v ?? undefined),
+});
+```
+
+## 2. Circular Dependencies
+
+```typescript
+// WRONG: Creates circular import
+// user.ts imports post.ts, post.ts imports user.ts
+
+// RIGHT: Use type imports and lazy loading
+import type { AppRouter } from './_app'; // type-only import
+
+// Or define shared schemas in a separate file
+// schemas.ts — no router imports
+export const userSchema = z.object({ /* ... */ });
+export const postSchema = z.object({ /* ... */ });
+
+// Then import schemas in router files
+```
+
+## 3. Batch Link Misconfiguration
+
+```typescript
+// WRONG: Each query is a separate HTTP request
+const client = trpc.createClient({
+  links: [httpLink({ url: '/api/trpc' })], // No batching!
+});
+
+// RIGHT: Use httpBatchLink for automatic request batching
+const client = trpc.createClient({
+  links: [
+    httpBatchLink({ 
+      url: '/api/trpc',
+      maxURLLength: 2083, // Split into multiple requests if URL too long
+    }),
+  ],
+});
+```
+
+## 4. Missing `useUtils()` Call
+
+```typescript
+// WRONG: Calling invalidate on the hook
+const { invalidate } = trpc.user.list; // ❌ This doesn't work!
+
+// RIGHT: Use useUtils()
+const utils = trpc.useUtils();
+utils.user.list.invalidate(); // ✓ This works!
+```
+
+## 5. Server Component Direct Calls
+
+```typescript
+// WRONG: Using useQuery in a Server Component
+// (Server Components can't use hooks!)
+
+// RIGHT: Use the caller directly
+import { createCaller } from '@/server/routers';
+
+export default async function Page() {
+  const caller = createCaller({ user: null });
+  const data = await caller.user.list();
+  
+  return <div>{JSON.stringify(data)}</div>;
+}
+
+// RIGHT: Or use HydrationBoundary for interactive pages
+```

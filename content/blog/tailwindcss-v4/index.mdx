@@ -1,0 +1,78 @@
+---
+title: "The Complete Guide to Tailwind CSS v4 & React 19"
+description: "A complete guide to Tailwind CSS v4 & React 19, covering the fundamentals to advanced topics."
+date: 2026-06-26
+category: "Tailwindcss"
+tags: ["tailwindcss", "react", "vite"]
+series: "Tailwind CSS v4 & React 19"
+seriesOrder: 1
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+
+# Performance Checklist
+
+- [ ] Use `@import "tailwindcss"` (v4) over individual directives
+- [ ] Limit theme colors to only what your design uses
+- [ ] Use the Vite plugin instead of PostCSS when possible
+- [ ] Self-host fonts with `font-display: swap`
+- [ ] Mark non-interactive components as Server Components
+- [ ] Use `will-change` sparingly on animated elements
+- [ ] Implement `content-visibility: auto` for off-screen sections
+- [ ] Use `contain: layout` for performance-isolated components
+- [ ] Prefer CSS transitions over JS animations
+- [ ] Use `@media (prefers-reduced-motion)` for accessibility
+
+---
+
+# Glossary
+
+| Term | Definition |
+|------|------------|
+| **Utility-first** | Building interfaces using small, single-purpose CSS classes |
+| **Design token** | Named values (colors, spacing) that define a design system |
+| **Breakpoint** | Screen width threshold for responsive design changes |
+| **Container query** | Responsive styling based on a container's width, not viewport |
+| **Arbitrary value** | Custom value in square brackets: `w-[420px]` |
+| **`@theme`** | Tailwind v4 directive for defining design tokens in CSS |
+| **`@utility`** | Tailwind v4 directive for creating custom utility classes |
+| **`@variant`** | Tailwind v4 directive for registering custom state modifiers |
+| **`cn()`** | Utility combining `clsx` and `tailwind-merge` for class merging |
+| **CVA** | class-variance-authority — library for component variant management |
+| **Server Component** | React component that renders on the server (React 19) |
+| **Client Component** | React component that hydrates and runs in the browser |
+| **Dark mode** | Interface theme optimized for low-light environments |
+| **Semantic color** | Color named by purpose (success, error) not appearance (green, red) |
+| **Tree-shaking** | Build optimization that removes unused CSS |
+
+---
+
+# Resources & Further Reading
+
+## Official Documentation
+- [Tailwind CSS v4 Documentation](https://tailwindcss.com/docs)
+- [React 19 Documentation](https://react.dev)
+- [Radix UI Primitives](https://www.radix-ui.com) — Headless UI components
+- [shadcn/ui](https://ui.shadcn.com) — Component library built on Tailwind
+
+## Tools
+- **Tailwind CSS IntelliSense** — VS Code extension for autocomplete
+- **Tailwind CSS Play** — Browser-based playground
+- **Windy** — Convert HTML to Tailwind classes
+- **class-variance-authority** — Type-safe component variants
+- **tailwind-merge** — Resolve conflicting Tailwind classes
+- **clsx** — Conditional class joining
+
+## Color Tools
+- [Tailwind Color Palette](https://tailwindcss.com/docs/customizing-colors)
+- [UI Colors](https://uicolors.app) — Generate Tailwind-compatible color scales
+- [Radix Colors](https://www.radix-ui.com/colors) — Accessible color system
+
+---
+<Callout type="warning" title="Read me">
+*This guide is a living document. Tailwind CSS v4 and React 19 evolve rapidly. Always check the official documentation for the latest APIs and best practices.*
+</Callout>
+
+<Badge variant="info" icon="info">Last updated: June 2026</Badge>

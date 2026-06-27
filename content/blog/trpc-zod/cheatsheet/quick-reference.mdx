@@ -1,0 +1,105 @@
+---
+title: Quick Reference Card
+description: A quick reference card for Zod and tRPC in Tailwind CSS v4 & React 19.
+date: 2026-06-26
+category: "React"
+tags: ["tRPC", "Zod", "React", "Vite"]
+series: "tRPC, Zod & React 19 Guide"
+seriesOrder: 7
+coverImage:
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+# Quick Reference Card
+
+## Zod Cheat Sheet
+
+| Pattern | Code |
+|---------|------|
+| String | `z.string()` |
+| Email | `z.string().email()` |
+| Number | `z.number().int().positive()` |
+| Boolean | `z.boolean().default(true)` |
+| Enum | `z.enum(['a', 'b'])` |
+| Optional | `z.string().optional()` |
+| Nullable | `z.string().nullable()` |
+| Array | `z.array(z.string()).min(1).max(10)` |
+| Object | `z.object({ name: z.string() })` |
+| Union | `z.string().or(z.number())` |
+| Coerce | `z.coerce.number()` |
+| Transform | `z.string().transform(s => s.trim())` |
+| Refine | `z.string().refine(s => s.length > 5)` |
+| Branded | `z.string().brand<'UserId'>()` |
+
+## tRPC Cheat Sheet
+
+| Pattern | Code |
+|---------|------|
+| Query | `publicProcedure.input(schema).query(async ({ input }) => { ... })` |
+| Mutation | `publicProcedure.input(schema).mutation(async ({ input }) => { ... })` |
+| Subscription | `publicProcedure.input(schema).subscription(({ input }) => observable(...))` |
+| Middleware | `const mw = t.middleware(async ({ ctx, next }) => { ...; return next() })` |
+| Use middleware | `t.procedure.use(mw)` |
+| Client query | `trpc.path.useQuery({ input })` |
+| Client mutation | `trpc.path.useMutation()` |
+| Prefetch | `utils.path.prefetch({ input })` |
+| Invalidate | `utils.path.invalidate()` |
+| Set data | `utils.path.setData({ input }, updater)` |
+| Optimistic update | `onMutate: async () => { utils.path.cancel(); utils.path.setData(...) }` |
+
+## React 19 + tRPC Cheat Sheet
+
+| Pattern | Code |
+|---------|------|
+| Server Component fetch | `const caller = createCaller(ctx); const data = await caller.path.query()` |
+| Hydration | `<HydrationBoundary state={dehydrate(queryClient)}>` |
+| Action + Zod | `useActionState(async (prev, formData) => { schema.safeParse(...) })` |
+| Parallel queries | `const a = trpc.a.useQuery(); const b = trpc.b.useQuery();` |
+| Dependent queries | `const a = trpc.a.useQuery(); const b = trpc.b.useQuery(input, { enabled: a.isSuccess })` |
+
+---
+
+# Migration Guides
+
+## Migrating from REST to tRPC
+
+1. **Phase 1**: Keep existing REST endpoints, add tRPC alongside
+2. **Phase 2**: Migrate read operations (Queries) first
+3. **Phase 3**: Migrate write operations (Mutations)
+4. **Phase 4**: Deprecate REST, remove after validation
+
+## Migrating from tRPC v10 to v11
+
+```typescript
+// v10 syntax (still works in v11 with compat layer)
+const appRouter = router({
+  greeting: publicProcedure
+    .input(z.string())
+    .query(({ input }) => `Hello ${input}`),
+});
+
+// v11 syntax (recommended)
+const appRouter = router({
+  greeting: publicProcedure
+    .input(z.string())
+    .query(async ({ input }) => `Hello ${input}`), // async preferred
+});
+
+// v11: New features
+// - Improved batching
+// - Better subscription support
+// - Enhanced middleware composition
+// - React 19 compatibility
+```
+
+# Performance Benchmarks
+
+| Scenario | REST | tRPC + Zod | Improvement |
+|----------|------|------------|-------------|
+| Type safety | Manual | End-to-end | 100% coverage |
+| Refactoring | Error-prone | Type-safe | Zero runtime errors |
+| Bundle size | N/A | ~12kb gzipped | Minimal overhead |
+| Request latency | Baseline | +0-2ms | Negligible |
+| Developer velocity | Baseline | +40% estimated | Faster iteration |
+| Bug reduction | Baseline | -60% estimated | Fewer type errors |

@@ -1,0 +1,155 @@
+---
+title: Quick Reference Card
+description: "A quick reference card for Tailwind CSS v4 & React 19 utilities."
+date: 2026-06-27
+category: "Tailwindcss"
+tags: ["Tailwindcss", "React 19"]
+series: "Tailwind CSS v4 & React 19"
+seriesOrder: 8
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## Utility Categories
+
+| Category | Prefix | Example |
+|----------|--------|---------|
+| Layout | `block`, `flex`, `grid`, `hidden` | `flex items-center` |
+| Spacing | `p-`, `m-`, `gap-`, `space-` | `p-4 gap-2` |
+| Sizing | `w-`, `h-`, `min-w-`, `max-h-` | `w-full h-screen` |
+| Typography | `text-`, `font-`, `leading-`, `tracking-` | `text-lg font-bold` |
+| Colors | `bg-`, `text-`, `border-`, `fill-` | `bg-blue-500 text-white` |
+| Borders | `border`, `rounded`, `divide-` | `border rounded-lg` |
+| Effects | `shadow`, `opacity`, `blur-` | `shadow-lg opacity-50` |
+| Transforms | `rotate-`, `scale-`, `translate-` | `hover:scale-105` |
+| Transitions | `transition-`, `duration-`, `ease-` | `transition-all duration-300` |
+| Interactivity | `cursor-`, `select-`, `pointer-events-` | `cursor-pointer select-none` |
+
+## Responsive Prefixes
+
+| Prefix | Min Width | CSS |
+|--------|-----------|-----|
+| (none) | 0px | Default |
+| `sm:` | 640px | `@media (min-width: 640px)` |
+| `md:` | 768px | `@media (min-width: 768px)` |
+| `lg:` | 1024px | `@media (min-width: 1024px)` |
+| `xl:` | 1280px | `@media (min-width: 1280px)` |
+| `2xl:` | 1536px | `@media (min-width: 1536px)` |
+
+## Container Query Prefixes (v4)
+
+| Prefix | Container Width |
+|--------|----------------|
+| `@xs:` | 20rem (320px) |
+| `@sm:` | 24rem (384px) |
+| `@md:` | 28rem (448px) |
+| `@lg:` | 32rem (512px) |
+| `@xl:` | 36rem (576px) |
+| `@2xl:` | 42rem (672px) |
+
+## State Modifiers
+
+| Modifier | Trigger |
+|----------|---------|
+| `hover:` | Mouse hover |
+| `focus:` | Element focused |
+| `focus-visible:` | Keyboard focus |
+| `active:` | Mouse down |
+| `disabled:` | Element disabled |
+| `checked:` | Input checked |
+| `first:` | First child |
+| `last:` | Last child |
+| `odd:` | Odd child |
+| `even:` | Even child |
+| `empty:` | No children |
+
+## Spacing Scale
+
+| Token | Value | Token | Value |
+|-------|-------|-------|-------|
+| 0.5 | 0.125rem (2px) | 8 | 2rem (32px) |
+| 1 | 0.25rem (4px) | 10 | 2.5rem (40px) |
+| 2 | 0.5rem (8px) | 12 | 3rem (48px) |
+| 3 | 0.75rem (12px) | 16 | 4rem (64px) |
+| 4 | 1rem (16px) | 20 | 5rem (80px) |
+| 5 | 1.25rem (20px) | 24 | 6rem (96px) |
+| 6 | 1.5rem (24px) | 32 | 8rem (128px) |
+
+---
+
+# Migration Guides
+
+## Migrating from Tailwind CSS v3 to v4
+
+| Change | v3 | v4 |
+|--------|-----|-----|
+| Import | `@tailwind base; @tailwind components; @tailwind utilities;` | `@import "tailwindcss";` |
+| Config file | `tailwind.config.js` | `styles.css` with `@theme` |
+| Custom utilities | `addUtilities()` in JS | `@utility` in CSS |
+| Custom variants | `addVariant()` in JS | `@variant` in CSS |
+| Container queries | `@tailwindcss/container-queries` plugin | Built-in with `@` prefix |
+| Theme values | `theme.extend.colors` | `--color-*` in `@theme` |
+
+### Step-by-Step Migration
+
+```bash
+# 1. Update package
+npm install tailwindcss@latest @tailwindcss/vite@latest
+
+# 2. Replace imports in CSS
+# OLD: @tailwind base; @tailwind components; @tailwind utilities;
+# NEW: @import "tailwindcss";
+
+# 3. Move config to CSS
+# OLD: tailwind.config.js with theme.extend
+# NEW: @theme { --color-brand: #3b82f6; } in CSS
+
+# 4. Update custom utilities
+# OLD: plugin(function({ addUtilities }) { ... })
+# NEW: @utility custom { ... }
+
+# 5. Update Vite config
+# Remove: import tailwindcss from '@tailwindcss/postcss'
+# Use:    import tailwindcss from '@tailwindcss/vite'
+```
+
+## File Structure Template
+
+```
+my-app/
+├── src/
+│   ├── styles/
+│   │   └── globals.css           # Tailwind imports + theme + custom utilities
+│   ├── components/
+│   │   ├── ui/                   # Primitive components (Button, Input, Card)
+│   │   │   ├── button.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── dropdown.tsx
+│   │   │   └── index.ts
+│   │   ├── layout/               # Layout components
+│   │   │   ├── app-shell.tsx
+│   │   │   ├── sidebar.tsx
+│   │   │   ├── header.tsx
+│   │   │   └── footer.tsx
+│   │   └── providers/            # Context providers
+│   │       └── theme-provider.tsx
+│   ├── lib/
+│   │   └── utils.ts              # cn() utility
+│   ├── hooks/
+│   │   ├── use-theme.ts
+│   │   └── use-media-query.ts
+│   ├── app/                      # Next.js App Router (or pages/)
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   └── globals.css
+│   └── main.tsx                  # Vite entry point
+├── public/
+│   └── fonts/
+├── index.html
+├── vite.config.ts
+├── package.json
+└── tsconfig.json
+```

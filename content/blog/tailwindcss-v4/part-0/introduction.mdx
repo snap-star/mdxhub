@@ -1,0 +1,67 @@
+---
+title: Introduction & Philosophy
+description: "Learn the basics of Tailwind CSS v4 and React 19, and understand the core principles behind this utility-first CSS framework."
+date: 2026-06-27
+category: "Tailwindcss"
+tags: ["Tailwindcss", "React 19"]
+series: "Tailwind CSS v4 & React 19"
+seriesOrder: 2
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+---
+
+## What This Guide Covers
+
+This guide is your comprehensive journey through **Tailwind CSS v4** and **React 19** — two technologies that redefine how we build modern user interfaces. We progress from absolute fundamentals through production-grade design system architecture.
+
+### The Stack
+| Technology | Role | Why It Matters |
+|-----------|------|----------------|
+| **Tailwind CSS v4** | Utility-first CSS framework | CSS-first configuration, zero-build tooling, modern CSS native |
+| **React 19** | UI library | Server Components, Actions, enhanced Suspense |
+| **TypeScript 5.7+** | Type safety | Autocomplete for Tailwind classes via IntelliSense |
+| **PostCSS / Vite** | Build tooling | Lightning-fast compilation with the Tailwind Vite plugin |
+
+### Tailwind CSS v4: What's New
+
+Tailwind CSS v4 is a **ground-up rewrite** that fundamentally changes how you configure and use the framework:
+
+| Feature | v3 (Old) | v4 (New) |
+|---------|----------|----------|
+| Configuration | `tailwind.config.js` | CSS-first via `@theme` |
+| Imports | `@tailwind base/components/utilities` | `@import "tailwindcss"` |
+| Custom utilities | JavaScript plugins | `@utility` in CSS |
+| Custom variants | JavaScript API | `@variant` in CSS |
+| Container queries | Plugin required | Built-in |
+| Browser support | Modern | Leverages latest CSS |
+
+### The Philosophy: CSS-First Configuration
+
+**In v4, your CSS file IS your configuration.** Instead of maintaining a separate JavaScript config file, you define everything directly in your stylesheet. This means:
+
+- **No separate build step** for configuration changes — just CSS
+- **Native CSS features** like `@property`, `@layer`, and `@supports`
+- **Simpler mental model** — one file for all styling concerns
+- **Better IDE support** — standard CSS syntax highlighting everywhere
+
+### How to Read This Guide
+
+We use a **level badge system** to indicate difficulty:
+
+<Badge variant="green">Junior</Badge> — Fundamental concepts, first-time setup, basic utilities  
+<Badge variant="orange">Intermediate</Badge> — Patterns, design systems, real-world scenarios  
+<Badge variant="red">Expert</Badge> — Architecture, performance, plugins, production concerns  
+
+Each section builds on the previous. Junior sections must be mastered before Intermediate. Intermediate patterns are assumed knowledge in Expert sections.
+
+---
+
+## Prerequisites Checklist
+
+Before starting, ensure you're comfortable with:
+
+- [x] HTML and CSS fundamentals (box model, flexbox, positioning)
+- [x] TypeScript basics (types, interfaces)
+- [x] React fundamentals (components, hooks, JSX)
+- [x] Basic command line and npm/pnpm package management
+- [x] React Server Components concept (new in React 19) 
