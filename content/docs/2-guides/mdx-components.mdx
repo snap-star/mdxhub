@@ -3,11 +3,256 @@ title: "MDX Components Reference"
 section: "2. Guides"
 order: 30
 version: "v1.0"
-description: "Complete reference for all globally available MDX components — Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, and the image lightbox."
+description: "Complete reference for all globally available MDX components — Tabs, Steps, Mermaid, Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, and the image lightbox."
 next: "docs/guides/installation"
 ---
 
 This project registers a set of custom React components that are **globally available** in every `.md` and `.mdx` file — no imports needed. This page documents every component and its usage.
+
+---
+
+## Tabs
+
+The `<Tabs>` component creates a tabbed interface for switching between content panels. Ideal for showing the same code example across multiple package managers, languages, or environments without duplicating content.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `defaultIndex` | number | `0` | Which tab is active by default (0-based) |
+| `variant` | string | `"underline"` | Visual style: `underline` or `pills` |
+| `children` | Tab[] | — | One or more `<Tab>` components |
+
+Each `<Tab>` accepts:
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `label` | string | — | Label shown in the tab header |
+| `icon` | string | — | Optional icon name (see Badge icon table) |
+| `children` | ReactNode | — | Content shown when this tab is active |
+
+### Usage
+
+````mdx
+<Tabs>
+<Tab label="npm">
+  ```bash
+  npm install mermaid
+  ```
+</Tab>
+<Tab label="pnpm" icon="zap">
+  ```bash
+  pnpm add mermaid
+  ```
+</Tab>
+<Tab label="yarn">
+  ```bash
+  yarn add mermaid
+  ```
+</Tab>
+</Tabs>
+````
+
+### Pills Variant
+
+Use `variant="pills"` for a filled button-style tab bar:
+
+```mdx
+<Tabs variant="pills">
+<Tab label="TypeScript">// TypeScript code here</Tab>
+<Tab label="JavaScript">// JavaScript code here</Tab>
+</Tabs>
+```
+
+### Keyboard Navigation
+
+- **Arrow Left / Arrow Right** — switch between tabs
+- Tabs use a **roving tab index** for proper accessibility
+
+---
+
+## Steps
+
+The `<Steps>` component renders a numbered step-by-step guide with connecting lines and styled step indicators. Use the `<Step>` sub-component for each step.
+
+### Props
+
+#### `<Steps>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `children` | Step[] | — | One or more `<Step>` components |
+
+#### `<Step>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `title` | string | — | Step heading displayed in bold |
+| `icon` | string | — | Optional icon name (see Badge icon table) |
+| `children` | ReactNode | — | Step body content (Markdown, code, etc.) |
+
+### Usage
+
+Use a `<Step>` for each step with a `title`. Wrap block-level Markdown (code blocks, lists) inside a `<div>`:
+
+````mdx
+<Steps>
+<Step title="Install Dependencies">
+<div>
+
+Run `pnpm install` to install all project dependencies.
+This includes React, Vite, MDX, and all plugins.
+
+</div>
+</Step>
+<Step title="Configure Your Theme" icon="settings">
+<div>
+
+Open `src/index.css` and customize the color palette
+to match your brand. The project uses OKLCH color
+spaces via TailwindCSS v4.
+
+</div>
+</Step>
+<Step title="Start the Dev Server">
+<div>
+
+```bash
+pnpm run dev
+```
+
+Navigate to `http://localhost:3000` to see your site.
+
+</div>
+</Step>
+</Steps>
+````
+
+### How It Works
+
+- Each `<Step>` is rendered as a separate step with an auto-incrementing number
+- A **vertical connecting line** links steps together (hidden after the last step)
+- The numbered circle **highlights on hover** with the brand accent color — scaling up and filling with brand color
+- The `icon` prop replaces the number with a lucide icon for a more visual presentation
+- Steps work with any content — paragraphs, code blocks, images, or even other components
+
+---
+
+## Mermaid
+
+The `<Mermaid>` component renders diagrams from plain text using [Mermaid.js](https://mermaid.js.org/). Supports flowcharts, sequence diagrams, class diagrams, state diagrams, pie charts, mind maps, and more.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `chart` | string | — | Mermaid diagram definition string |
+| `caption` | string | — | Optional caption shown below the diagram |
+| `title` | string | — | Accessible title for the diagram |
+
+### Usage
+
+```mdx
+<Mermaid chart="
+graph TD
+  A[Content] --> B[MDX Pipeline]
+  B --> C[React Components]
+  C --> D[Vite Build]
+  D --> E[Static Site]
+" caption="High-level content pipeline" />
+```
+
+### Flowchart
+
+```mdx
+<Mermaid chart="
+graph LR
+  A[Start] --> B{Is it working?}
+  B -->|Yes| C[Great!]
+  B -->|No| D[Debug]
+  D --> B
+" caption="A simple decision flowchart" />
+```
+
+### Sequence Diagram
+
+```mdx
+<Mermaid chart="
+sequenceDiagram
+  participant User
+  participant Blog
+  participant API
+
+  User->>Blog: Click post
+  Blog->>API: Fetch content
+  API-->>Blog: Return MDX
+  Blog->>User: Render page
+" caption="Post loading sequence" />
+```
+
+### Pie Chart
+
+```mdx
+<Mermaid chart="
+pie title My Tech Stack
+  "React" : 40
+  "TypeScript" : 25
+  "TailwindCSS" : 20
+  "Vite" : 15
+" />
+```
+
+### Class Diagram
+
+```mdx
+<Mermaid chart="
+classDiagram
+  class Component {
+    +render()
+    +props
+  }
+  class Button {
+    +variant
+    +onClick()
+  }
+  class Card {
+    +title
+    +children
+  }
+  Component <|-- Button
+  Component <|-- Card
+" caption="Component inheritance diagram" />
+```
+
+### Supported Diagram Types
+
+| Type | Syntax | Use Case |
+| :--- | :--- | :--- |
+| Flowchart | `graph TD` / `graph LR` | Process flows, architecture |
+| Sequence | `sequenceDiagram` | API interactions, workflows |
+| Class | `classDiagram` | Object-oriented structures |
+| State | `stateDiagram-v2` | State machines |
+| Pie | `pie` | Data proportions |
+| Gantt | `gantt` | Project timelines |
+| Mindmap | `mindmap` | Brainstorming, outlines |
+| Git | `gitGraph` | Git branch visualization |
+| Timeline | `timeline` | Chronological events |
+| ER Diagram | `erDiagram` | Database relationships |
+
+### Dark Mode
+
+The `<Mermaid>` component automatically detects the current theme and switches between light and dark color palettes. No additional configuration needed — toggle the site theme and diagrams follow along.
+
+### Error Handling
+
+If the diagram syntax is invalid, the component shows a **friendly error message** with:
+
+- The specific error details
+- A **collapsible source viewer** showing the chart definition so you can debug it
+
+<Callout type="tip">
+Use the [Mermaid Live Editor](https://mermaid.live/) to preview and debug your diagrams before adding them to your MDX files.
+</Callout>
 
 ---
 
