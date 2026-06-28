@@ -1,0 +1,722 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>MDXHub</title>
+    <link>https://mdxhub.vercel.app</link>
+    <description>A blazingly fast documentation and blog platform built with React, Vite, and MDX.</description>
+    <language>en</language>
+    <atom:link href="https://mdxhub.vercel.app/rss.xml" rel="self" type="application/rss+xml"/>
+    <lastBuildDate>Sun, 28 Jun 2026 12:35:34 GMT</lastBuildDate>
+    
+    <item>
+      <title>Showcase: New MDX Components &amp; Features</title>
+      <link>https://mdxhub.vercel.app/blog/demo-mdx-components</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/demo-mdx-components</guid>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+      <description>A live demonstration of the newly implemented Badge, Tooltip, and image lightbox features — all available globally in any MDX file.</description>
+      <category>Showcase</category>
+      <category>mdx</category>
+      <category>components</category>
+      <category>badge</category>
+      <category>tooltip</category>
+      <category>lightbox</category>
+      <category>demo</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Quick Reference Card</title>
+      <link>https://mdxhub.vercel.app/blog/tailwindcss-v4/cheatsheet/quick-reference</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tailwindcss-v4/cheatsheet/quick-reference</guid>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+      <description>A quick reference card for Tailwind CSS v4 &amp; React 19 utilities.</description>
+      <category>Tailwindcss</category>
+      <category>Tailwindcss</category>
+      <category>React 19</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Common Pitfalls &amp; Solutions</title>
+      <link>https://mdxhub.vercel.app/blog/tailwindcss-v4/common/problems</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tailwindcss-v4/common/problems</guid>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn common Tailwind CSS v4 &amp; React 19 pitfalls, and find solutions to avoid them.</description>
+      <category>Tailwindcss</category>
+      <category>Tailwindcss</category>
+      <category>React 19</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Introduction &amp; Philosophy</title>
+      <link>https://mdxhub.vercel.app/blog/tailwindcss-v4/part-0/introduction</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tailwindcss-v4/part-0/introduction</guid>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn the basics of Tailwind CSS v4 and React 19, and understand the core principles behind this utility-first CSS framework.</description>
+      <category>Tailwindcss</category>
+      <category>Tailwindcss</category>
+      <category>React 19</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Junior Level — Foundations</title>
+      <link>https://mdxhub.vercel.app/blog/tailwindcss-v4/part-1/foundations</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tailwindcss-v4/part-1/foundations</guid>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn the basics of Tailwind CSS v4 and React 19, and get started with utility-first CSS development.</description>
+      <category>Tailwindcss</category>
+      <category>Tailwindcss</category>
+      <category>React 19</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Intermediate Level — Real-World Patterns</title>
+      <link>https://mdxhub.vercel.app/blog/tailwindcss-v4/part-2/real-world-patterns</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tailwindcss-v4/part-2/real-world-patterns</guid>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn advanced Tailwind CSS v4 &amp; React 19 patterns, and build real-world applications with ease.</description>
+      <category>Tailwindcss</category>
+      <category>Tailwindcss</category>
+      <category>React 19</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Expert Level — Architecture &amp; Production</title>
+      <link>https://mdxhub.vercel.app/blog/tailwindcss-v4/part-3/architecture-production</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tailwindcss-v4/part-3/architecture-production</guid>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn advanced Tailwind CSS v4 &amp; React 19 patterns, and build production-ready applications with ease.</description>
+      <category>Tailwindcss</category>
+      <category>Tailwindcss</category>
+      <category>React 19</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Practical Projects</title>
+      <link>https://mdxhub.vercel.app/blog/tailwindcss-v4/part-4/practical-projects</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tailwindcss-v4/part-4/practical-projects</guid>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Build real-world applications with Tailwind CSS v4 &amp; React 19.</description>
+      <category>Tailwindcss</category>
+      <category>Tailwindcss</category>
+      <category>React 19</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>The Complete Guide to Tailwind CSS v4 &amp; React 19</title>
+      <link>https://mdxhub.vercel.app/blog/tailwindcss-v4</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tailwindcss-v4</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description>A complete guide to Tailwind CSS v4 &amp; React 19, covering the fundamentals to advanced topics.</description>
+      <category>Tailwindcss</category>
+      <category>tailwindcss</category>
+      <category>react</category>
+      <category>vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Quick Reference Card</title>
+      <link>https://mdxhub.vercel.app/blog/trpc-zod/cheatsheet/quick-reference</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/trpc-zod/cheatsheet/quick-reference</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description>A quick reference card for Zod and tRPC in Tailwind CSS v4 &amp; React 19.</description>
+      <category>React</category>
+      <category>tRPC</category>
+      <category>Zod</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Common Problems</title>
+      <link>https://mdxhub.vercel.app/blog/trpc-zod/common/problems</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/trpc-zod/common/problems</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Common common problems with tRPC and Zod.</description>
+      <category>React</category>
+      <category>tRPC</category>
+      <category>Zod</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Junior Level — Foundations</title>
+      <link>https://mdxhub.vercel.app/blog/trpc-zod/part-1/foundations</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/trpc-zod/part-1/foundations</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description>A guide to the basics of tRPC and Zod.</description>
+      <category>React</category>
+      <category>tRPC</category>
+      <category>Zod</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Intermediate Level — Real-World Patterns</title>
+      <link>https://mdxhub.vercel.app/blog/trpc-zod/part-2/real-words-pattern</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/trpc-zod/part-2/real-words-pattern</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description>A guide to real-world tRPC patterns and best practices.</description>
+      <category>React</category>
+      <category>tRPC</category>
+      <category>Zod</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Expert Level — Architecture &amp; Production</title>
+      <link>https://mdxhub.vercel.app/blog/trpc-zod/part-3/architecture-productions</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/trpc-zod/part-3/architecture-productions</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description></description>
+      <category>React</category>
+      <category>tRPC</category>
+      <category>Zod</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Practical Projects</title>
+      <link>https://mdxhub.vercel.app/blog/trpc-zod/part-4/practical-projects</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/trpc-zod/part-4/practical-projects</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Practical projects for tRPC and Zod in Tailwind CSS v4 &amp; React 19.</description>
+      <category>React</category>
+      <category>tRPC</category>
+      <category>Zod</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>The Complete Guide to tRPC, Zod &amp; React 19</title>
+      <link>https://mdxhub.vercel.app/blog/trpc-zod/trpc-zod-react19-complete-guide</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/trpc-zod/trpc-zod-react19-complete-guide</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description>A complete guide to tRPC v11, Zod v3.24+, and React 19, covering the fundamentals to advanced topics.</description>
+      <category>React</category>
+      <category>tRPC</category>
+      <category>Zod</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Junior Level — Foundations</title>
+      <link>https://mdxhub.vercel.app/blog/zustand/part-1/foundations</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/part-1/foundations</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description></description>
+      <category>React</category>
+      <category>Zustand</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Intermediate Level — Patterns &amp; Architecture</title>
+      <link>https://mdxhub.vercel.app/blog/zustand/part-2/pattern-architecture</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/part-2/pattern-architecture</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description></description>
+      <category>React</category>
+      <category>Zustand</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Expert Level — Advanced Architecture</title>
+      <link>https://mdxhub.vercel.app/blog/zustand/part-3/advanced-architecture</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/part-3/advanced-architecture</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description></description>
+      <category>React</category>
+      <category>Zustand</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Zustand + React 19 Correlation Guide</title>
+      <link>https://mdxhub.vercel.app/blog/zustand/quick-reference/zustand-react-correlations</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/quick-reference/zustand-react-correlations</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description></description>
+      <category>React</category>
+      <category>Zustand</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>The Complete Zustand Guide — From Junior to Expert</title>
+      <link>https://mdxhub.vercel.app/blog/zustand/zustand-complete-guide</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/zustand-complete-guide</guid>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+      <description></description>
+      <category>React</category>
+      <category>Zustand</category>
+      <category>React</category>
+      <category>Vite</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>React 19 Complete Level - Introduction</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-introduction</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-introduction</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn the basics of React 19, including new features and improvements.</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Getting Started with React 19</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-1</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-1</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Setup, Vite, new project structure, React 19 highlights</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Styling in React 19</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-10</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-10</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>CSS modules, styled-components, Tailwind, CSS-in-JS</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Complex State with useReducer</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-11</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-11</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Reducer pattern, actions, state machines</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Context API Deep Dive</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-12</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-12</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>createContext, useContext, performance considerations</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Refs and DOM Access</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-13</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-13</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>useRef, forwardRef, callback refs, useImperativeHandle</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Custom Hooks Patterns</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-14</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-14</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Encapsulation, reuse, composition, testing</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Data Fetching Patterns</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-15</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-15</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>fetch, SWR, React Query, Suspense integration</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Error Boundaries</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-16</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-16</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Error handling, fallback UI, logging, new in React 19</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Portals and Advanced JSX</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-17</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-17</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>createPortal, fragments, render props, HOCs</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Performance Optimization</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-18</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-18</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>useMemo, useCallback, React.memo, code splitting</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Testing React Components</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-19</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-19</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Testing Library, Jest, Vitest, e2e patterns</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>JSX Deep Dive</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-2</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-2</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Syntax, expressions, fragments, conditional rendering basics</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>React Router v7</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-20</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-20</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Routing, nested routes, loaders, actions</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Intermediate</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>React Compiler and Automatic Memoization</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-21</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-21</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>React Compiler, forgetti, auto-memoization, configuration</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Server Components Architecture</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-22</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-22</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>RSC, client boundaries, streaming, caching strategies</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>SSR, Streaming, and Partial Prerendering</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-23</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-23</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>renderToPipeableStream, PPR, progressive hydration</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Server Actions and Mutations</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-24</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-24</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>form actions, useActionState, optimistic updates</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Advanced Custom Hooks</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-25</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-25</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Async hooks, synchronization, external stores</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Concurrent Features and Suspense</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-26</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-26</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>useTransition, useDeferredValue, Suspense boundaries</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Core Web Vitals Optimization</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-27</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-27</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>TTFB, FCP, LCP, CLS, INP optimization strategies</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>React Internals and Reconciliation</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-28</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-28</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Fiber, diffing, priority lanes, scheduling</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Micro-frontends and Module Federation</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-29</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-29</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Module Federation, runtime integration, shared deps</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Components and Props</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-3</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-3</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Function components, prop drilling, destructuring, validation</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Production Patterns and Deployment</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-30</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-30</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>CI/CD, monitoring, error tracking, scaling</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Expert</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>State Management with useState</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-4</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-4</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Hooks, state updates, objects, arrays, patterns</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Event Handling in React</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-5</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-5</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Synthetic events, handlers, forms, event pooling</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Conditional Rendering</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-6</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-6</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>If/else, ternary, short-circuit, switch patterns</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Lists and Keys</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-7</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-7</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Mapping, key prop, reconciliation, anti-patterns</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Forms and Controlled Components</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-8</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-8</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Inputs, validation, form libraries intro</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Effects with useEffect</title>
+      <link>https://mdxhub.vercel.app/blog/react-19-complete-section-9</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/react-19-complete-section-9</guid>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Side effects, dependencies, cleanup, lifecycle</description>
+      <category>React</category>
+      <category>React</category>
+      <category>Typescript</category>
+      <category>Junior</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Exploring Advanced MDX Features: Math, Video, Tables &amp; More</title>
+      <link>https://mdxhub.vercel.app/blog/advanced-mdx-features</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/advanced-mdx-features</guid>
+      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn how to leverage mathematical equations, video embeds, advanced data tables, callouts, and custom MDX components to supercharge your content.</description>
+      <category>Tutorial</category>
+      <category>mdx</category>
+      <category>react</category>
+      <category>katex</category>
+      <category>video</category>
+      <category>components</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Complete Guide: Creating Posts in This Project</title>
+      <link>https://mdxhub.vercel.app/blog/creating-posts-guide</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/creating-posts-guide</guid>
+      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
+      <description>The definitive guide to creating blog posts and docs pages — covering YAML frontmatter, auto-discovery, video embeds, math, callouts, SEO, and every supported feature.</description>
+      <category>Guide</category>
+      <category>mdx</category>
+      <category>guide</category>
+      <category>frontmatter</category>
+      <category>authoring</category>
+      <category>content</category>
+      <category>video</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Embedding Videos in MDX: YouTube, Shorts &amp; More</title>
+      <link>https://mdxhub.vercel.app/blog/embedding-videos-in-mdx</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/embedding-videos-in-mdx</guid>
+      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn how to embed YouTube videos, Shorts, and any iframe-compatible video directly inside your MDX blog posts using the VideoEmbed component.</description>
+      <category>Tutorial</category>
+      <category>mdx</category>
+      <category>video</category>
+      <category>youtube</category>
+      <category>components</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Git as a CMS: How We Manage Content Without a Database</title>
+      <link>https://mdxhub.vercel.app/blog/git-as-cms</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/git-as-cms</guid>
+      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Why we abandoned traditional database-backed Content Management Systems (CMS) in favor of a purely Git-backed, file-based MDX workflow.</description>
+      <category>Architecture</category>
+      <category>cms</category>
+      <category>git</category>
+      <category>mdx</category>
+      <category>architecture</category>
+      <category>github</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Wonderful Indonesia: A Journey Through the Archipelago</title>
+      <link>https://mdxhub.vercel.app/blog/wonderful-indonesia</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/wonderful-indonesia</guid>
+      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
+      <description>From the emerald terraced rice fields of Bali to the ancient temples of Yogyakarta and the vibrant coral reefs of Raja Ampat — Indonesia is a world unto itself.</description>
+      <category>Travel</category>
+      <category>indonesia</category>
+      <category>travel</category>
+      <category>culture</category>
+      <category>nature</category>
+      <category>bali</category>
+      <category>java</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Getting Started with MDX in React 19</title>
+      <link>https://mdxhub.vercel.app/blog/getting-started/nested</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/getting-started/nested</guid>
+      <pubDate>Thu, 15 Jan 2026 00:00:00 GMT</pubDate>
+      <description>A comprehensive guide to setting up MDX with Vite 7 and React 19, featuring frontmatter parsing and custom components.</description>
+      <category>Tutorial</category>
+      <category>mdx</category>
+      <category>react</category>
+      <category>vite</category>
+      <author>Jane Doe</author>
+    </item>
+  </channel>
+</rss>
