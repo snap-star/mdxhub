@@ -8,7 +8,7 @@ The following 3rd-party software packages may be used by or distributed with **m
 
 Date generated | Revision ID
 :---: | :---:
-06/24/26 | ee4a921ffe3a90c8599d6cb349fa676f0835eae5
+06/28/26 | df98f0c1f56a8112853b85e3b25fcf4568ed2b9e
 
 ## Dependencies
 
@@ -49,19 +49,24 @@ Package|Licenses
 **[rehype-autolink-headings (7.1.0)](#rehype-autolink-headings-710)**|MIT
 **[rehype-katex (7.0.1)](#rehype-katex-701)**|MIT
 **[rehype-slug (6.0.0)](#rehype-slug-600)**|MIT
+**[rehype-unwrap-images (1.0.0)](#rehype-unwrap-images-100)**|MIT
 **[remark-frontmatter (5.0.0)](#remark-frontmatter-500)**|MIT
 **[remark-gfm (4.0.1)](#remark-gfm-401)**|MIT
 **[remark-math (6.0.0)](#remark-math-600)**|MIT
 **[remark-mdx-frontmatter (5.2.0)](#remark-mdx-frontmatter-520)**|MIT
 **[shadcn (4.11.0)](#shadcn-4110)**|MIT
+**[sharp (0.35.2)](#sharp-0352)**|Apache-2.0
 **[shiki (4.2.0)](#shiki-420)**|MIT
 **[simple-icons (16.24.0)](#simple-icons-16240)**|CC0-1.0
+**[svgo (4.0.1)](#svgo-401)**|MIT
 **[tailwind-merge (3.6.0)](#tailwind-merge-360)**|MIT
 **[tailwindcss (4.3.1)](#tailwindcss-431)**|MIT
 **[tw-animate-css (1.4.0)](#tw-animate-css-140)**|MIT
 **[typescript (6.0.3)](#typescript-603)**|Apache-2.0
 **[typescript-eslint (8.61.1)](#typescript-eslint-8611)**|MIT
+**[unified (11.0.5)](#unified-1105)**|MIT
 **[vite (8.0.16)](#vite-8016)**|MIT
+**[vite-plugin-image-optimizer (2.0.3)](#vite-plugin-image-optimizer-203)**|MIT
 **[zustand (5.0.14)](#zustand-5014)**|MIT
 ### [@base-ui/react (1.6.0)](https://base-ui.com/)
 Base UI is a library of headless ('unstyled') React components and low-level hooks. You gain complete control over your app's CSS and accessibility features.
@@ -740,6 +745,25 @@ Copyright (c) 2016 Titus Wormer <tituswormer@gmail.com>
 
 ---
 
+### [rehype-unwrap-images (1.0.0)](https://www.npmjs.com/package/rehype-unwrap-images)
+rehype plugin to remove the wrapping paragraph (`<p>`) for images (`<img>`)
+**Usage**: Direct
+#### Declared Licenses
+MIT
+
+#### Copyrights
+  License: MIT
+Copyright (c)  Titus Wormer
+### Package Info
+
+**Authors**: tituswormer@gmail.com
+**Package Manager**: NPM
+**Package Homepage**: https://www.npmjs.com/package/rehype-unwrap-images
+**Package Download URL**: https://registry.npmjs.org/rehype-unwrap-images/-/rehype-unwrap-images-1.0.0.tgz
+**Dependency Paths**: rehype-unwrap-images
+
+---
+
 ### [remark-frontmatter (5.0.0)](https://www.npmjs.com/package/remark-frontmatter)
 remark plugin to support frontmatter (yaml, toml, and more)
 **Usage**: Direct
@@ -832,6 +856,28 @@ Copyright (c) 2023 shadcn
 
 ---
 
+### [sharp (0.35.2)](https://sharp.pixelplumbing.com/)
+High performance Node.js image processing, the fastest module to resize JPEG, PNG, WebP, GIF, AVIF and TIFF images
+**Usage**: Direct
+#### Declared Licenses
+Apache-2.0
+#### Other Licenses
+MIT
+#### Copyrights
+  License: Apache-2.0
+Copyright (c) 2013 Lovell Fuller and others.
+  License: MIT
+Copyright (c) 2017 François Nguyen and others.
+### Package Info
+
+**Authors**: npm@lovell.info
+**Package Manager**: NPM
+**Package Homepage**: https://sharp.pixelplumbing.com/
+**Package Download URL**: https://registry.npmjs.org/sharp/-/sharp-0.35.2.tgz
+**Dependency Paths**: sharp
+
+---
+
 ### [shiki (4.2.0)](https://github.com/shikijs/shiki#readme)
 A beautiful Syntax Highlighter.
 **Usage**: Direct
@@ -864,6 +910,25 @@ CC0-1.0
 **Package Homepage**: https://simpleicons.org/
 **Package Download URL**: https://registry.npmjs.org/simple-icons/-/simple-icons-16.24.0.tgz
 **Dependency Paths**: simple-icons
+
+---
+
+### [svgo (4.0.1)](https://svgo.dev/)
+SVGO is a Node.js library and command-line application for optimizing vector images.
+**Usage**: Direct
+#### Declared Licenses
+MIT
+
+#### Copyrights
+  License: MIT
+Copyright (c)  Kir Belevich
+### Package Info
+
+**Authors**: grelimail@gmail.com, kir@belevi.ch, opensource@trysound.io, seth@falco.fun
+**Package Manager**: NPM
+**Package Homepage**: https://svgo.dev/
+**Package Download URL**: https://registry.npmjs.org/svgo/-/svgo-4.0.1.tgz
+**Dependency Paths**: svgo
 
 ---
 
@@ -971,6 +1036,25 @@ Copyright (c) 2019 typescript-eslint and other contributors
 
 ---
 
+### [unified (11.0.5)](https://unifiedjs.com/)
+parse, inspect, transform, and serialize content through syntax trees
+**Usage**: Direct
+#### Declared Licenses
+MIT
+
+#### Copyrights
+  License: MIT
+Copyright (c) 2015 Titus Wormer <tituswormer@gmail.com>
+### Package Info
+
+**Authors**: remcohaszing@gmail.com, tituswormer@gmail.com
+**Package Manager**: NPM
+**Package Homepage**: https://unifiedjs.com/
+**Package Download URL**: https://registry.npmjs.org/unified/-/unified-11.0.5.tgz
+**Dependency Paths**: remark-math > unified > remark-gfm > unified > remark-frontmatter > unified > rehype-autolink-headings > unified > @mdx-js/rollup > @mdx-js/mdx > recma-stringify > unified > @mdx-js/rollup > @mdx-js/mdx > recma-jsx > recma-parse > unified > @mdx-js/rollup > @mdx-js/mdx > recma-jsx > unified > @shikijs/rehype > unified > @mdx-js/rollup > @mdx-js/mdx > unified > unified
+
+---
+
 ### [vite (8.0.16)](https://vite.dev/)
 Native-ESM powered web dev build tool
 **Usage**: Direct
@@ -995,7 +1079,26 @@ Copyright (c) 2019 present, VoidZero Inc. and Vite contributors
 **Package Manager**: NPM
 **Package Homepage**: https://vite.dev/
 **Package Download URL**: https://registry.npmjs.org/vite/-/vite-8.0.16.tgz
-**Dependency Paths**: @vitejs/plugin-react > vite > @tailwindcss/vite > vite > vite
+**Dependency Paths**: vite-plugin-image-optimizer > vite > @vitejs/plugin-react > vite > @tailwindcss/vite > vite > vite
+
+---
+
+### [vite-plugin-image-optimizer (2.0.3)](https://www.npmjs.com/package/vite-plugin-image-optimizer)
+A Vite plugin to optimize your image assets using Sharp.js and SVGO
+**Usage**: Direct
+#### Declared Licenses
+MIT
+
+#### Copyrights
+  License: MIT
+Copyright (c) 2025 FatehAK
+### Package Info
+
+**Authors**: fa7ehak@gmail.com
+**Package Manager**: NPM
+**Package Homepage**: https://www.npmjs.com/package/vite-plugin-image-optimizer
+**Package Download URL**: https://registry.npmjs.org/vite-plugin-image-optimizer/-/vite-plugin-image-optimizer-2.0.3.tgz
+**Dependency Paths**: vite-plugin-image-optimizer
 
 ---
 
