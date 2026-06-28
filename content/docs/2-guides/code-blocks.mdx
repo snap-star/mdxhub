@@ -1,0 +1,408 @@
+---
+title: "Code Blocks Guide"
+section: "2. Guides"
+order: 25
+version: "v1.0"
+description: "Comprehensive guide to using fenced code blocks with Shiki syntax highlighting, line numbers, diff annotations, highlights, and focus mode."
+next: "docs/guides/mdx-components"
+---
+
+Code blocks on this platform go far beyond basic syntax highlighting. Powered by [Shiki v4](https://shiki.style/), every fenced code block is rendered with **true IDE-grade highlighting**, dual-theme support, auto-detected language labels, a copy button, line numbers, and transformer annotations for diffs, highlights, and focus.
+
+No component imports are needed — just use standard fenced code blocks with triple backticks.
+
+---
+
+## Basic Usage
+
+Start and end a code block with three backticks. Specify the language immediately after the opening backticks for syntax highlighting:
+
+````mdx
+```javascript
+const greeting = "Hello, world!";
+console.log(greeting);
+```
+````
+
+This renders as:
+
+```javascript
+const greeting = "Hello, world!";
+console.log(greeting);
+```
+
+### Supported Languages
+
+Shiki supports **200+ languages** and **100+ text grammars**. The language label in the top-right corner is automatically detected from the opening fence. Some common ones:
+
+| Language | Fence | 
+| :--- | :--- |
+| TypeScript | ` ```ts` or ` ```typescript ` |
+| TSX (React) | ` ```tsx ` |
+| JavaScript | ` ```js` or ` ```javascript ` |
+| JSX | ` ```jsx ` |
+| Bash / Shell | ` ```bash` or ` ```sh ` |
+| YAML | ` ```yaml ` |
+| JSON | ` ```json ` |
+| CSS | ` ```css ` |
+| HTML | ` ```html ` |
+| Python | ` ```python ` |
+| Rust | ` ```rust ` |
+| Go | ` ```go ` |
+| SQL | ` ```sql ` |
+| Diff | ` ```diff ` |
+
+If no language is specified, the block defaults to `text` (no highlighting).
+
+---
+
+## Dual-Theme System
+
+Every code block automatically adapts to the current theme:
+
+- **Light mode** — [GitHub Light](https://github.com/settings/appearance) theme for maximum readability
+- **Dark mode** — [Monokai](https://monokai.pro/) theme for reduced eye strain
+
+No configuration needed — switch themes and the code blocks follow automatically.
+
+---
+
+## Code Block Layout
+
+Each code block is wrapped in a card with three visual zones:
+
+```
+┌─────────────────────────────────────────────┐
+│  ● ● ●                   javascript    📋   │  ← Header bar
+├─────────────────────────────────────────────┤
+│  1 │ const greeting = "Hello, world!";      │
+│  2 │ console.log(greeting);                  │  ← Code + gutter
+│  3 │                                         │
+└─────────────────────────────────────────────┘
+```
+
+### Header Bar
+
+- **Traffic light dots** (red, amber, green) — macOS-style decoration
+- **Language label** — auto-detected, shown in the top-center area
+- **Copy button** — copies the raw code text to clipboard (shows a checkmark on success)
+
+### Line Number Gutter
+
+The left gutter with line numbers appears automatically for code blocks with **3 or more lines**, and always appears when diff annotations are present.
+
+Short 1–2 line snippets render without a gutter to keep them visually clean.
+
+---
+
+## Language Auto-Detection
+
+The language is read from the fenced code block's opening tag. If the Shiki grammar supports the language name, you get full syntax highlighting:
+
+````mdx
+```tsx
+export function Button({ children }: { children: React.ReactNode }) {
+  return (
+    <button className="btn" onClick={() => console.log("clicked")}>
+      {children}
+    </button>
+  );
+}
+```
+````
+
+```tsx
+export function Button({ children }: { children: React.ReactNode }) {
+  return (
+    <button className="btn" onClick={() => console.log("clicked")}>
+      {children}
+    </button>
+  );
+}
+```
+
+---
+
+## Copy Button
+
+Every code block includes a copy button in the top-right corner of the header bar.
+
+- Clicking the **📋 icon** copies the code text (without line numbers) to your clipboard
+- The icon briefly switches to a **✓ checkmark** (green) to confirm the action
+- After 2 seconds, it reverts to the copy icon
+
+---
+
+## Shiki Transformer Annotations
+
+The platform includes four Shiki transformers that let you annotate your code blocks with visual markers. These are especially useful for tutorials, code reviews, and documentation.
+
+### Diff Annotations `[!code ++]` / `[!code --]`
+
+Mark lines as added or removed using `[!code ++]` and `[!code --]` comments at the end of a line:
+
+````mdx
+```ts
+function greet(name: string) {
+  console.log(`Hello, ${name}!`);
+}
+// [!code ++]
+function farewell(name: string) {
+  console.log(`Goodbye, ${name}!`);
+}
+// [!code ++]
+```
+
+```ts
+function greet(name: string) {
+  // [!code --]
+  console.log(`Hello, ${name}!`);
+  // [!code ++]
+  console.log(`Hi there, ${name}! How are you?`);
+}
+```
+````
+
+This renders as:
+
+```ts
+function greet(name: string) {
+  console.log(`Hello, ${name}!`);
+}
+// [!code ++]
+function farewell(name: string) {
+  console.log(`Goodbye, ${name}!`);
+}
+// [!code ++]
+```
+
+```ts
+function greet(name: string) {
+  // [!code --]
+  console.log(`Hello, ${name}!`);
+  // [!code ++]
+  console.log(`Hi there, ${name}! How are you?`);
+}
+```
+
+**Visual indicators in the gutter:**
+
+| Annotation | Gutter | Code Background |
+| :--- | :--- | :--- |
+| `[!code ++]` | **+** in green | Green tint |
+| `[!code --]` | **−** in red | Red tint |
+
+The line number is replaced by a `+` or `−` symbol, and the gutter background extends edge-to-edge with a matching tint. This creates a seamless visual connection between the gutter indicator and the code highlight.
+
+### Highlight Annotations `[!code highlight]`
+
+Emphasize specific lines with a blue highlight:
+
+````mdx
+```ts
+const config = {
+  theme: 'dark', // [!code highlight]
+  language: 'en', // [!code highlight]
+  features: {
+    analytics: true,
+    comments: false,
+  },
+};
+```
+````
+
+```ts
+const config = {
+  theme: 'dark', // [!code highlight]
+  language: 'en', // [!code highlight]
+  features: {
+    analytics: true,
+    comments: false,
+  },
+};
+```
+
+### Word Highlight `[!code word:...]`
+
+Highlight a specific word across the entire code block. Every occurrence of the word gets a yellow/amber tint:
+
+````mdx
+```ts
+// [!code word:fetch]
+async function loadData() {
+  const response = await fetch('/api/data');
+  const data = await response.json();
+  return data;
+}
+```
+````
+
+```ts
+// [!code word:fetch]
+async function loadData() {
+  const response = await fetch('/api/data');
+  const data = await response.json();
+  return data;
+}
+```
+
+### Focus Annotations `[!code focus]`
+
+Draw attention to specific lines by dimming everything else. Lines without the focus annotation become semi-transparent:
+
+````mdx
+```ts
+import { create } from 'zustand'; // [!code focus]
+import { persist } from 'zustand/middleware'; // [!code focus]
+
+const useStore = create(
+  persist(
+    (set) => ({
+      count: 0,
+      increment: () => set((s) => ({ count: s.count + 1 })),
+    }),
+    { name: 'store' },
+  ),
+);
+```
+````
+
+```ts
+import { create } from 'zustand'; // [!code focus]
+import { persist } from 'zustand/middleware'; // [!code focus]
+
+const useStore = create(
+  persist(
+    (set) => ({
+      count: 0,
+      increment: () => set((s) => ({ count: s.count + 1 })),
+    }),
+    { name: 'store' },
+  ),
+);
+```
+
+---
+
+## Combining Annotations
+
+Annotations can be combined on the same line for more expressive code blocks. A line can be both added and highlighted, or focused and highlighted:
+
+````mdx
+```ts
+function processItems(items: string[]) {
+  const results = [];
+  for (const item of items) {
+    // [!code ++]
+    if (item.length > 0) {
+      results.push(item.toUpperCase()); // [!code ++]
+    }
+    // [!code ++]
+  }
+  return results;
+}
+```
+````
+
+```ts
+function processItems(items: string[]) {
+  const results = [];
+  for (const item of items) {
+    // [!code ++]
+    if (item.length > 0) {
+      results.push(item.toUpperCase()); // [!code ++]
+    }
+    // [!code ++]
+  }
+  return results;
+}
+```
+
+---
+
+## Annotation Reference
+
+| Annotation | Line Marker | Gutter | Code Style |
+| :--- | :--- | :--- | :--- |
+| Diff add | `// [!code ++]` | **+** (green) | Green background |
+| Diff remove | `// [!code --]` | **−** (red) | Red background |
+| Highlight | `// [!code highlight]` | — | Blue background |
+| Word highlight | `// [!code word:term]` | — | Yellow/orange tint on term |
+| Focus | `// [!code focus]` | — | Non-focused lines dimmed |
+
+<Callout type="tip">
+The comment syntax depends on the language. Use `//` for JavaScript/TypeScript, `#` for Python/YAML, `<!-- -->` for HTML, `/* */` for CSS, `--` for SQL, etc. The annotation comment must be the **last thing on the line**.
+</Callout>
+
+---
+
+## Complete Example
+
+Here is a before-and-after refactoring example combining multiple annotations:
+
+````mdx
+```ts
+// [!code word:useState]
+import { useState, useEffect } from 'react';
+
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState(null); // [!code highlight]
+  const [loading, setLoading] = useState(true); // [!code highlight]
+  // [!code focus]
+  useEffect(() => { // [!code focus]
+    fetch(`/api/users/${userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data); // [!code highlight]
+        setLoading(false);
+      });
+  }, [userId]);
+  // [!code focus]
+
+  if (loading) return <p>Loading...</p>;
+  return <div>{user.name}</div>; // [!code highlight]
+}
+```
+````
+
+```ts
+// [!code word:useState]
+import { useState, useEffect } from 'react';
+
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState(null); // [!code highlight]
+  const [loading, setLoading] = useState(true); // [!code highlight]
+  // [!code focus]
+  useEffect(() => { // [!code focus]
+    fetch(`/api/users/${userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data); // [!code highlight]
+        setLoading(false);
+      });
+  }, [userId]);
+  // [!code focus]
+
+  if (loading) return <p>Loading...</p>;
+  return <div>{user.name}</div>; // [!code highlight]
+}
+```
+
+---
+
+## Tips & Best Practices
+
+1. **Always specify a language** — without a language tag, the block renders as plain text with no highlighting
+2. **Use `[!code ++]` and `[!code --]` for tutorials** — they visually guide the reader through changes
+3. **Combine `[!code focus]` with `[!code highlight]`** — focus narrows attention, highlight draws the eye to specific lines within the focused area
+4. **Keep annotations meaningful** — overusing highlights or diffs reduces their visual impact
+5. **Short blocks (< 3 lines) don't show line numbers** — this keeps quick snippets clean and uncluttered
+6. **Annotations don't affect the copy button** — the copy button copies the raw code text, not the annotations
+
+---
+
+## Related
+
+- See [MDX Components Reference](/docs/guides/mdx-components) for all globally available components
+- Read [Creating Posts](/blog/creating-posts-guide) for the complete authoring guide
+- Visit the [Demo Showcase](/blog/demo-mdx-components) for live examples

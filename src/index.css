@@ -218,12 +218,23 @@ body {
 .dark .shiki {
 }
 
-/* Diff transformers */
-.shiki .diff.add { background: oklch(62% 0.18 145 / 0.12); }
-.shiki .diff.remove { background: oklch(58% 0.22 20 / 0.12); }
-.shiki .highlighted { background: oklch(57% 0.158 245 / 0.08); }
-.shiki .focused { opacity: 0.3; }
+/* ── Shiki transformers: diff, highlight, word, focus ───
+   NOTE: Dark mode MUST use !important here because
+   .dark .shiki span sets background-color: transparent !important
+   which would otherwise override these backgrounds. */
+.shiki .diff.add        { background: oklch(62% 0.18 145 / 0.12); }
+.shiki .diff.remove     { background: oklch(58% 0.22 20 / 0.12); }
+.shiki .highlighted     { background: oklch(57% 0.158 245 / 0.08); }
+.shiki .focused         { opacity: 0.3; }
 .shiki .focused.highlighted { opacity: 1; }
+
+/* Dark-mode overrides — match the same colors with slightly higher
+   opacity for readability on the darker Discord background */
+.dark .shiki .diff.add        { background: oklch(62% 0.18 145 / 0.18) !important; }
+.dark .shiki .diff.remove     { background: oklch(58% 0.22 20 / 0.18) !important; }
+.dark .shiki .highlighted     { background: oklch(57% 0.158 245 / 0.14) !important; }
+.dark .shiki .focused         { opacity: 0.25 !important; }
+.dark .shiki .focused.highlighted { opacity: 1 !important; }
 
 /* ── Prose (MDX content) ── */
 .prose {
