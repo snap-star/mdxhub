@@ -34,7 +34,7 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/blog/demo-mdx-components</loc>
-    <lastmod>2026-06-27</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -375,6 +375,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mdxhub.vercel.app/docs/2-guides/code-blocks</loc>
+    <lastmod>2026-06-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/installation</loc>
     <lastmod>2026-06-27</lastmod>
     <changefreq>monthly</changefreq>
@@ -382,7 +388,7 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components</loc>
-    <lastmod>2026-06-27</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

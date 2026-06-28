@@ -6,20 +6,23 @@
     <description>A blazingly fast documentation and blog platform built with React, Vite, and MDX.</description>
     <language>en</language>
     <atom:link href="https://mdxhub.vercel.app/rss.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Sun, 28 Jun 2026 12:35:34 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 28 Jun 2026 20:06:13 GMT</lastBuildDate>
     
     <item>
       <title>Showcase: New MDX Components &amp; Features</title>
       <link>https://mdxhub.vercel.app/blog/demo-mdx-components</link>
       <guid isPermaLink="true">https://mdxhub.vercel.app/blog/demo-mdx-components</guid>
       <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
-      <description>A live demonstration of the newly implemented Badge, Tooltip, and image lightbox features — all available globally in any MDX file.</description>
+      <description>A live demonstration of all globally available MDX components — including the new Tabs, Steps, and Mermaid diagram renderer — all available in any MDX file.</description>
       <category>Showcase</category>
       <category>mdx</category>
       <category>components</category>
       <category>badge</category>
       <category>tooltip</category>
       <category>lightbox</category>
+      <category>tabs</category>
+      <category>steps</category>
+      <category>mermaid</category>
       <category>demo</category>
       <author>Chigusa Asuha</author>
     </item>

@@ -12,6 +12,9 @@ import { openLightbox } from './ImageLightbox'
 import { OptimizedImage } from './OptimizedImage'
 
 import { Check, Copy } from 'lucide-react'
+import { Tabs, Tab } from './Tabs'
+import { Steps, Step } from './Steps'
+import { Mermaid } from './Mermaid'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -251,4 +254,9 @@ export const MDXComponents = {
   ProfileBadge,
   VideoEmbed,
   AuthorCard,
+  Tabs,
+  Tab,
+  Steps,
+  Step,
+  Mermaid,
 }
