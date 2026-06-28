@@ -3,8 +3,8 @@ title: "Showcase: New MDX Components & Features"
 date: "2026-06-27"
 author: "chigusa-asuha"
 category: "Showcase"
-tags: ["mdx", "components", "badge", "tooltip", "lightbox", "demo"]
-description: "A live demonstration of the newly implemented Badge, Tooltip, and image lightbox features — all available globally in any MDX file."
+tags: ["mdx", "components", "badge", "tooltip", "lightbox", "tabs", "steps", "mermaid", "demo"]
+description: "A live demonstration of all globally available MDX components — including the new Tabs, Steps, and Mermaid diagram renderer — all available in any MDX file."
 coverImage: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop"
 ---
 
@@ -206,45 +206,499 @@ The lightbox works with **any image** rendered through the standard MDX `img` co
 
 ---
 
-## 4. Putting It All Together
+## 4. Tabs Component
 
-Here's a realistic example combining multiple components:
+The `<Tabs>` component lets you switch between content panels. Great for showing code examples in different languages or package managers.
 
-<Callout type="info" title="Getting Started Checklist">
-  <Badge variant="success" icon="check">Node.js 20+</Badge>
-  <Badge variant="success" icon="check">pnpm installed</Badge>
-  <Badge variant="warning" icon="zap">
-    <Tooltip content="Run this after cloning the repo">npm install</Tooltip>
-  </Badge>
-  <Badge variant="tip" icon="rocket">
-    <Tooltip content="Starts the Vite dev server with HMR">npm run dev</Tooltip>
-  </Badge>
-  <br /><br />
-  See the <Badge variant="blue" icon="book">Installation Guide</Badge> for detailed setup steps.
-</Callout>
+### Multi-Package Examples
+
+The example below shows install commands for three package managers. The content inside each `<Tab>` is wrapped in a `<div>` so MDX v3 treats it as block-level flow content and correctly parses the Markdown code blocks:
+
+<Tabs>
+<Tab label="npm">
+<div>
+
+```bash
+npm install mermaid
+```
+
+</div>
+</Tab>
+<Tab label="pnpm" icon="zap">
+<div>
+
+```bash
+pnpm add mermaid
+```
+
+</div>
+</Tab>
+<Tab label="yarn">
+<div>
+
+```bash
+yarn add mermaid
+```
+
+</div>
+</Tab>
+</Tabs>
+
+````mdx
+<Tabs>
+<Tab label="npm">
+<div>
+
+```bash
+npm install mermaid
+```
+
+</div>
+</Tab>
+<Tab label="pnpm" icon="zap">
+<div>
+
+```bash
+pnpm add mermaid
+```
+
+</div>
+</Tab>
+<Tab label="yarn">
+<div>
+
+```bash
+yarn add mermaid
+```
+
+</div>
+</Tab>
+</Tabs>
+````
+
+### Pills Variant
+
+Use `variant="pills"` for a filled button style:
+
+<Tabs variant="pills">
+<Tab label="TypeScript">
+<div>
+TypeScript adds static typing to JavaScript, catching errors at compile time rather than runtime.
+</div>
+</Tab>
+<Tab label="JavaScript">
+<div>
+JavaScript is a dynamic programming language that's widely used for web development.
+</div>
+</Tab>
+</Tabs>
 
 ```mdx
-<Badge variant="warning" icon="zap">
-  <Tooltip content="Run this after cloning the repo">npm install</Tooltip>
-</Badge>
+<Tabs variant="pills">
+<Tab label="TypeScript"><div>...</div></Tab>
+<Tab label="JavaScript"><div>...</div></Tab>
+</Tabs>
+```
+
+### Tabs with Icons
+
+Add an icon to any tab label by using the `icon` prop (same icon names as the Badge component):
+
+<Tabs>
+<Tab label="Setup" icon="settings">
+<div>
+Configure your `vite.config.ts` with the MDX plugin and remark/rehype pipelines.
+</div>
+</Tab>
+<Tab label="Content" icon="file">
+<div>
+Write your `.mdx` files in the `content/` directory — they get auto-discovered.
+</div>
+</Tab>
+<Tab label="Deploy" icon="rocket">
+<div>
+Build with `npm run build` and deploy the `dist/` folder to any static host.
+</div>
+</Tab>
+</Tabs>
+
+```mdx
+<Tabs>
+<Tab label="Setup" icon="settings"><div>...</div></Tab>
+<Tab label="Content" icon="file"><div>...</div></Tab>
+<Tab label="Deploy" icon="rocket"><div>...</div></Tab>
+</Tabs>
 ```
 
 ---
 
-## 5. Quick Reference
+## 5. Steps Component
 
-| Component | Prop | Type | Default | Description |
-| :--- | :--- | :---: | :---: | :--- |
-| **Badge** | `variant` | string | `"slate"` | Tailwind color or admonition name |
-| | `icon` | string | — | Icon name from the 40+ icon map |
-| | `children` | ReactNode | — | Badge text content |
-| **Tooltip** | `content` | string | — | The tooltip text shown on hover |
-| | `side` | string | `"top"` | Placement: `top`, `bottom`, `left`, `right` |
-| | `children` | ReactNode | — | Hover/focus target element |
-| **Image** | *(all)* | — | — | Click any image → opens lightbox |
+The `<Steps>` component renders a numbered step-by-step guide with connecting lines. Each step is wrapped in a `<Step title="...">` sub-component.
+
+### Basic Example
+
+<Steps>
+<Step title="Plan Your Content">
+<div>
+
+Decide what you want to write. Organize your `.mdx` files in the `content/blog/`
+or `content/docs/` directories. Nested folders are supported.
+
+</div>
+</Step>
+<Step title="Write Your MDX">
+<div>
+
+Use standard Markdown syntax enhanced with React components. All the components
+on this page are available globally — no imports needed.
+
+</div>
+</Step>
+<Step title="Preview Locally">
+<div>
+
+Run `npm run dev` and navigate to `http://localhost:3000`. Vite's HMR updates
+the page instantly as you edit your content.
+
+</div>
+</Step>
+<Step title="Build &amp; Deploy">
+<div>
+
+Run `npm run build` to produce a static `dist/` folder, then deploy to Vercel,
+Netlify, or any static hosting provider.
+
+</div>
+</Step>
+</Steps>
+
+````mdx
+<Steps>
+<Step title="Plan Your Content">
+<div>
+
+Decide what you want to write...
+
+</div>
+</Step>
+<Step title="Write Your MDX">
+<div>
+
+Use standard Markdown syntax...
+
+</div>
+</Step>
+<Step title="Preview Locally">
+<div>
+
+Run `npm run dev` and navigate to `http://localhost:3000`...
+
+</div>
+</Step>
+<Step title="Build &amp; Deploy">
+<div>
+
+Run `npm run build` to produce a static `dist/` folder...
+
+</div>
+</Step>
+</Steps>
+````
+
+### With Mixed Content
+
+Steps work with any content — paragraphs, code blocks, images, and even nested components:
+
+<Steps>
+<Step title="Install Dependencies" icon="download">
+<div>
+
+```bash
+npm install
+```
+
+This installs React, Vite, MDX, TailwindCSS, and all plugins.
+
+</div>
+</Step>
+<Step title="Configure the Build" icon="settings">
+<div>
+
+Open `vite.config.ts` and customize the plugin pipeline.
+The default setup includes Shiki, KaTeX, and image optimization.
+
+</div>
+</Step>
+<Step title="Verify It Works" icon="check">
+<div>
+
+Run <Badge variant="success" icon="check">npm run dev</Badge> and check the terminal output.
+You should see:
+
+```text
+VITE v8.0.0  ready in 300ms
+  ➜  Local:   http://localhost:3000/
+```
+
+</div>
+</Step>
+</Steps>
+
+````mdx
+<Steps>
+<Step title="Install Dependencies" icon="download">
+<div>
+
+```bash
+npm install
+```
+
+</div>
+</Step>
+<Step title="Configure the Build" icon="settings">
+<div>
+
+Open `vite.config.ts` and customize the plugin pipeline.
+
+</div>
+</Step>
+<Step title="Verify It Works" icon="check">
+<div>
+
+Run <Badge variant="success" icon="check">npm run dev</Badge>
+
+</div>
+</Step>
+</Steps>
+````
+
+---
+
+## 6. Mermaid Diagram Component
+
+The `<Mermaid>` component renders diagrams from plain text using Mermaid.js. Supports flowcharts, sequence diagrams, class diagrams, pie charts, and more.
+
+### Flowchart
+
+<Mermaid chart="
+graph TD
+  A[Content] --> B[MDX Pipeline]
+  B --> C[React Components]
+  C --> D[Vite Build]
+  D --> E[Static Site]
+" caption="Content pipeline from Markdown to deployment" />
+
+```mdx
+<Mermaid chart="
+graph TD
+  A[Content] --> B[MDX Pipeline]
+  B --> C[React Components]
+  C --> D[Vite Build]
+  D --> E[Static Site]
+" caption="Content pipeline from Markdown to deployment" />
+```
+
+### Decision Flowchart
+
+<Mermaid chart="
+graph LR
+  A[Start] --> B{Is it working?}
+  B -->|Yes| C[Great!]
+  B -->|No| D[Debug]
+  D --> B
+" caption="A simple debugging flowchart" />
+
+```mdx
+<Mermaid chart="
+graph LR
+  A[Start] --> B{Is it working?}
+  B -->|Yes| C[Great!]
+  B -->|No| D[Debug]
+  D --> B
+" />
+```
+
+### Sequence Diagram
+
+<Mermaid chart="
+sequenceDiagram
+  participant User
+  participant Blog
+  participant API
+
+  User->>Blog: Click post
+  Blog->>API: Fetch content
+  API-->>Blog: Return MDX
+  Blog->>User: Render page
+" caption="Post loading sequence" />
+
+```mdx
+<Mermaid chart="
+sequenceDiagram
+  participant User
+  participant Blog
+  participant API
+
+  User->>Blog: Click post
+  Blog->>API: Fetch content
+  API-->>Blog: Return MDX
+  Blog->>User: Render page
+" caption="Post loading sequence" />
+```
+
+### Pie Chart
+
+<Mermaid chart="
+pie title My Tech Stack
+  &quot;React&quot; : 40
+  &quot;TypeScript&quot; : 25
+  &quot;TailwindCSS&quot; : 20
+  &quot;Vite&quot; : 15
+" />
+
+```mdx
+<Mermaid chart="
+pie title My Tech Stack
+  &quot;React&quot; : 40
+  &quot;TypeScript&quot; : 25
+  &quot;TailwindCSS&quot; : 20
+  &quot;Vite&quot; : 15
+" />
+```
+
+### Dark Mode Support
+
+Mermaid diagrams automatically adapt to the current theme. Toggle between light and dark mode using the theme switcher in the navbar — the diagram colors update seamlessly.
+
+<Callout type="tip">
+Use the [Mermaid Live Editor](https://mermaid.live/) to preview and debug your diagrams before adding them to your MDX files.
+</Callout>
+
+---
+
+## 7. Putting It All Together
+
+Here's a realistic example combining multiple components — a complete getting-started checklist with tabs, badges, tooltips, and steps:
+
+<Callout type="info" title="Getting Started Checklist">
+  <Tabs>
+  <Tab label="Quick Start" icon="zap">
+  <div>
+
+  <Steps>
+  <Step title="Prerequisites">
+  <div>
+
+  Make sure you have <Badge variant="success" icon="check">Node.js 20+</Badge> and
+  <Badge variant="success" icon="check">pnpm</Badge> installed.
+
+  </div>
+  </Step>
+  <Step title="Install &amp; Run" icon="zap">
+  <div>
+
+  ```bash
+  pnpm install
+  pnpm dev
+  ```
+
+  </div>
+  </Step>
+  <Step title="Verify" icon="check">
+  <div>
+
+  Open <Tooltip content="Your local development server">http://localhost:3000</Tooltip>
+  and you should see the homepage.
+
+  </div>
+  </Step>
+  </Steps>
+
+  </div>
+  </Tab>
+  <Tab label="Detailed Setup" icon="settings">
+  <div>
+
+  1. Clone the repository
+  2. Install dependencies with <Badge variant="warning" icon="zap">pnpm install</Badge>
+  3. Run the dev server with <Badge variant="tip" icon="rocket">pnpm run dev</Badge>
+  4. Start writing MDX in <Badge variant="blue" icon="book">content/blog/</Badge>
+
+  </div>
+  </Tab>
+  </Tabs>
+</Callout>
+
+````mdx
+<Callout type="info" title="Getting Started Checklist">
+  <Tabs>
+  <Tab label="Quick Start" icon="zap">
+  <div>
+
+  <Steps>
+  <Step title="Prerequisites">
+  <div>
+
+  Make sure you have <Badge variant="success" icon="check">Node.js 20+</Badge>...
+
+  </div>
+  </Step>
+  <Step title="Install &amp; Run" icon="zap">
+  <div>
+
+  ```bash
+  pnpm install
+  pnpm dev
+  ```
+
+  </div>
+  </Step>
+  <Step title="Verify" icon="check">
+  <div>
+
+  Open <Tooltip content="...">http://localhost:3000</Tooltip>
+  and you should see the homepage.
+
+  </div>
+  </Step>
+  </Steps>
+
+  </div>
+  </Tab>
+  <Tab label="Detailed Setup" icon="settings">
+  <div>
+
+  1. Clone the repository
+  2. Install dependencies...
+
+  </div>
+  </Tab>
+  </Tabs>
+</Callout>
+````
+
+---
+
+## 8. Quick Reference
+
+| Component | Key Prop | Values | Description |
+| :--- | :--- | :---: | :--- |
+| **Badge** | `variant` | `tip`, `warning`, `blue`, `emerald`, etc. | Colorful pill for labels and status |
+| | `icon` | `check`, `zap`, `star`, `rocket`, etc. | Optional icon from 40+ icon map |
+| **Tooltip** | `content` | string | Floating label on hover/focus |
+| | `side` | `top`, `bottom`, `left`, `right` | Placement control |
+| **Tabs** | `variant` | `underline`, `pills` | Tabbed content panels |
+| | `defaultIndex` | number (0-based) | Initial active tab |
+| **Steps** | `children` | Step[] | Numbered step-by-step container |
+| **Step** | `title` | string | Step heading text |
+| | `icon` | string | Optional icon name |
+| **Mermaid** | `chart` | string | Diagram definition text |
+| | `caption` | string | Optional caption below diagram |
+| **Image** | *(all)* | — | Click any image → opens lightbox |
 
 ---
 
 <Callout type="tip" title="Write Your Own Demo">
-All components shown here are ready to use in any `.md` or `.mdx` file — just drop them in and they work!
+All components shown here are ready to use in any `.md` or `.mdx` file — just drop them in and they work! Remember to wrap block-level Markdown inside `<div>` when using custom components.
 </Callout>
