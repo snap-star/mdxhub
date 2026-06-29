@@ -1,6 +1,7 @@
 import React from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useLocation } from 'react-router'
+import siteConfig from '../../../site.config.json'
 
 interface SEOProps {
   title?: string
@@ -9,28 +10,30 @@ interface SEOProps {
   type?: string
 }
 
-const siteConfig = {
-  title: 'MDXHub',
-  titleTemplate: '%s | MDXHub',
-  description: 'A blazingly fast documentation and blog platform built with React, Vite, and MDX.',
-  siteUrl: 'https://mdxhub.vercel.app',
-  defaultImage: '/mdxhub.png',
-  twitterUsername: 'snap-star',
+interface SiteConfig {
+  title: string
+  titleTemplate: string
+  description: string
+  siteUrl: string
+  defaultImage: string
+  twitterUsername: string
 }
+
+const config = siteConfig as unknown as SiteConfig
 
 export function SEO({ title, description, image, type = 'website' }: SEOProps) {
   const location = useLocation()
   
-  const seoTitle = title ? siteConfig.titleTemplate.replace('%s', title) : siteConfig.title
-  const seoDescription = description || siteConfig.description
+  const seoTitle = title ? config.titleTemplate.replace('%s', title) : config.title
+  const seoDescription = description || config.description
   
   // Handle absolute image URLs (like Unsplash) vs relative ones (like /snap-star.png)
-  const imageToUse = image || siteConfig.defaultImage
+  const imageToUse = image || config.defaultImage
   const seoImage = imageToUse.startsWith('http') 
     ? imageToUse 
-    : `${siteConfig.siteUrl}${imageToUse}`
+    : `${config.siteUrl}${imageToUse}`
     
-  const seoUrl = `${siteConfig.siteUrl}${location.pathname}`
+  const seoUrl = `${config.siteUrl}${location.pathname}`
 
   return (
     <Helmet>
@@ -48,7 +51,7 @@ export function SEO({ title, description, image, type = 'website' }: SEOProps) {
 
       {/* Twitter Tags */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:creator" content={siteConfig.twitterUsername} />
+      <meta name="twitter:creator" content={config.twitterUsername} />
       <meta name="twitter:title" content={seoTitle} />
       <meta name="twitter:description" content={seoDescription} />
       <meta name="twitter:image" content={seoImage} />

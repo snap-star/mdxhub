@@ -11,6 +11,7 @@ import { SearchCommand } from '@/components/search/SearchCommand'
 import { PageTransition } from '@/components/transitions/PageTransition'
 import { SEO } from '@/components/common/SEO'
 import { ImageLightbox } from '@/components/mdx/ImageLightbox'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 export function RootLayout() {
   const location = useLocation()
@@ -30,11 +31,13 @@ export function RootLayout() {
         <SEO />
         <Navbar />
         <SearchCommand />
-        <AnimatePresence mode="wait" initial={false}>
-          <PageTransition key={location.pathname.split('/')[1] || 'home'}>
-            <Outlet />
-          </PageTransition>
-        </AnimatePresence>
+        <ErrorBoundary>
+          <AnimatePresence mode="wait" initial={false}>
+            <PageTransition key={location.pathname.split('/')[1] || 'home'}>
+              <Outlet />
+            </PageTransition>
+          </AnimatePresence>
+        </ErrorBoundary>
         <Footer />
         <ImageLightbox />
       </div>

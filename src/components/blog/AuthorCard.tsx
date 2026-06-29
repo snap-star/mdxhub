@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router'
 import type { Author } from '@/lib/content/types'
 import { Globe } from 'lucide-react'
+import siteConfig from '../../../site.config.json'
 import { 
   SiGithub, SiInstagram, SiX, SiFacebook, 
   SiTiktok, SiBluesky, SiThreads, SiReddit, SiMastodon, 
@@ -94,7 +95,7 @@ export function AuthorCard({ author, compact = false }: AuthorCardProps) {
           {author.website && (
             <a href={author.website} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs text-primary no-underline hover:underline">
-              <Globe size={14} /> MDX Hub
+              <Globe size={14} /> {siteConfig.copyright || 'MDX Hub'}
             </a>
           )}
         </div>

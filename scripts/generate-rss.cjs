@@ -17,12 +17,18 @@ const BLOG_DIR = path.join(CONTENT_DIR, 'blog')
 const AUTHORS_FILE = path.join(CONTENT_DIR, 'authors', 'authors.yaml')
 const OUTPUT_FILE = path.join(ROOT, 'public', 'rss.xml')
 
-// Site configuration — keep in sync with src/components/common/SEO.tsx
-const SITE_URL = 'https://mdxhub.vercel.app'
-const SITE_TITLE = 'MDXHub'
-const SITE_DESCRIPTION =
-  'A blazingly fast documentation and blog platform built with React, Vite, and MDX.'
-const SITE_LANG = 'en'
+// ─── Site configuration (read from site.config.json) ──────────────────────
+let siteConfig = {}
+try {
+  siteConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'site.config.json'), 'utf-8'))
+} catch (err) {
+  console.warn(`  ⚠ Could not read site.config.json: ${err.message}`)
+}
+
+const SITE_URL = siteConfig.siteUrl || 'https://mdxhub.vercel.app'
+const SITE_TITLE = siteConfig.title || 'MDXHub'
+const SITE_DESCRIPTION = siteConfig.description || ''
+const SITE_LANG = siteConfig.language || 'en'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 

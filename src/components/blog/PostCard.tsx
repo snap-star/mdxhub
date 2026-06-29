@@ -61,9 +61,9 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
             )}
           </div>
           {frontmatter.featured && (
-            <div className="absolute top-4 right-4 z-10">
-              <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-[0.7rem] px-2.5 py-1 rounded-full shadow-lg border border-white/20 backdrop-blur-md">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="drop-shadow-sm">
+            <div className="absolute top-3 right-3 z-10">
+              <span className="relative inline-flex items-center gap-1.5 bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 text-white font-extrabold text-[0.6rem] uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg shadow-brand border border-brand-300/20 group-hover:shadow-xl group-hover:shadow-brand group-hover:scale-105 transition-all duration-300">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="shrink-0 drop-shadow-sm">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>
                 Featured

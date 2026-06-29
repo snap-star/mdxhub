@@ -6,6 +6,7 @@ import { TagCloud } from '@/components/blog/TagCloud'
 import { SidebarCategories } from '@/components/blog/SidebarCategories'
 import { SponsorCard } from '@/components/blog/SponsorCard'
 import { SEO } from '@/components/common/SEO'
+import siteConfig from '../../site.config.json'
 
 export default function BlogIndex() {
   const posts = useContentStore((s) => s.posts)
@@ -59,10 +60,9 @@ export default function BlogIndex() {
 
         {/* Content Container */}
         <div className="relative z-10 flex flex-col justify-center h-full px-8">
-          <h1 className="text-2xl md:text-4xl font-bold text-accent dark:text-accent mb-4">MDX Hub</h1>
+          <h1 className="text-2xl md:text-4xl font-bold text-accent dark:text-accent mb-4">{siteConfig.hero?.title || 'MDX Hub'}</h1>
           <p className="text-sm md:text-lg text-accent dark:text-accent max-w-xl font-mono font-semibold">
-            Thoughts, tutorials, and insights on modern web development, React,
-            and MDX.
+            {siteConfig.hero?.subtitle || 'Thoughts, tutorials, and insights on modern web development, React, and MDX.'}
           </p>
         </div>
 
