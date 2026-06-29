@@ -1,0 +1,4769 @@
+---
+title: "The Complete Guide to JavaScript"
+description: "Mastering JavaScript From Junior to Expert"
+date: 2026-06-29
+tags: ["JS", "Guide"]
+category: "Javascript"
+author: chigusa-asuha
+cc: "BY-SA"
+---
+
+# Part 0: Introduction & Philosophy
+
+## What This Guide Covers
+
+This guide is your comprehensive journey through **JavaScript (ECMAScript 2024/2025)** — the programming language that powers the modern web. We progress from writing your first line of code through mastering the language's deepest internals.
+
+### The Learning Path
+
+| Level | Topics | Goal |
+|-------|--------|------|
+| **Junior** | Syntax, types, control flow, functions, arrays, objects, DOM | Write working programs confidently |
+| **Intermediate** | ES6+, async programming, classes, modules, APIs, error handling | Build real-world applications |
+| **Expert** | Closures, event loop, memory management, design patterns, performance | Architect production-grade systems |
+
+### JavaScript Today
+
+JavaScript in 2026 is not the same language it was a decade ago:
+
+- **ES2024** brought grouped `async` operations, resizable buffers, and `Promise.withResolvers()`
+- **ES2025** introduces new array methods, `Iterator` helpers, and RegExp improvements
+- **TypeScript** has become the de facto standard for serious JavaScript projects
+- **Node.js**, **Deno**, and **Bun** extend JavaScript far beyond the browser
+
+### How to Read This Guide
+
+We use a **level badge system** to indicate difficulty:
+
+<Badge variant="green">Junior</Badge> — Fundamental concepts, first-time programming, basic syntax  
+<Badge variant="orange">Intermediate</Badge> — Patterns, real-world scenarios, modern features  
+<Badge variant="red">Expert</Badge> — Internals, architecture, performance, production concerns  
+
+Each section builds on the previous. Junior sections must be mastered before Intermediate. Intermediate patterns are assumed knowledge in Expert sections.
+
+**Run every example.** JavaScript is best learned by doing. Open your browser's DevTools console (F12 → Console) and execute each code example as you read.
+
+---
+
+# Part 1: Junior Level — Foundations
+
+## Chapter 1: Your First JavaScript
+
+<Badge variant="green">Junior</Badge>
+
+### 1.1 Running JavaScript
+
+JavaScript runs in multiple environments. Here are the three easiest ways to start:
+
+**Option A: Browser Console (Fastest)**
+
+Open any web page, press `F12`, click the **Console** tab, and type:
+
+```javascript
+console.log("Hello, World!");
+// → Hello, World!
+```
+
+**Option B: HTML File**
+
+Create `index.html`:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My First JS</title>
+</head>
+<body>
+  <script>
+    console.log("Hello from HTML!");
+  </script>
+</body>
+</html>
+```
+
+Or link an external file:
+
+```html
+<script src="app.js"></script>
+```
+
+**Option C: Node.js (Terminal)**
+
+```bash
+# Install Node.js from https://nodejs.org
+node -v   # Check version (v22+ recommended)
+
+# Run a file
+node app.js
+
+# Or use the REPL (Read-Eval-Print Loop)
+node
+> console.log("Hello from Node!")
+Hello from Node!
+> 2 + 2
+4
+```
+
+### 1.2 Statements and Semicolons
+
+JavaScript is executed as a sequence of **statements**. Each statement is an instruction.
+
+```javascript
+// A statement performs an action
+console.log("This is a statement");
+
+// Statements are separated by semicolons (mostly optional)
+let a = 1; let b = 2;
+
+// JavaScript has Automatic Semicolon Insertion (ASI)
+// But ALWAYS use semicolons to avoid subtle bugs
+let c = 3  // ← No semicolon — works, but risky
+let d = 4  // ← This line could merge with the previous one
+
+// Bad: returns undefined because ASI inserts after 'return'
+function bad() {
+  return           // ← ASI inserts here!
+    { value: 42 }  // ← This becomes unreachable
+}
+
+// Good: keep return value on same line
+function good() {
+  return { value: 42 };
+}
+```
+
+### 1.3 Comments
+
+```javascript
+// Single-line comment
+
+/*
+  Multi-line comment.
+  Use this for longer explanations.
+*/
+
+/**
+ * JSDoc comment — used for documentation
+ * @param {number} x — the input value
+ * @returns {number} — the doubled value
+ */
+function double(x) {
+  return x * 2;
+}
+```
+
+### 1.4 `console` Methods
+
+```javascript
+// Logging
+console.log("General output");
+console.info("Informational message");
+console.warn("Warning!");
+console.error("Error occurred!");
+
+// Styled logging
+console.log("%cStyled text", "color: blue; font-size: 20px;");
+
+// Tables — great for arrays/objects
+const users = [{ name: "Alice", age: 30 }, { name: "Bob", age: 25 }];
+console.table(users);
+
+// Grouped logging
+console.group("User Details");
+  console.log("Name: Alice");
+  console.log("Age: 30");
+console.groupEnd();
+
+// Timing code
+console.time("loop");
+for (let i = 0; i < 1000000; i++) {}
+console.timeEnd("loop");  // → loop: 2.345ms
+
+// Stack trace
+console.trace("Where was this called?");
+```
+
+---
+
+## Chapter 2: Variables and Data Types
+
+<Badge variant="green">Junior</Badge>
+
+### 2.1 Declaring Variables
+
+JavaScript has three ways to declare variables. **Use `const` by default, `let` when reassignment is needed, and never use `var`.**
+
+```javascript
+// const — value cannot be reassigned (preferred)
+const PI = 3.14159;
+PI = 3;  // ❌ TypeError: Assignment to constant variable
+
+// const objects/arrays can have their contents modified
+const person = { name: "Alice" };
+person.name = "Bob";     // ✓ This works!
+person = {};             // ❌ TypeError
+
+// let — value can be reassigned
+let count = 0;
+count = 1;  // ✓ This works
+
+// var — legacy, function-scoped, avoid it
+var old = "don't use this";
+```
+
+### 2.2 Naming Rules
+
+```javascript
+// Valid names
+const userName = "Alice";     // camelCase (preferred in JS)
+const _private = "value";     // underscore prefix for private-ish
+const $element = null;        // dollar sign (common for DOM)
+const user2 = "Bob";          // numbers allowed (not at start)
+const MAX_SIZE = 100;         // UPPER_SNAKE_CASE for constants
+
+// Invalid names
+const 2user = "no";           // ❌ Cannot start with number
+const user-name = "no";       // ❌ Hyphens not allowed
+const class = "no";           // ❌ Reserved word
+
+// Reserved words you cannot use as variable names:
+// break, case, catch, class, const, continue, debugger, default, delete,
+// do, else, export, extends, finally, for, function, if, import, in,
+// instanceof, new, return, super, switch, this, throw, try, typeof,
+// var, void, while, with, yield, let, static, await, enum
+```
+
+### 2.3 Primitive Data Types
+
+JavaScript has **7 primitive types** — immutable, stored by value.
+
+```javascript
+// === string ===
+const name = "Alice";           // Double quotes
+const greeting = 'Hello';       // Single quotes
+const template = `Hi, ${name}`; // Template literal (backticks)
+
+// String concatenation
+const full = "Hello, " + name;  // "Hello, Alice"
+const better = `Hello, ${name}`; // "Hello, Alice" (preferred)
+
+// === number ===
+const integer = 42;
+const float = 3.14;
+const negative = -10;
+const scientific = 1.5e3;       // 1500
+const hex = 0xff;               // 255 (hexadecimal)
+const binary = 0b1010;          // 10 (binary)
+const octal = 0o77;             // 63 (octal)
+
+// Special number values
+console.log(typeof NaN);        // "number" (Not a Number)
+console.log(1 / 0);             // Infinity
+console.log(-1 / 0);            // -Infinity
+
+// === bigint === (for very large integers)
+const huge = 9007199254740991n;
+const bigger = huge + 1n;
+// Cannot mix BigInt and Number: 1n + 1 → TypeError
+
+// === boolean ===
+const isActive = true;
+const isComplete = false;
+
+// === undefined ===
+let notAssigned;
+console.log(notAssigned);       // undefined
+console.log(typeof notAssigned); // "undefined"
+
+// === null ===
+const empty = null;
+console.log(typeof empty);       // "object" (known bug, won't be fixed)
+
+// === symbol === (unique identifier)
+const id1 = Symbol("id");
+const id2 = Symbol("id");
+console.log(id1 === id2);        // false — every Symbol is unique
+
+// === typeof operator ===
+console.log(typeof "hello");     // "string"
+console.log(typeof 42);          // "number"
+console.log(typeof 42n);         // "bigint"
+console.log(typeof true);        // "boolean"
+console.log(typeof undefined);   // "undefined"
+console.log(typeof Symbol());    // "symbol"
+console.log(typeof null);        // "object" (quirk!)
+console.log(typeof {});          // "object"
+console.log(typeof function(){});// "function"
+```
+
+### 2.4 The Object Type
+
+Objects are **reference types** — mutable, stored by reference.
+
+```javascript
+// Object literal
+const user = {
+  name: "Alice",
+  age: 30,
+  isAdmin: false,
+  "favorite color": "blue",     // Quoted key with space
+  hobbies: ["reading", "gaming"], // Array as value
+  address: {                    // Nested object
+    city: "New York",
+    zip: "10001"
+  }
+};
+
+// Accessing properties
+console.log(user.name);           // Dot notation: "Alice"
+console.log(user["favorite color"]); // Bracket notation: "blue"
+
+// Adding/modifying properties
+user.email = "alice@example.com";
+user.age = 31;
+
+// Deleting properties
+delete user.isAdmin;
+
+// Check if property exists
+console.log("name" in user);      // true
+console.log(user.hasOwnProperty("name")); // true (ignores inherited)
+
+// Check all keys/values
+console.log(Object.keys(user));   // ["name", "age", "favorite color", ...]
+console.log(Object.values(user)); // ["Alice", 31, "blue", ...]
+console.log(Object.entries(user)); // [["name", "Alice"], ["age", 31], ...]
+
+// Array (special type of object)
+const fruits = ["apple", "banana", "cherry"];
+console.log(fruits[0]);           // "apple" (zero-indexed)
+console.log(fruits.length);       // 3
+```
+
+### 2.5 `null` vs `undefined` vs undeclared
+
+```javascript
+// undefined — variable exists but has no value
+let x;
+console.log(x);                   // undefined
+
+// null — explicitly "no value" (intentional absence)
+let y = null;
+console.log(y);                   // null
+
+// undeclared — variable doesn't exist at all
+// console.log(z);                // ❌ ReferenceError: z is not defined
+
+// Best practice: use null for intentional emptiness
+const findUser = (id) => {
+  if (id === 0) return null;      // Explicitly "not found"
+  return { id, name: "Alice" };   // Found a user
+};
+
+// Check for null OR undefined (but not false, 0, "")
+const result = findUser(0);
+if (result == null) {             // Loose equality catches both
+  console.log("User not found");
+}
+
+// Strict check for only null
+if (result === null) {
+  console.log("Explicitly null");
+}
+```
+
+---
+
+## Chapter 3: Operators
+
+<Badge variant="green">Junior</Badge>
+
+### 3.1 Arithmetic Operators
+
+```javascript
+// Basic arithmetic
+console.log(5 + 3);     // 8  (addition)
+console.log(10 - 4);    // 6  (subtraction)
+console.log(6 * 7);     // 42 (multiplication)
+console.log(20 / 4);    // 5  (division)
+console.log(17 % 5);    // 2  (remainder)
+console.log(2 ** 8);    // 256 (exponentiation, ES2016)
+
+// Increment / decrement
+let n = 5;
+console.log(++n);       // 6 (pre-increment: add 1, then return)
+console.log(n++);       // 6 (post-increment: return, then add 1)
+console.log(n);         // 7
+
+// String concatenation with +
+console.log("Hello " + "World"); // "Hello World"
+console.log("Age: " + 25);       // "Age: 25" (number coerced to string)
+
+// Unary plus (converts to number)
+console.log(+"42");      // 42
+console.log(+true);      // 1
+
+// Unary minus (negates)
+console.log(-5);         // -5
+console.log(-(-5));      // 5
+```
+
+### 3.2 Comparison Operators
+
+```javascript
+// === Strict equality (ALWAYS USE THIS)
+console.log(5 === 5);    // true
+console.log(5 === "5");  // false (different types)
+console.log(true === 1); // false
+
+// == Loose equality (AVOID — type coercion causes bugs)
+console.log(5 == "5");   // true  (string "5" coerced to number 5)
+console.log(true == 1);  // true
+console.log(false == 0); // true
+console.log(null == undefined); // true
+console.log("" == 0);    // true
+console.log("" == false);// true
+
+// !== Strict inequality
+console.log(5 !== "5");  // true
+
+// >, <, >=, <=
+console.log(10 > 5);     // true
+console.log("apple" < "banana"); // true (string comparison)
+
+// Comparing objects (by reference, not value)
+const a = { x: 1 };
+const b = { x: 1 };
+const c = a;
+console.log(a === b);    // false (different objects in memory)
+console.log(a === c);    // true (same reference)
+```
+
+### 3.3 Logical Operators
+
+```javascript
+// && AND — returns first falsy value, or last truthy
+console.log(true && true);   // true
+console.log(true && false);  // false
+console.log("hello" && 42);  // 42 (both truthy, returns last)
+console.log(null && "hi");   // null (first falsy, short-circuits)
+
+// || OR — returns first truthy value, or last falsy
+console.log(false || true);  // true
+console.log(0 || "fallback"); // "fallback"
+console.log("hello" || 42);  // "hello" (first truthy, short-circuits)
+
+// ! NOT — inverts boolean
+console.log(!true);          // false
+console.log(!false);         // true
+console.log(!"hello");       // false (string is truthy)
+console.log(!"");            // true  (empty string is falsy)
+console.log(!!"hello");      // true  (double NOT coerces to boolean)
+
+// ?? Nullish Coalescing (ES2020)
+// Returns right side only if left is null or undefined
+const value = null ?? "default";       // "default"
+const zero = 0 ?? "default";           // 0 (0 is not nullish!)
+const emptyStr = "" ?? "default";      // "" (empty string is not nullish!)
+
+// || vs ?? comparison
+console.log(0 || "fallback");    // "fallback" (0 is falsy)
+console.log(0 ?? "fallback");    // 0        (0 is not nullish) ✓ Better!
+```
+
+### 3.4 Truthy and Falsy Values
+
+```javascript
+// Falsy values (coerce to false in boolean context)
+// There are only 8 falsy values:
+console.log(Boolean(false));       // false
+console.log(Boolean(0));           // false
+console.log(Boolean(-0));          // false
+console.log(Boolean(0n));          // false (BigInt zero)
+console.log(Boolean(""));          // false (empty string)
+console.log(Boolean(null));        // false
+console.log(Boolean(undefined));   // false
+console.log(Boolean(NaN));         // false
+
+// Everything else is truthy
+console.log(Boolean(true));        // true
+console.log(Boolean(1));           // true
+console.log(Boolean(-1));          // true
+console.log(Boolean("hello"));     // true
+console.log(Boolean("false"));     // true! (non-empty string)
+console.log(Boolean([]));          // true! (empty array)
+console.log(Boolean({}));          // true! (empty object)
+console.log(Boolean(function(){}));// true
+```
+
+### 3.5 Assignment Operators
+
+```javascript
+let x = 10;
+
+x += 5;   // x = x + 5;   → 15
+x -= 3;   // x = x - 3;   → 12
+x *= 2;   // x = x * 2;   → 24
+x /= 4;   // x = x / 4;   → 6
+x %= 4;   // x = x % 4;   → 2
+x **= 3;  // x = x ** 3;  → 8
+
+// Destructuring assignment
+const [a, b] = [1, 2];           // a=1, b=2
+const { name, age } = { name: "Alice", age: 30 }; // name="Alice", age=30
+
+// Logical assignment operators (ES2021)
+let config = null;
+config ??= { theme: "dark" };    // config = config ?? { theme: "dark" }
+
+let count = 0;
+count ||= 10;  // count = count || 10 → count becomes 10 (0 is falsy)
+
+count &&= 5;   // count = count && 5 → if count is truthy, set to 5
+```
+
+### 3.6 The Ternary Operator
+
+```javascript
+// condition ? valueIfTrue : valueIfFalse
+const age = 20;
+const status = age >= 18 ? "adult" : "minor";
+
+// Nested ternaries (use sparingly — can become unreadable)
+const category = age < 13 ? "child" : age < 20 ? "teen" : "adult";
+
+// Equivalent with if/else (more readable for complex cases)
+let category;
+if (age < 13) {
+  category = "child";
+} else if (age < 20) {
+  category = "teen";
+} else {
+  category = "adult";
+}
+```
+
+---
+
+## Chapter 4: Control Flow
+
+<Badge variant="green">Junior</Badge>
+
+### 4.1 `if` / `else if` / `else`
+
+```javascript
+const score = 85;
+
+if (score >= 90) {
+  console.log("Grade: A");
+} else if (score >= 80) {
+  console.log("Grade: B");    // This runs
+} else if (score >= 70) {
+  console.log("Grade: C");
+} else if (score >= 60) {
+  console.log("Grade: D");
+} else {
+  console.log("Grade: F");
+}
+
+// One-liner (only for single statements)
+if (score > 0) console.log("Positive");
+```
+
+### 4.2 `switch` Statement
+
+```javascript
+const day = 3;
+
+switch (day) {
+  case 1:
+    console.log("Monday");
+    break;  // Don't forget break! Without it, execution falls through
+  case 2:
+    console.log("Tuesday");
+    break;
+  case 3:
+    console.log("Wednesday");  // This runs
+    break;
+  case 4:
+    console.log("Thursday");
+    break;
+  case 5:
+    console.log("Friday");
+    break;
+  default:
+    console.log("Weekend");
+}
+
+// Multiple cases with same result (fall-through is useful here)
+switch (day) {
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+    console.log("Weekday");
+    break;
+  case 6:
+  case 0:
+    console.log("Weekend");
+    break;
+  default:
+    console.log("Invalid day");
+}
+```
+
+### 4.3 `for` Loop
+
+```javascript
+// Standard for loop
+for (let i = 0; i < 5; i++) {
+  console.log(i);  // 0, 1, 2, 3, 4
+}
+
+// Loop through array
+const colors = ["red", "green", "blue"];
+for (let i = 0; i < colors.length; i++) {
+  console.log(`${i}: ${colors[i]}`);
+}
+// → 0: red
+// → 1: green
+// → 2: blue
+
+// Multiple variables
+for (let i = 0, j = 10; i < j; i++, j--) {
+  console.log(i, j);  // 0 10, 1 9, 2 8...
+}
+
+// Skip iterations with continue
+for (let i = 0; i < 10; i++) {
+  if (i % 2 === 0) continue;  // Skip even numbers
+  console.log(i);  // 1, 3, 5, 7, 9
+}
+
+// Break out of loop early
+for (let i = 0; i < 100; i++) {
+  if (i === 5) break;
+  console.log(i);  // 0, 1, 2, 3, 4
+}
+```
+
+### 4.4 `while` and `do...while` Loops
+
+```javascript
+// while — check condition before each iteration
+let count = 0;
+while (count < 5) {
+  console.log(count);  // 0, 1, 2, 3, 4
+  count++;
+}
+
+// do...while — runs at least once
+let num = 0;
+do {
+  console.log(num);  // 0
+  num++;
+} while (num < 0);  // Condition is false, but loop ran once
+
+// Reading until condition met
+function findFactorial(n) {
+  let result = 1;
+  while (n > 1) {
+    result *= n;
+    n--;
+  }
+  return result;
+}
+console.log(findFactorial(5));  // 120
+```
+
+### 4.5 `for...of` (Iterable Values)
+
+```javascript
+// Arrays
+const fruits = ["apple", "banana", "cherry"];
+for (const fruit of fruits) {
+  console.log(fruit);  // apple, banana, cherry
+}
+
+// Strings
+for (const char of "Hello") {
+  console.log(char);   // H, e, l, l, o
+}
+
+// With index using entries()
+for (const [index, fruit] of fruits.entries()) {
+  console.log(`${index}: ${fruit}`);
+}
+
+// Can use break/continue
+for (const num of [1, 2, 3, 4, 5]) {
+  if (num === 3) break;
+  console.log(num);  // 1, 2
+}
+```
+
+### 4.6 `for...in` (Object Keys)
+
+```javascript
+// ⚠️ for...in iterates over KEYS (including inherited ones)
+const person = { name: "Alice", age: 30, city: "NYC" };
+
+for (const key in person) {
+  console.log(`${key}: ${person[key]}`);
+}
+// → name: Alice
+// → age: 30
+// → city: NYC
+
+// Always check hasOwnProperty to avoid inherited properties
+for (const key in person) {
+  if (person.hasOwnProperty(key)) {
+    console.log(key);
+  }
+}
+
+// 💡 Prefer Object.keys(), Object.values(), or Object.entries()
+for (const [key, value] of Object.entries(person)) {
+  console.log(`${key}: ${value}`);
+}
+```
+
+---
+
+## Chapter 5: Functions
+
+<Badge variant="green">Junior</Badge>
+
+### 5.1 Function Declarations
+
+```javascript
+// Function declaration — hoisted (can be called before definition)
+function greet(name) {
+  return `Hello, ${name}!`;
+}
+console.log(greet("Alice"));  // "Hello, Alice!"
+
+// Function expression — NOT hoisted
+const sayHi = function(name) {
+  return `Hi, ${name}!`;
+};
+console.log(sayHi("Bob"));    // "Hi, Bob!"
+
+// Named function expression (useful for stack traces)
+const factorial = function fact(n) {
+  if (n <= 1) return 1;
+  return n * fact(n - 1);  // Can reference itself internally
+};
+```
+
+### 5.2 Arrow Functions (ES6)
+
+```javascript
+// Arrow function syntax
+const add = (a, b) => a + b;
+console.log(add(2, 3));  // 5
+
+// With block body (multiple statements)
+const greet = (name) => {
+  const greeting = "Hello";
+  return `${greeting}, ${name}!`;
+};
+
+// Single parameter — parentheses optional
+const double = x => x * 2;
+
+// No parameters — empty parentheses required
+const getTimestamp = () => Date.now();
+
+// Returning an object (wrap in parentheses)
+const makeUser = (name, age) => ({ name, age });
+console.log(makeUser("Alice", 30));  // { name: "Alice", age: 30 }
+
+// Arrow functions don't have their own 'this' — inherits from parent
+// (This is their most important characteristic — see Expert Chapter)
+```
+
+### 5.3 Default Parameters
+
+```javascript
+function greet(name = "Guest", greeting = "Hello") {
+  return `${greeting}, ${name}!`;
+}
+
+console.log(greet());              // "Hello, Guest!"
+console.log(greet("Alice"));        // "Hello, Alice!"
+console.log(greet("Alice", "Hi"));  // "Hi, Alice!"
+
+// Default with expression
+function createId(prefix = "user") {
+  return `${prefix}_${Math.random().toString(36).slice(2)}`;
+}
+
+// Previous parameter as default
+function greetUser(name, greeting = `Hello, ${name}`) {
+  return greeting;
+}
+console.log(greetUser("Alice"));  // "Hello, Alice"
+```
+
+### 5.4 Rest Parameters
+
+```javascript
+// Rest parameter collects remaining arguments into an array
+function sum(...numbers) {
+  return numbers.reduce((total, n) => total + n, 0);
+}
+
+console.log(sum(1, 2, 3));       // 6
+console.log(sum(10, 20));        // 30
+console.log(sum());              // 0
+
+// Rest with named parameters
+function createUser(name, age, ...tags) {
+  return { name, age, tags };
+}
+console.log(createUser("Alice", 30, "admin", "verified"));
+// → { name: "Alice", age: 30, tags: ["admin", "verified"] }
+
+// Must be the last parameter
+// function wrong(a, ...rest, b) {}  // ❌ SyntaxError
+```
+
+### 5.5 The `arguments` Object (Legacy)
+
+```javascript
+// Old way to access all arguments (avoid in modern code — use rest parameters)
+function oldSum() {
+  let total = 0;
+  for (let i = 0; i < arguments.length; i++) {
+    total += arguments[i];
+  }
+  return total;
+}
+
+// ⚠️ arguments is NOT a real array (no map, filter, etc.)
+// ⚠️ Arrow functions don't have arguments object
+
+// Modern approach (preferred):
+const modernSum = (...nums) => nums.reduce((a, b) => a + b, 0);
+```
+
+### 5.6 Function Scope
+
+```javascript
+function outer() {
+  const outerVar = "I'm outer";
+
+  function inner() {
+    const innerVar = "I'm inner";
+    console.log(outerVar);  // ✓ Can access outer scope
+    console.log(innerVar);  // ✓ Can access own scope
+  }
+
+  inner();
+  // console.log(innerVar); // ❌ ReferenceError — innerVar not accessible here
+}
+
+outer();
+
+// Variables are function-scoped (var) or block-scoped (let/const)
+function scopeDemo() {
+  if (true) {
+    var functionScoped = "visible throughout function";
+    let blockScoped = "only in this block";
+    const alsoBlockScoped = "only in this block";
+  }
+  console.log(functionScoped);        // ✓ Works
+  // console.log(blockScoped);        // ❌ ReferenceError
+  // console.log(alsoBlockScoped);    // ❌ ReferenceError
+}
+```
+
+---
+
+## Chapter 6: Arrays Deep Dive
+
+<Badge variant="green">Junior</Badge>
+
+### 6.1 Creating and Accessing Arrays
+
+```javascript
+// Creating arrays
+const empty = [];
+const fruits = ["apple", "banana", "cherry"];
+const mixed = [1, "two", true, null, { x: 1 }, [2, 3]];
+const sparse = [1, , 3];  // Sparse array (hole at index 1)
+
+// Accessing elements
+console.log(fruits[0]);       // "apple" (zero-indexed!)
+console.log(fruits[1]);       // "banana"
+console.log(fruits[fruits.length - 1]);  // "cherry" (last element)
+console.log(fruits[10]);      // undefined (no error for out of bounds)
+
+// Modifying arrays
+fruits[1] = "blueberry";      // Replace
+fruits[3] = "date";           // Add at index
+fruits.push("elderberry");    // Add to end
+fruits.unshift("apricot");    // Add to beginning
+
+// Array length
+console.log(fruits.length);   // 6
+
+// Array.isArray check
+console.log(Array.isArray(fruits));  // true
+console.log(Array.isArray({}));      // false
+```
+
+### 6.2 Essential Array Methods
+
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+
+// === Adding/Removing ===
+
+const arr = ["a", "b", "c"];
+arr.push("d");          // Add to end → ["a","b","c","d"], returns new length
+arr.pop();              // Remove from end → ["a","b","c"], returns removed item
+arr.unshift("z");       // Add to start → ["z","a","b","c"], returns new length
+arr.shift();            // Remove from start → ["a","b","c"], returns removed item
+
+// splice — powerful but mutates (often avoid in favor of spread)
+const nums = [1, 2, 3, 4, 5];
+nums.splice(2, 1);           // At index 2, remove 1 → [1, 2, 4, 5]
+nums.splice(2, 0, "a", "b"); // At index 2, remove 0, insert → [1, 2, "a", "b", 4, 5]
+
+// slice — non-mutating, returns copy
+const sliced = [1, 2, 3, 4].slice(1, 3);  // [2, 3] (start inclusive, end exclusive)
+const copy = [1, 2, 3].slice();            // Shallow copy
+
+// === Searching ===
+
+const users = [
+  { id: 1, name: "Alice" },
+  { id: 2, name: "Bob" },
+  { id: 3, name: "Carol" }
+];
+
+// find — first matching element
+const alice = users.find(u => u.name === "Alice");  // { id: 1, name: "Alice" }
+const nobody = users.find(u => u.name === "Dave");  // undefined
+
+// findIndex — index of first match
+const aliceIndex = users.findIndex(u => u.id === 1);  // 0
+
+// includes — checks if value exists
+[1, 2, 3].includes(2);     // true
+[1, 2, 3].includes(5);     // false
+
+// some — any element matches?
+[1, 2, 3].some(n => n > 2);   // true
+
+// every — all elements match?
+[1, 2, 3].every(n => n > 0);  // true
+
+// indexOf / lastIndexOf
+["a", "b", "a"].indexOf("a");     // 0
+["a", "b", "a"].lastIndexOf("a"); // 2
+
+// === Transforming ===
+
+// map — transform each element, returns new array
+const doubled = [1, 2, 3].map(n => n * 2);        // [2, 4, 6]
+const names = users.map(u => u.name);              // ["Alice", "Bob", "Carol"]
+
+// filter — keep elements that match condition
+const evens = [1, 2, 3, 4, 5].filter(n => n % 2 === 0);  // [2, 4]
+const adults = users.filter(u => u.age >= 18);
+
+// reduce — reduce to single value
+const sum = [1, 2, 3, 4, 5].reduce((acc, n) => acc + n, 0);  // 15
+const max = [3, 1, 4, 1, 5].reduce((max, n) => n > max ? n : max, -Infinity);
+
+// reduce with object result
+const userMap = users.reduce((map, user) => {
+  map[user.id] = user;
+  return map;
+}, {});
+// → { 1: {id: 1, name: "Alice"}, 2: {...} }
+
+// flat — flatten nested arrays
+[1, [2, 3], [4, [5]]].flat();      // [1, 2, 3, 4, [5]] (depth 1 default)
+[1, [2, 3], [4, [5]]].flat(2);     // [1, 2, 3, 4, 5] (depth 2)
+[1, [2, [3, [4]]]].flat(Infinity);  // [1, 2, 3, 4]
+
+// flatMap — map then flat(depth 1)
+const sentences = ["Hello world", "Goodbye"];
+const words = sentences.flatMap(s => s.split(" "));  // ["Hello", "world", "Goodbye"]
+
+// === Ordering ===
+
+// sort — ⚠️ MUTATES the original array!
+const toSort = [3, 1, 4, 1, 5];
+toSort.sort((a, b) => a - b);   // [1, 1, 3, 4, 5] (ascending)
+toSort.sort((a, b) => b - a);   // [5, 4, 3, 1, 1] (descending)
+
+// Non-mutating sort (spread first)
+const original = [3, 1, 4];
+const sorted = [...original].sort((a, b) => a - b);
+console.log(original);  // [3, 1, 4] — unchanged!
+
+// Sort strings
+["banana", "Apple", "cherry"].sort((a, b) => a.localeCompare(b));
+
+// Sort objects
+users.sort((a, b) => a.name.localeCompare(b.name));
+
+// reverse — also mutates!
+[1, 2, 3].reverse();  // [3, 2, 1]
+
+// === Other Useful Methods ===
+
+// join — array to string
+["Hello", "World"].join(" ");   // "Hello World"
+[1, 2, 3].join("-");            // "1-2-3"
+
+// fill
+new Array(3).fill(0);           // [0, 0, 0]
+
+// at — supports negative indices (ES2022)
+[1, 2, 3].at(-1);   // 3 (last element)
+[1, 2, 3].at(-2);   // 2 (second to last)
+[1, 2, 3].at(0);    // 1
+
+// with — non-mutating replacement (ES2023)
+const original2 = [1, 2, 3];
+const replaced = original2.with(1, 99);  // [1, 99, 3]
+console.log(original2);  // [1, 2, 3] — unchanged!
+
+// toSorted, toReversed, toSpliced — non-mutating versions (ES2023)
+const arr3 = [3, 1, 2];
+const sorted3 = arr3.toSorted((a, b) => a - b);  // [1, 2, 3]
+const reversed3 = arr3.toReversed();                // [2, 1, 3]
+console.log(arr3);  // [3, 1, 2] — unchanged!
+```
+### 6.3 Chaining Array Methods
+
+```javascript
+// Chain methods for readable data pipelines
+const users = [
+  { name: "Alice", age: 30, active: true },
+  { name: "Bob", age: 17, active: true },
+  { name: "Carol", age: 25, active: false },
+  { name: "Dave", age: 35, active: true },
+];
+
+// Pipeline: filter active adults → sort by age → get names
+const result = users
+  .filter(u => u.active && u.age >= 18)  // [{Alice, 30}, {Dave, 35}]
+  .sort((a, b) => a.age - b.age)          // [{Alice, 30}, {Dave, 35}]
+  .map(u => u.name);                       // ["Alice", "Dave"]
+
+// Complex data processing
+const products = [
+  { name: "Laptop", price: 999, category: "Electronics", inStock: true },
+  { name: "Book", price: 15, category: "Education", inStock: true },
+  { name: "Phone", price: 699, category: "Electronics", inStock: false },
+  { name: "Course", price: 49, category: "Education", inStock: true },
+];
+
+// Get average price of in-stock Electronics
+const avgElectronicsPrice = products
+  .filter(p => p.category === "Electronics" && p.inStock)
+  .map(p => p.price)
+  .reduce((sum, price, _, arr) => sum + price / arr.length, 0);
+// → 999
+```
+
+---
+
+## Chapter 7: Objects Deep Dive
+
+<Badge variant="green">Junior</Badge>
+
+### 7.1 Object Basics
+
+```javascript
+// Object literal
+const person = {
+  firstName: "Alice",
+  lastName: "Johnson",
+  age: 30,
+  email: "alice@example.com",
+  
+  // Method (shorthand)
+  greet() {
+    return `Hello, I'm ${this.firstName}`;
+  },
+  
+  // Computed property name
+  ["user_" + Date.now()]: "generated"
+};
+
+// Property access
+console.log(person.firstName);           // Dot notation: "Alice"
+console.log(person["lastName"]);         // Bracket notation: "Johnson"
+console.log(person.greet());             // "Hello, I'm Alice"
+
+// Dynamic property access
+const prop = "email";
+console.log(person[prop]);               // "alice@example.com"
+
+// Property shorthand (when variable name matches key)
+const x = 1, y = 2;
+const point = { x, y };  // { x: 1, y: 2 }
+
+// Destructuring
+const { firstName, lastName, age } = person;
+console.log(firstName);  // "Alice"
+
+// Destructuring with rename
+const { firstName: fn, lastName: ln } = person;
+console.log(fn);  // "Alice"
+
+// Destructuring with default
+const { middleName = "N/A" } = person;
+console.log(middleName);  // "N/A"
+
+// Destructuring nested objects
+const user = {
+  profile: {
+    name: "Alice",
+    address: { city: "NYC" }
+  }
+};
+const { profile: { name, address: { city } } } = user;
+console.log(name, city);  // "Alice" "NYC"
+```
+
+### 7.2 Object Methods
+
+```javascript
+const car = { brand: "Toyota", model: "Camry", year: 2023 };
+
+// Get keys, values, entries
+Object.keys(car);      // ["brand", "model", "year"]
+Object.values(car);    // ["Toyota", "Camry", 2023]
+Object.entries(car);   // [["brand","Toyota"], ["model","Camry"], ["year",2023]]
+
+// Create from entries
+const fromEntries = Object.fromEntries([
+  ["a", 1],
+  ["b", 2]
+]);  // { a: 1, b: 2 }
+
+// Check if property exists
+console.log("brand" in car);           // true
+console.log(car.hasOwnProperty("brand")); // true (own property only)
+
+// Merge objects (shallow)
+const defaults = { color: "white", doors: 4 };
+const myCar = Object.assign({}, defaults, car);
+// → { color: "white", doors: 4, brand: "Toyota", model: "Camry", year: 2023 }
+
+// Modern merge with spread (preferred)
+const myCar2 = { ...defaults, ...car };
+
+// Freeze — make object immutable (shallow)
+const frozen = Object.freeze({ x: 1 });
+frozen.x = 2;  // ❌ Silently fails in non-strict, throws in strict mode
+
+// Seal — can modify existing properties, can't add/remove
+const sealed = Object.seal({ x: 1 });
+sealed.x = 2;     // ✓ Works
+sealed.y = 3;     // ❌ Fails
+
+// Property descriptors
+Object.defineProperty(car, "id", {
+  value: 12345,
+  writable: false,      // Can't be changed
+  enumerable: false,    // Won't show in Object.keys
+  configurable: false   // Can't be deleted or reconfigured
+});
+```
+
+### 7.3 `this` in Methods
+
+```javascript
+const calculator = {
+  value: 0,
+  
+  add(n) {
+    this.value += n;    // this refers to calculator
+    return this;        // Enable chaining
+  },
+  
+  subtract(n) {
+    this.value -= n;
+    return this;
+  },
+  
+  getValue() {
+    return this.value;
+  }
+};
+
+// Method chaining
+calculator.add(10).subtract(3).add(5);
+console.log(calculator.getValue());  // 12
+
+// ⚠️ this is lost when method is assigned
+const add = calculator.add;
+add(5);  // this is now undefined (or global in non-strict)
+// → calculator.value is still 12!
+
+// Fix with bind
+const boundAdd = calculator.add.bind(calculator);
+boundAdd(5);
+console.log(calculator.value);  // 17
+```
+
+---
+
+## Chapter 8: Strings
+
+<Badge variant="green">Junior</Badge>
+
+### 8.1 Template Literals
+
+```javascript
+const name = "Alice";
+const age = 30;
+
+// Basic interpolation
+const greeting = `Hello, ${name}!`;  // "Hello, Alice!"
+
+// Expressions
+const info = `${name} is ${age} years old. Next year she'll be ${age + 1}.`;
+
+// Multi-line strings
+const html = `
+  <div class="card">
+    <h2>${name}</h2>
+    <p>Age: ${age}</p>
+  </div>
+`;
+
+// Tagged templates (advanced)
+function highlight(strings, ...values) {
+  return strings.reduce((result, str, i) => {
+    const val = values[i] ? `**${values[i]}**` : '';
+    return result + str + val;
+  }, '');
+}
+console.log(highlight`Hello ${name}, you are ${age}`);
+// "Hello **Alice**, you are **30**"
+```
+
+### 8.2 Essential String Methods
+
+```javascript
+const str = "Hello, World!";
+
+// Length
+console.log(str.length);           // 13
+
+// Access characters
+console.log(str[0]);               // "H"
+console.log(str.at(-1));           // "!" (ES2022)
+
+// Case
+console.log(str.toUpperCase());    // "HELLO, WORLD!"
+console.log(str.toLowerCase());    // "hello, world!"
+
+// Search
+console.log(str.indexOf("World"));  // 7
+console.log(str.includes("World")); // true
+console.log(str.startsWith("Hello")); // true
+console.log(str.endsWith("!"));     // true
+
+// Extract
+console.log(str.slice(7, 12));      // "World" (start, end)
+console.log(str.slice(7));          // "World!" (start to end)
+console.log(str.slice(-6));         // "World!" (from end)
+console.log(str.substring(7, 12));  // "World" (similar to slice)
+
+// Replace
+console.log(str.replace("World", "JavaScript"));  // "Hello, JavaScript!"
+console.log(str.replace(/l/g, "L"));              // "HeLLo, WorLd!"
+
+// Split and Join
+console.log(str.split(", "));       // ["Hello", "World!"]
+console.log(str.split(""));          // ["H","e","l","l","o",...]
+console.log(["Hello", "World"].join(" "));  // "Hello World"
+
+// Trim
+"  hello  ".trim();          // "hello"
+"  hello  ".trimStart();     // "hello  "
+"  hello  ".trimEnd();       // "  hello"
+
+// Padding (ES2017)
+"42".padStart(5, "0");       // "00042"
+"42".padEnd(5, "0");         // "42000"
+
+// Repeat (ES2015)
+"ha".repeat(3);              // "hahaha"
+
+// Check content
+"hello123".match(/\d+/);     // ["123"] — regex match
+"abc".localeCompare("def");  // -1 (comes before)
+```
+
+---
+
+## Chapter 9: Working with the DOM
+
+<Badge variant="green">Junior</Badge>
+### 9.1 Selecting Elements
+
+```javascript
+// By ID
+const header = document.getElementById("header");
+
+// By class name (returns HTMLCollection — live!)
+const items = document.getElementsByClassName("item");
+
+// By tag name
+const paragraphs = document.getElementsByTagName("p");
+
+// CSS selector (first match)
+const nav = document.querySelector("nav");
+const button = document.querySelector(".btn-primary");
+const input = document.querySelector("input[name='email']");
+
+// CSS selector (all matches — returns NodeList)
+const cards = document.querySelectorAll(".card");
+cards.forEach(card => console.log(card.textContent));
+
+// Traversing
+const parent = element.parentElement;
+const children = element.children;        // Only element children
+const childNodes = element.childNodes;    // All nodes including text
+const next = element.nextElementSibling;
+const prev = element.previousElementSibling;
+```
+
+### 9.2 Modifying Elements
+
+```javascript
+const element = document.querySelector("#app");
+
+// Content
+element.textContent = "New text";      // Plain text (safe from XSS)
+element.innerHTML = "<strong>Bold</strong>";  // Parses HTML (XSS risk!)
+
+// Attributes
+element.setAttribute("data-id", "123");
+element.getAttribute("data-id");       // "123"
+element.removeAttribute("data-id");
+element.hasAttribute("disabled");      // true/false
+
+// Classes
+element.classList.add("active");
+element.classList.remove("hidden");
+element.classList.toggle("expanded");
+element.classList.contains("active");  // true/false
+
+// Styles
+element.style.backgroundColor = "blue";
+element.style.cssText = "color: red; font-size: 16px;";
+
+// Data attributes
+// HTML: <div data-user-id="42" data-role="admin">
+element.dataset.userId;    // "42"
+element.dataset.role;      // "admin"
+element.dataset.status = "active";  // Creates data-status="active"
+```
+
+### 9.3 Creating and Removing Elements
+
+```javascript
+// Create element
+const newDiv = document.createElement("div");
+newDiv.className = "card";
+newDiv.textContent = "I'm new here!";
+
+// Add to DOM
+const container = document.querySelector("#container");
+container.appendChild(newDiv);              // Add as last child
+container.prepend(newDiv);                  // Add as first child
+container.insertBefore(newDiv, reference);  // Before specific element
+container.append(newDiv, anotherElement);   // Append multiple (modern)
+
+// Remove element
+newDiv.remove();                            // Remove self (modern)
+container.removeChild(newDiv);              // Older approach
+
+// Replace
+container.replaceChild(newElement, oldElement);
+
+// Clone
+const clone = element.cloneNode(true);      // true = deep clone with children
+const shallow = element.cloneNode(false);   // false = just the element
+
+// Document fragment (batch DOM operations for performance)
+const fragment = document.createDocumentFragment();
+for (let i = 0; i < 1000; i++) {
+  const li = document.createElement("li");
+  li.textContent = `Item ${i}`;
+  fragment.appendChild(li);
+}
+list.appendChild(fragment);  // Single reflow instead of 1000!
+```
+
+### 9.4 Event Handling
+
+```javascript
+const button = document.querySelector("#myButton");
+
+// Add event listener (modern, preferred)
+button.addEventListener("click", handleClick);
+
+function handleClick(event) {
+  console.log("Clicked!");
+  console.log(event.target);       // Element that was clicked
+  console.log(event.currentTarget); // Element listener is attached to
+  console.log(event.type);          // "click"
+  
+  event.preventDefault();          // Prevent default behavior
+  event.stopPropagation();         // Stop bubbling
+}
+
+// Remove event listener (must use same function reference)
+button.removeEventListener("click", handleClick);
+
+// Common events
+button.addEventListener("click", handler);
+input.addEventListener("input", handler);      // Value changes
+input.addEventListener("change", handler);     // Value committed
+form.addEventListener("submit", handler);
+window.addEventListener("load", handler);
+document.addEventListener("DOMContentLoaded", handler); // DOM ready, before images
+window.addEventListener("resize", handler);
+element.addEventListener("mouseenter", handler);
+element.addEventListener("keydown", handler);
+
+// Event delegation (efficient for many elements)
+document.querySelector("#todo-list").addEventListener("click", (e) => {
+  if (e.target.matches(".delete-btn")) {
+    e.target.closest("li").remove();
+  }
+  if (e.target.matches(".toggle-btn")) {
+    e.target.closest("li").classList.toggle("completed");
+  }
+});
+
+// Keyboard events
+document.addEventListener("keydown", (e) => {
+  console.log(e.key);        // "Enter", "Escape", "a", etc.
+  console.log(e.code);       // "KeyA", "Enter", etc.
+  console.log(e.ctrlKey);    // Is Ctrl pressed?
+  console.log(e.shiftKey);   // Is Shift pressed?
+  
+  if (e.key === "Escape") closeModal();
+  if (e.key === "Enter" && e.ctrlKey) submitForm();
+});
+```
+
+---
+
+## Chapter 10: Practical Junior Project — Todo App
+
+<Badge variant="green">Junior</Badge>
+
+```javascript
+// === Todo App (Vanilla JavaScript) ===
+
+// State
+let todos = JSON.parse(localStorage.getItem("todos")) || [];
+let filter = "all"; // "all" | "active" | "completed"
+
+// DOM Elements
+const form = document.querySelector("#todo-form");
+const input = document.querySelector("#todo-input");
+const list = document.querySelector("#todo-list");
+const filterButtons = document.querySelectorAll("[data-filter]");
+const countSpan = document.querySelector("#todo-count");
+
+// Render todos
+function render() {
+  list.innerHTML = "";
+  
+  const filtered = todos.filter(todo => {
+    if (filter === "active") return !todo.completed;
+    if (filter === "completed") return todo.completed;
+    return true;
+  });
+  
+  filtered.forEach(todo => {
+    const li = document.createElement("li");
+    li.className = `todo-item ${todo.completed ? "completed" : ""}`;
+    li.dataset.id = todo.id;
+    
+    li.innerHTML = `
+      <input type="checkbox" ${todo.completed ? "checked" : ""} 
+             class="todo-checkbox">
+      <span class="todo-text">${escapeHtml(todo.text)}</span>
+      <button class="todo-delete">Delete</button>
+    `;
+    
+    list.appendChild(li);
+  });
+  
+  const activeCount = todos.filter(t => !t.completed).length;
+  countSpan.textContent = `${activeCount} item${activeCount !== 1 ? "s" : ""} left`;
+  
+  saveTodos();
+}
+
+// Add todo
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text) return;
+  
+  todos.push({
+    id: Date.now(),
+    text,
+    completed: false
+  });
+  
+  input.value = "";
+  render();
+});
+
+// Toggle & Delete (event delegation)
+list.addEventListener("click", (e) => {
+  const id = Number(e.target.closest("li")?.dataset.id);
+  if (!id) return;
+  
+  if (e.target.matches(".todo-checkbox")) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) todo.completed = !todo.completed;
+    render();
+  }
+  
+  if (e.target.matches(".todo-delete")) {
+    todos = todos.filter(t => t.id !== id);
+    render();
+  }
+});
+
+// Filter
+filterButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    filter = btn.dataset.filter;
+    filterButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  });
+});
+
+// Persistence
+function saveTodos() {
+  localStorage.setItem("todos", JSON.stringify(todos));
+}
+
+// Utility
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Initial render
+render();
+```
+
+---
+# Part 2: Intermediate Level — Building Real Applications
+
+## Chapter 11: Modern JavaScript (ES6–ES2025)
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 11.1 Destructuring
+
+```javascript
+// === Array Destructuring ===
+const [first, second] = ["apple", "banana", "cherry"];
+console.log(first);   // "apple"
+console.log(second);  // "banana"
+
+// Skip elements
+const [one, , three] = [1, 2, 3];
+console.log(one, three);  // 1 3
+
+// Rest in destructuring
+const [head, ...tail] = [1, 2, 3, 4];
+console.log(head);  // 1
+console.log(tail);  // [2, 3, 4]
+
+// Default values
+const [a = 10, b = 20] = [5];
+console.log(a, b);  // 5 20
+
+// Swap variables
+let x = 1, y = 2;
+[x, y] = [y, x];
+console.log(x, y);  // 2 1
+
+// === Object Destructuring ===
+const user = { name: "Alice", age: 30, city: "NYC" };
+
+const { name, age } = user;
+console.log(name, age);  // "Alice" 30
+
+// Rename variables
+const { name: userName, age: userAge } = user;
+console.log(userName);  // "Alice"
+
+// Default values
+const { role = "user" } = user;
+console.log(role);  // "user" (not in object, so default used)
+
+// Nested destructuring
+const { address: { city, zip = "00000" } } = { address: { city: "NYC" } };
+console.log(city, zip);  // "NYC" "00000"
+
+// Rest properties (ES2018)
+const { name, ...rest } = { name: "Alice", age: 30, city: "NYC" };
+console.log(rest);  // { age: 30, city: "NYC" }
+
+// === Function Parameter Destructuring ===
+
+// Instead of:
+function displayUser(user) {
+  console.log(`${user.name} is ${user.age}`);
+}
+
+// Write:
+function displayUser({ name, age }) {
+  console.log(`${name} is ${age}`);
+}
+displayUser({ name: "Alice", age: 30 });  // "Alice is 30"
+
+// With defaults
+function createButton({ text = "Click", color = "blue", onClick } = {}) {
+  return { text, color, onClick };
+}
+createButton();  // { text: "Click", color: "blue", onClick: undefined }
+createButton({ text: "Submit", color: "green" });
+
+// Nested destructuring in parameters
+function drawChart({ data, config: { width = 400, height = 300 } }) {
+  console.log(`Drawing ${data.length} points in ${width}x${height}`);
+}
+drawChart({ data: [1, 2, 3], config: { width: 800 } });
+```
+
+### 11.2 Spread Syntax
+
+```javascript
+// === Array Spread ===
+const arr1 = [1, 2, 3];
+const arr2 = [4, 5, 6];
+
+// Combine arrays
+const combined = [...arr1, ...arr2];           // [1, 2, 3, 4, 5, 6]
+const withExtra = [0, ...arr1, 3.5, ...arr2];  // [0, 1, 2, 3, 3.5, 4, 5, 6]
+
+// Copy array (shallow)
+const copy = [...arr1];        // [1, 2, 3]
+
+// Convert iterable to array
+const fromSet = [...new Set([1, 1, 2, 3])];  // [1, 2, 3]
+const fromString = [..."hello"];               // ["h", "e", "l", "l", "o"]
+
+// === Object Spread ===
+const defaults = { theme: "light", fontSize: 14 };
+const overrides = { fontSize: 16 };
+
+const settings = { ...defaults, ...overrides };  // { theme: "light", fontSize: 16 }
+
+// Add/modify properties
+const user = { name: "Alice" };
+const withAge = { ...user, age: 30 };             // { name: "Alice", age: 30 }
+const renamed = { ...user, name: "Bob" };          // { name: "Bob" }
+
+// Shallow copy warning
+const nested = { data: { value: 1 } };
+const copied = { ...nested };
+copied.data.value = 2;
+console.log(nested.data.value);  // 2! (nested object is shared reference)
+
+// === Function Arguments ===
+function sum(...numbers) {
+  return numbers.reduce((a, b) => a + b, 0);
+}
+const nums = [1, 2, 3, 4];
+sum(...nums);  // Equivalent to sum(1, 2, 3, 4), returns 10
+
+// Math.max with array
+Math.max(...[10, 5, 20, 3]);  // 20
+```
+
+### 11.3 Enhanced Object Literals
+
+```javascript
+const name = "Alice";
+const age = 30;
+
+// Shorthand properties
+const user = { name, age };  // { name: "Alice", age: 30 }
+
+// Shorthand methods
+const calculator = {
+  value: 0,
+  add(n) { return this.value += n; },     // No 'function' keyword needed
+  reset() { this.value = 0; },
+};
+
+// Computed property names
+const propName = "dynamic";
+const obj = {
+  [propName]: "value",                // { dynamic: "value" }
+  [`computed_${Date.now()}`]: true,   // { computed_123456789: true }
+  [1 + 1]: "two",                     // { 2: "two" }
+};
+
+// Getter and Setter
+const temperature = {
+  _celsius: 0,
+  
+  get celsius() {
+    return this._celsius;
+  },
+  
+  set celsius(value) {
+    if (value < -273.15) throw new Error("Below absolute zero!");
+    this._celsius = value;
+  },
+  
+  get fahrenheit() {
+    return this._celsius * 9/5 + 32;
+  },
+  
+  set fahrenheit(value) {
+    this._celsius = (value - 32) * 5/9;
+  }
+};
+
+temperature.celsius = 25;
+console.log(temperature.fahrenheit);  // 77
+temperature.fahrenheit = 98.6;
+console.log(temperature.celsius);     // 37
+```
+
+### 11.4 Optional Chaining (`?.`)
+
+```javascript
+const user = {
+  profile: {
+    address: {
+      city: "NYC"
+    }
+  }
+};
+
+// Without optional chaining (verbose)
+const city1 = user && user.profile && user.profile.address && user.profile.address.city;
+
+// With optional chaining (ES2020)
+const city2 = user?.profile?.address?.city;        // "NYC"
+const zip2 = user?.profile?.address?.zip;           // undefined (no error!)
+const deep = user?.contacts?.friends?.[0]?.name;    // undefined (safely handles each missing level)
+
+// With function calls
+const result = someObject?.maybeAMethod?.();         // Calls if exists, undefined if not
+
+// With bracket notation
+const key = "dynamicKey";
+const value = user?.[key]?.nested;
+
+// Cannot chain after optional chain without another `?.`
+// user?.profile.address.city  // ❌ If profile is null, .address throws!
+// user?.profile?.address?.city  // ✓ Safe at every level
+```
+
+### 11.5 Nullish Coalescing (`??`)
+
+```javascript
+// Returns right operand ONLY if left is null or undefined
+const value1 = null ?? "default";       // "default"
+const value2 = undefined ?? "default";  // "default"
+const value3 = 0 ?? "default";          // 0 (0 is not nullish!)
+const value4 = "" ?? "default";         // "" (empty string is not nullish!)
+const value5 = false ?? "default";      // false (false is not nullish!)
+
+// Real-world: provide defaults for potentially missing config
+const config = {
+  timeout: 0,       // 0 means "no timeout" — valid value!
+  retries: null,    // null means "use default"
+};
+
+const timeout = config.timeout ?? 5000;    // 0 ✓ (0 is kept!)
+const retries = config.retries ?? 3;        // 3 (null is nullish)
+
+// Comparison: || vs ??
+const port = 0;
+console.log(port || 3000);   // 3000 (0 is falsy — WRONG for port numbers!)
+console.log(port ?? 3000);   // 0 (0 is not nullish — CORRECT!)
+
+// Combining with optional chaining
+const userCity = user?.profile?.address?.city ?? "Unknown";
+```
+
+### 11.6 ES2023 / ES2024 / ES2025 New Features
+
+```javascript
+// === ES2023: toSorted, toReversed, toSpliced, with ===
+const arr = [3, 1, 4];
+
+const sorted = arr.toSorted((a, b) => a - b);    // [1, 3, 4] — original unchanged
+const reversed = arr.toReversed();                // [4, 1, 3]
+const replaced = arr.with(1, 99);                 // [3, 99, 4]
+const spliced = arr.toSpliced(1, 1, "a", "b");    // [3, "a", "b", 4]
+console.log(arr);  // [3, 1, 4] — original intact!
+
+// === ES2024: Array grouping ===
+const people = [
+  { name: "Alice", age: 25 },
+  { name: "Bob", age: 30 },
+  { name: "Carol", age: 25 },
+];
+
+const groupedByAge = Object.groupBy(people, p => p.age);
+// {
+//   25: [{Alice, 25}, {Carol, 25}],
+//   30: [{Bob, 30}]
+// }
+
+const byCategory = Map.groupBy(people, p => p.age >= 30 ? "senior" : "junior");
+// Map { "junior" => [Alice, Carol], "senior" => [Bob] }
+
+// === ES2024: Promise.withResolvers() ===
+const { promise, resolve, reject } = Promise.withResolvers();
+// Equivalent to:
+// let resolve, reject;
+// const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+
+// Usage: resolve from outside the Promise constructor
+function createDeferred() {
+  const { promise, resolve, reject } = Promise.withResolvers();
+  return { promise, resolve, reject };
+}
+
+const deferred = createDeferred();
+setTimeout(() => deferred.resolve("Done!"), 1000);
+await deferred.promise;  // "Done!"
+
+// === ES2024: Well-Formed Unicode Strings ===
+const str = "Hello\uD800";  // Lone surrogate (invalid UTF-16)
+console.log(str.isWellFormed());  // false
+console.log(str.toWellFormed());  // "Hello\uFFFD" (replacement character)
+
+// === ES2025: New Set methods ===
+const setA = new Set([1, 2, 3]);
+const setB = new Set([2, 3, 4]);
+
+setA.union(setB);          // Set { 1, 2, 3, 4 }
+setA.intersection(setB);   // Set { 2, 3 }
+setA.difference(setB);     // Set { 1 }
+setA.symmetricDifference(setB);  // Set { 1, 4 }
+setA.isSubsetOf(setB);     // false
+setA.isSupersetOf(setB);   // false
+setA.isDisjointFrom(setB); // false (they share elements)
+
+// === ES2025: Iterator helpers ===
+const nums = [1, 2, 3, 4, 5];
+
+const evens = nums.values()
+  .filter(n => n % 2 === 0)
+  .map(n => n * 10)
+  .toArray();  // [20, 40]
+
+const firstOver3 = nums.values()
+  .drop(3)      // Skip first 3
+  .take(2)      // Take next 2
+  .toArray();   // [4, 5]
+```
+
+---
+
+## Chapter 12: Asynchronous JavaScript
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 12.1 Callbacks (Legacy Pattern)
+
+```javascript
+// Callbacks were the original async pattern
+function fetchData(callback) {
+  setTimeout(() => {
+    callback(null, { id: 1, name: "Alice" });
+  }, 1000);
+}
+
+fetchData((error, data) => {
+  if (error) {
+    console.error(error);
+  } else {
+    console.log(data);
+  }
+});
+
+// Callback Hell (deeply nested callbacks)
+getUser(userId, (err, user) => {
+  if (err) { handleError(err); return; }
+  getOrders(user.id, (err, orders) => {
+    if (err) { handleError(err); return; }
+    getProducts(orders[0].id, (err, products) => {
+      if (err) { handleError(err); return; }
+      console.log(products);
+    });
+  });
+});
+```
+
+### 12.2 Promises
+
+A **Promise** represents a value that may not exist yet but will be resolved at some point.
+
+```javascript
+// Creating a Promise
+const promise = new Promise((resolve, reject) => {
+  // Async operation
+  setTimeout(() => {
+    const success = true;
+    if (success) {
+      resolve("Operation completed!");  // Fulfill the promise
+    } else {
+      reject(new Error("Operation failed!"));  // Reject the promise
+    }
+  }, 1000);
+});
+
+// Consuming a Promise
+promise
+  .then(result => {
+    console.log(result);  // "Operation completed!"
+    return result.toUpperCase();
+  })
+  .then(upper => {
+    console.log(upper);   // "OPERATION COMPLETED!"
+  })
+  .catch(error => {
+    console.error(error.message);
+  })
+  .finally(() => {
+    console.log("Cleanup: always runs");
+  });
+
+// Promise states:
+// 1. PENDING — initial state, neither fulfilled nor rejected
+// 2. FULFILLED — operation completed successfully
+// 3. REJECTED — operation failed
+// Once settled (fulfilled or rejected), a promise never changes state.
+
+// Promisifying callbacks
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+delay(1000).then(() => console.log("1 second passed"));
+
+// Real-world: fetch API (returns a Promise)
+fetch("https://api.example.com/users")
+  .then(response => {
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();  // Returns another Promise
+  })
+  .then(data => console.log(data))
+  .catch(error => console.error("Fetch error:", error));
+```
+
+### 12.3 Promise Static Methods
+
+```javascript
+// Promise.resolve — create a resolved promise
+Promise.resolve(42).then(v => console.log(v));  // 42
+
+// Promise.reject — create a rejected promise
+Promise.reject(new Error("Oops")).catch(e => console.error(e));
+
+// Promise.all — wait for ALL promises (fail fast)
+const urls = ["/api/users", "/api/posts", "/api/comments"];
+Promise.all(urls.map(url => fetch(url).then(r => r.json())))
+  .then(([users, posts, comments]) => {
+    console.log(`Loaded ${users.length} users, ${posts.length} posts`);
+  })
+  .catch(error => console.error("One request failed:", error));
+
+// Promise.allSettled — wait for ALL, never fails
+Promise.allSettled([
+  Promise.resolve("success"),
+  Promise.reject("error"),
+  Promise.resolve("another success")
+]).then(results => {
+  console.log(results);
+  // [
+  //   { status: "fulfilled", value: "success" },
+  //   { status: "rejected", reason: "error" },
+  //   { status: "fulfilled", value: "another success" }
+  // ]
+});
+
+// Promise.race — first to settle wins
+Promise.race([
+  fetch("/api/data"),
+  new Promise((_, reject) => 
+    setTimeout(() => reject(new Error("Timeout!")), 5000)
+  )
+]).then(response => console.log("Got response before timeout!"));
+
+// Promise.any — first to FULFILL wins (ignores rejections unless all reject)
+Promise.any([
+  fetch("/api/primary"),
+  fetch("/api/backup"),
+  fetch("/api/fallback")
+]).then(response => console.log("At least one succeeded!"));
+
+// ES2024: Grouped async operations
+const promises = [
+  fetch("/api/a"),
+  fetch("/api/b"),
+  fetch("/api/c"),
+];
+
+// Wait for all, but get results individually with their status
+const results = await Promise.allSettled(promises);
+const succeeded = results
+  .filter(r => r.status === "fulfilled")
+  .map(r => r.value);
+```
+
+### 12.4 Async/Await
+
+`async/await` is **syntactic sugar over Promises** — it makes async code look synchronous.
+
+```javascript
+// Mark function as async
+async function fetchUser(id) {
+  const response = await fetch(`/api/users/${id}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// Using async function
+async function init() {
+  try {
+    const user = await fetchUser(1);
+    console.log(user.name);
+  } catch (error) {
+    console.error("Failed:", error.message);
+  }
+}
+
+// Async arrow function
+const fetchPosts = async (userId) => {
+  const res = await fetch(`/api/users/${userId}/posts`);
+  return res.json();
+};
+
+// An async function ALWAYS returns a Promise
+async function getValue() {
+  return 42;  // Automatically wrapped in Promise.resolve(42)
+}
+getValue().then(v => console.log(v));  // 42
+
+// Sequential execution (one after another)
+async function sequential() {
+  const user = await fetchUser(1);       // Wait for user
+  const posts = await fetchPosts(user.id); // Then fetch posts
+  const comments = await fetchComments(posts[0].id); // Then comments
+  return comments;
+}
+// Total time: user_time + posts_time + comments_time
+
+// Parallel execution (all at once)
+async function parallel() {
+  const [users, posts, comments] = await Promise.all([
+    fetch("/api/users").then(r => r.json()),
+    fetch("/api/posts").then(r => r.json()),
+    fetch("/api/comments").then(r => r.json()),
+  ]);
+  return { users, posts, comments };
+}
+// Total time: max(user_time, posts_time, comments_time)
+
+// Mixed: start parallel, then sequential
+async function mixed() {
+  // Start both at the same time
+  const userPromise = fetchUser(1);
+  const settingsPromise = fetchSettings(1);
+  
+  // Wait for both
+  const [user, settings] = await Promise.all([userPromise, settingsPromise]);
+  
+  // Then do something that needs both
+  const personalized = await personalize(user, settings);
+  return personalized;
+}
+
+// Top-level await (in modules)
+// data.js
+const data = await fetch("/api/config").then(r => r.json());
+export default data;
+
+// Looping with async/await
+async function processUsers(userIds) {
+  const results = [];
+  for (const id of userIds) {
+    // Sequential: one at a time (polite to the server)
+    const user = await fetchUser(id);
+    results.push(user);
+  }
+  return results;
+}
+
+// ⚠️ forEach doesn't work with async!
+// WRONG: All fetches start simultaneously, results lost
+userIds.forEach(async (id) => {
+  const user = await fetchUser(id);  // Fire-and-forget!
+});
+
+// CORRECT: Use for...of for sequential
+// CORRECT: Use Promise.all + map for parallel
+const users = await Promise.all(userIds.map(id => fetchUser(id)));
+```
+
+---
+
+## Chapter 13: Classes
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 13.1 Class Basics
+
+```javascript
+class Person {
+  // Static property (shared across all instances)
+  static species = "Homo sapiens";
+  static count = 0;
+
+  // Public field
+  name;
+  
+  // Private field (only accessible within class)
+  #age;
+  
+  // Private static field
+  static #idCounter = 0;
+
+  constructor(name, age) {
+    this.name = name;
+    this.#age = age;
+    Person.count++;
+    this.#id = ++Person.#idCounter;
+  }
+
+  // Getter
+  get age() {
+    return this.#age;
+  }
+
+  // Setter with validation
+  set age(value) {
+    if (value < 0 || value > 150) {
+      throw new Error("Invalid age");
+    }
+    this.#age = value;
+  }
+
+  // Private method
+  #validate() {
+    return this.name && this.#age > 0;
+  }
+
+  // Public method
+  greet() {
+    if (!this.#validate()) return "Invalid person";
+    return `Hello, I'm ${this.name} and I'm ${this.#age} years old.`;
+  }
+
+  // Static method
+  static createAnonymous() {
+    return new Person("Anonymous", 0);
+  }
+
+  // Static factory
+  static fromJSON(json) {
+    const data = JSON.parse(json);
+    return new Person(data.name, data.age);
+  }
+}
+
+// Usage
+const alice = new Person("Alice", 30);
+console.log(alice.name);       // "Alice"
+console.log(alice.age);        // 30 (uses getter)
+alice.age = 31;                // Uses setter
+console.log(alice.greet());    // "Hello, I'm Alice..."
+console.log(Person.species);   // "Homo sapiens"
+console.log(Person.count);     // 1
+
+// Private fields are truly private
+// console.log(alice.#age);    // ❌ SyntaxError!
+
+// Static methods
+const anon = Person.createAnonymous();
+const fromData = Person.fromJSON('{"name":"Bob","age":25}');
+```
+
+### 13.2 Inheritance
+
+```javascript
+class Employee extends Person {
+  // Public static
+  static roles = ["developer", "designer", "manager"];
+
+  #salary;
+  #role;
+
+  constructor(name, age, role, salary) {
+    super(name, age);           // Must call super() before using 'this'
+    this.#role = role;
+    this.#salary = salary;
+  }
+
+  get salary() {
+    return this.#salary;
+  }
+
+  // Override parent method
+  greet() {
+    const base = super.greet();  // Call parent method
+    return `${base} I work as a ${this.#role}.`;
+  }
+
+  // New method
+  giveRaise(percent) {
+    this.#salary *= (1 + percent / 100);
+    return this.#salary;
+  }
+
+  // Check instance type
+  static isEmployee(obj) {
+    return obj instanceof Employee;
+  }
+}
+
+const dev = new Employee("Alice", 30, "developer", 100000);
+console.log(dev.greet());
+// "Hello, I'm Alice and I'm 30 years old. I work as a developer."
+console.log(dev instanceof Employee);  // true
+console.log(dev instanceof Person);    // true
+console.log(Employee.isEmployee(dev)); // true
+```
+
+### 13.3 Class Fields and Initialization Order
+
+```javascript
+class Example {
+  // 1. Static fields (top to bottom)
+  static a = console.log("static a") || 1;
+  static b = console.log("static b") || 2;
+
+  // 2. Instance fields (top to bottom)
+  x = console.log("instance x") || 10;
+  y = console.log("instance y") || 20;
+
+  // 3. Constructor
+  constructor() {
+    console.log("constructor");
+    this.z = 30;  // Can also set fields here
+  }
+
+  // 4. Static block (runs once when class is loaded)
+  static {
+    console.log("static block");
+    this.c = 3;
+  }
+}
+
+// Output on class definition:
+// "static a"
+// "static b"
+// "static block"
+
+// Output on new Example():
+// "instance x"
+// "instance y"
+// "constructor"
+```
+
+---
+## Chapter 14: Modules
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 14.1 ES Modules (ESM)
+
+```javascript
+// === Exporting ===
+
+// math.js
+
+// Named exports
+export const PI = 3.14159;
+export const E = 2.71828;
+
+export function add(a, b) {
+  return a + b;
+}
+
+export function multiply(a, b) {
+  return a * b;
+}
+
+// Export existing declarations
+const utils = { log, warn, error };
+export { utils };
+
+// Default export (one per module)
+export default class Calculator {
+  // ...
+}
+
+// Re-export (barrel file pattern)
+export { add, subtract } from "./math.js";
+export { default as Calculator } from "./calculator.js";
+export * from "./helpers.js";
+
+// === Importing ===
+
+// app.js
+
+// Named imports
+import { PI, add } from "./math.js";
+
+// Import with alias
+import { multiply as mult } from "./math.js";
+
+// Import everything as namespace
+import * as math from "./math.js";
+console.log(math.PI);       // 3.14159
+console.log(math.add(2, 3)); // 5
+
+// Default import
+import Calculator from "./calculator.js";
+
+// Default + named imports
+import Calculator, { PI, add } from "./math.js";
+
+// Import for side effects (runs module code, no imports)
+import "./analytics.js";
+
+// Dynamic import (returns a Promise)
+async function loadHeavyModule() {
+  const { heavyFunction } = await import("./heavy.js");
+  heavyFunction();
+}
+
+// Conditional dynamic import
+if (userPrefersDarkMode) {
+  const { applyDarkTheme } = await import("./dark-theme.js");
+  applyDarkTheme();
+}
+```
+
+### 14.2 CommonJS vs ES Modules
+
+```javascript
+// === CommonJS (Node.js legacy) ===
+// math.cjs
+const PI = 3.14159;
+function add(a, b) { return a + b; }
+
+module.exports = { PI, add };
+// or: exports.PI = PI; exports.add = add;
+
+// app.cjs
+const { PI, add } = require("./math.cjs");
+
+// === ES Modules (modern, preferred) ===
+// math.js
+export const PI = 3.14159;
+export function add(a, b) { return a + b; }
+
+// app.js
+import { PI, add } from "./math.js";
+
+// Key differences:
+// ┌─────────────────┬──────────────────┬──────────────────┐
+// │ Feature         │ CommonJS         │ ES Modules       │
+// ├─────────────────┼──────────────────┼──────────────────┤
+// │ Syntax          │ require/exports  │ import/export    │
+// │ Loading         │ Synchronous      │ Asynchronous     │
+// │ Top-level await │ No               │ Yes              │
+// │ Static analysis │ No               │ Yes (tree-shake) │
+// │ Browser support │ No               │ Yes (native)     │
+// │ File extension  │ .js / .cjs       │ .js / .mjs       │
+// └─────────────────┴──────────────────┴──────────────────┘
+
+// package.json to enable ESM:
+// { "type": "module" }
+// Or use .mjs extension
+```
+
+---
+
+## Chapter 15: Error Handling
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 15.1 try/catch/finally
+
+```javascript
+// Basic error handling
+try {
+  const data = JSON.parse(userInput);
+  processData(data);
+} catch (error) {
+  console.error("Parsing failed:", error.message);
+  showUserMessage("Invalid input format");
+} finally {
+  // Always runs (cleanup)
+  hideLoadingSpinner();
+}
+
+// Catch specific error types
+try {
+  riskyOperation();
+} catch (error) {
+  if (error instanceof SyntaxError) {
+    console.error("Syntax issue:", error.message);
+  } else if (error instanceof TypeError) {
+    console.error("Type issue:", error.message);
+  } else if (error instanceof NetworkError) {
+    console.error("Network issue — retrying...");
+    retry();
+  } else {
+    throw error;  // Re-throw unknown errors
+  }
+}
+
+// Optional catch binding (ES2019)
+try {
+  riskyOperation();
+} catch {
+  // Error object not needed
+  console.error("Something went wrong");
+}
+
+// Throwing custom errors
+function divide(a, b) {
+  if (b === 0) throw new Error("Cannot divide by zero");
+  if (typeof a !== "number" || typeof b !== "number") {
+    throw new TypeError("Arguments must be numbers");
+  }
+  return a / b;
+}
+
+// Custom error classes
+class ValidationError extends Error {
+  constructor(field, message) {
+    super(message);
+    this.name = "ValidationError";
+    this.field = field;
+  }
+}
+
+class NetworkError extends Error {
+  constructor(url, status) {
+    super(`Request to ${url} failed with status ${status}`);
+    this.name = "NetworkError";
+    this.status = status;
+    this.url = url;
+  }
+}
+
+// Usage
+try {
+  validateUser({ email: "invalid" });
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error(`${error.field}: ${error.message}`);
+  }
+}
+```
+
+### 15.2 Error Handling in Async Code
+
+```javascript
+// With async/await (use try/catch)
+async function fetchUserData(userId) {
+  try {
+    const response = await fetch(`/api/users/${userId}`);
+    if (!response.ok) {
+      throw new NetworkError(`/api/users/${userId}`, response.status);
+    }
+    return await response.json();
+  } catch (error) {
+    if (error instanceof NetworkError && error.status === 404) {
+      return null;  // User not found is not an error
+    }
+    console.error("Failed to fetch user:", error);
+    throw error;  // Re-throw for caller to handle
+  }
+}
+
+// Global unhandled rejection handler
+window.addEventListener("unhandledrejection", (event) => {
+  console.error("Unhandled promise rejection:", event.reason);
+  // Send to error tracking service
+  errorTracker.capture(event.reason);
+});
+
+// Global error handler
+window.addEventListener("error", (event) => {
+  console.error("Global error:", event.error);
+});
+```
+
+### 15.3 Defensive Programming Patterns
+
+```javascript
+// Guard clauses — fail fast
+function processUser(user) {
+  if (!user) throw new ValidationError("user", "Required");
+  if (!user.email) throw new ValidationError("email", "Required");
+  if (!isValidEmail(user.email)) throw new ValidationError("email", "Invalid format");
+  if (!user.age || user.age < 0) throw new ValidationError("age", "Must be positive");
+  
+  // Main logic (only reached if all guards pass)
+  return saveToDatabase(user);
+}
+
+// Assertion function
+function assert(condition, message) {
+  if (!condition) throw new Error(`Assertion failed: ${message}`);
+}
+
+function calculateDiscount(price, rate) {
+  assert(typeof price === "number" && price >= 0, "Price must be non-negative");
+  assert(typeof rate === "number" && rate >= 0 && rate <= 1, "Rate must be 0-1");
+  return price * rate;
+}
+
+// Result type pattern (avoid throwing for expected failures)
+function safeDivide(a, b) {
+  if (b === 0) return { ok: false, error: "Cannot divide by zero" };
+  return { ok: true, value: a / b };
+}
+
+const result = safeDivide(10, 0);
+if (result.ok) {
+  console.log(result.value);
+} else {
+  console.error(result.error);
+}
+```
+
+---
+
+## Chapter 16: Regular Expressions
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 16.1 Regex Basics
+
+```javascript
+// Creating regex
+const pattern1 = /hello/i;                    // Literal syntax (flags: i = case-insensitive)
+const pattern2 = new RegExp("hello", "i");     // Constructor (dynamic patterns)
+
+// Common patterns
+const email = /^[\w.-]+@[\w.-]+\.\w{2,}$/;
+const phone = /^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
+const url = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}/;
+
+// Test (returns boolean)
+/email/.test("user@example.com");        // true
+/email/.test("not-an-email");            // false
+
+// Match (returns array or null)
+"Hello 123 World 456".match(/\d+/g);     // ["123", "456"]
+"Hello".match(/\d+/g);                    // null
+
+// Replace
+"Hello World".replace(/World/, "JavaScript");  // "Hello JavaScript"
+"abc123def456".replace(/\d/g, "#");            // "abc###def###"
+"abc123def456".replace(/\d+/g, (match) => `[${match}]`);  // "abc[123]def[456]"
+
+// Search (returns index or -1)
+"Hello World".search(/World/);           // 6
+"Hello World".search(/xyz/);             // -1
+
+// Split
+"a,b,c".split(/,/);                      // ["a", "b", "c"]
+"a  b    c".split(/\s+/);                 // ["a", "b", "c"]
+
+// Exec (stateful — advances lastIndex with /g flag)
+const regex = /\d+/g;
+const str = "123 abc 456";
+regex.exec(str);  // ["123"], lastIndex = 3
+regex.exec(str);  // ["456"], lastIndex = 11
+regex.exec(str);  // null, lastIndex = 0 (resets)
+```
+
+### 16.2 Common Regex Patterns
+
+```javascript
+// Validation helpers
+const validators = {
+  email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+  
+  password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+  // At least: 1 lowercase, 1 uppercase, 1 digit, 1 special, 8+ chars
+  
+  username: /^[a-zA-Z0-9_]{3,20}$/,
+  
+  hexColor: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+  
+  creditCard: /^\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}$/,
+  
+  ipv4: /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
+  
+  slug: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+};
+
+// Named capture groups (ES2018)
+const dateRegex = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/;
+const match = "2024-03-15".match(dateRegex);
+console.log(match.groups);  // { year: "2024", month: "03", day: "15" }
+
+// Named backreferences
+const duplicate = /(?<word>\w+)\s+\k<word>/;
+console.log(duplicate.test("hello hello"));  // true
+```
+
+---
+
+## Chapter 17: Map, Set, WeakMap, WeakSet
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 17.1 Map
+
+```javascript
+// Map — key-value pairs with ANY type of key
+const userMap = new Map();
+
+// Set values
+userMap.set("alice", { name: "Alice", age: 30 });
+userMap.set(42, "the answer");
+userMap.set({ id: 1 }, "object key");  // Objects as keys!
+
+// Get values
+userMap.get("alice");       // { name: "Alice", age: 30 }
+userMap.get("bob");         // undefined
+
+// Check existence
+userMap.has("alice");       // true
+
+// Delete
+userMap.delete("alice");
+
+// Size
+userMap.size;               // 2
+
+// Iteration
+for (const [key, value] of userMap) {
+  console.log(key, value);
+}
+
+userMap.forEach((value, key) => {
+  console.log(key, value);
+});
+
+// From object
+const obj = { a: 1, b: 2 };
+const fromObj = new Map(Object.entries(obj));
+
+// To object (keys must be strings)
+const fromMap = Object.fromEntries(userMap);
+
+// Map vs Object:
+// ┌───────────────┬─────────────────┬─────────────────┐
+// │ Feature       │ Object          │ Map             │
+// ├───────────────┼─────────────────┼─────────────────┤
+// │ Key types     │ String/Symbol   │ Any type        │
+// │ Key order     │ Not guaranteed  │ Insertion order │
+// │ Size          │ Manual count    │ .size property  │
+// │ Iteration     │ for...in        │ for...of        │
+// │ Performance   │ OK              │ Better for freq │
+// │               │                 │ add/remove      │
+// └───────────────┴─────────────────┴─────────────────┘
+```
+
+### 17.2 Set
+
+```javascript
+// Set — unique values only
+const tags = new Set();
+tags.add("javascript");
+tags.add("web");
+tags.add("javascript");  // Ignored — duplicate!
+
+console.log(tags.size);  // 2
+console.log(tags.has("web"));  // true
+
+// From array (remove duplicates)
+const unique = [...new Set([1, 2, 2, 3, 3, 3])];  // [1, 2, 3]
+
+// Set operations (ES2025)
+const a = new Set([1, 2, 3]);
+const b = new Set([2, 3, 4]);
+
+a.union(b);              // Set { 1, 2, 3, 4 }
+a.intersection(b);       // Set { 2, 3 }
+a.difference(b);         // Set { 1 }
+a.symmetricDifference(b);// Set { 1, 4 }
+
+// Iteration
+tags.forEach(tag => console.log(tag));
+for (const tag of tags) {
+  console.log(tag);
+}
+```
+
+### 17.3 WeakMap and WeakSet
+
+```javascript
+// WeakMap — keys must be objects, weakly held (garbage collectible)
+const privateData = new WeakMap();
+
+class SecureUser {
+  constructor(name, password) {
+    privateData.set(this, { password });
+    this.name = name;
+  }
+  
+  checkPassword(pwd) {
+    return privateData.get(this)?.password === pwd;
+  }
+}
+
+// When SecureUser instance is garbage collected,
+// the WeakMap entry is automatically removed!
+
+// WeakSet — stores objects weakly
+const visitedNodes = new WeakSet();
+
+function traverse(node) {
+  if (visitedNodes.has(node)) return;  // Already visited
+  visitedNodes.add(node);
+  // ... process node
+}
+
+// Limitations:
+// - Not iterable (no for...of)
+// - No .size property
+// - No .clear() method
+// - Keys are weakly referenced
+```
+
+---
+
+## Chapter 18: Working with APIs
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 18.1 The Fetch API
+
+```javascript
+// GET request
+async function getUsers() {
+  const response = await fetch("https://api.example.com/users");
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
+// POST request
+async function createUser(userData) {
+  const response = await fetch("https://api.example.com/users", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(userData),
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
+// Handling different response types
+async function fetchResource(url) {
+  const response = await fetch(url);
+  
+  const contentType = response.headers.get("content-type");
+  
+  if (contentType?.includes("application/json")) {
+    return response.json();
+  }
+  if (contentType?.includes("text/")) {
+    return response.text();
+  }
+  return response.blob();
+}
+
+// AbortController — cancel requests
+const controller = new AbortController();
+
+fetch("/api/data", { signal: controller.signal })
+  .then(r => r.json())
+  .catch(err => {
+    if (err.name === "AbortError") {
+      console.log("Request was cancelled");
+    }
+  });
+
+// Cancel after 5 seconds
+setTimeout(() => controller.abort(), 5000);
+
+// Or use AbortSignal.timeout (modern)
+fetch("/api/data", { signal: AbortSignal.timeout(5000) });
+```
+
+### 18.2 Building a Reusable API Client
+
+```javascript
+// api/client.js
+class ApiClient {
+  constructor(baseURL, defaultOptions = {}) {
+    this.baseURL = baseURL.replace(/\/$/, "");  // Remove trailing slash
+    this.defaultOptions = defaultOptions;
+  }
+
+  async request(endpoint, options = {}) {
+    const url = `${this.baseURL}${endpoint}`;
+    const config = {
+      ...this.defaultOptions,
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...this.defaultOptions.headers,
+        ...options.headers,
+      },
+    };
+
+    if (config.body && typeof config.body === "object") {
+      config.body = JSON.stringify(config.body);
+    }
+
+    const response = await fetch(url, config);
+    return this.handleResponse(response);
+  }
+
+  async handleResponse(response) {
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new ApiError(response.status, error.message || "Request failed");
+    }
+    
+    if (response.status === 204) return null;  // No content
+    return response.json();
+  }
+
+  // Convenience methods
+  get(endpoint, options) {
+    return this.request(endpoint, { ...options, method: "GET" });
+  }
+  
+  post(endpoint, body, options) {
+    return this.request(endpoint, { ...options, method: "POST", body });
+  }
+  
+  put(endpoint, body, options) {
+    return this.request(endpoint, { ...options, method: "PUT", body });
+  }
+  
+  patch(endpoint, body, options) {
+    return this.request(endpoint, { ...options, method: "PATCH", body });
+  }
+  
+  delete(endpoint, options) {
+    return this.request(endpoint, { ...options, method: "DELETE" });
+  }
+}
+
+class ApiError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+// Usage
+const api = new ApiClient("https://api.example.com", {
+  headers: { "X-API-Version": "v2" },
+});
+
+// With auth interceptor
+api.request = new Proxy(api.request, {
+  apply(target, thisArg, args) {
+    const [endpoint, options = {}] = args;
+    options.headers = {
+      ...options.headers,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    };
+    return target.call(thisArg, endpoint, options);
+  },
+});
+
+// Use it!
+const users = await api.get("/users");
+const user = await api.post("/users", { name: "Alice", email: "alice@example.com" });
+await api.delete(`/users/${user.id}`);
+```
+
+---
+
+# Part 3: Expert Level — Mastering JavaScript Internals
+
+## Chapter 19: The JavaScript Engine & Event Loop
+
+<Badge variant="red">Expert</Badge>
+
+### 19.1 How JavaScript Executes
+
+```javascript
+// JavaScript is single-threaded with an event loop.
+// Understanding the call stack, task queue, and microtask queue is essential.
+
+// === The Call Stack ===
+function a() { b(); }
+function b() { c(); }
+function c() { console.trace(); }
+a();
+// Call stack: a() → b() → c() → console.trace()
+// When c finishes, it pops off. Then b, then a.
+
+// === Synchronous vs Asynchronous ===
+console.log("1");           // Call stack: executes immediately
+setTimeout(() => {          // Web API: registers callback, returns immediately
+  console.log("2");         // Callback queue: executes after stack is clear
+}, 0);
+Promise.resolve().then(() => {  // Microtask queue: executes before callback queue
+  console.log("3");
+});
+console.log("4");
+// Output: 1, 4, 3, 2
+
+// Why? Execution order:
+// 1. console.log("1") — call stack
+// 2. setTimeout callback — goes to Web API, then Task Queue
+// 3. Promise .then — goes to Microtask Queue
+// 4. console.log("4") — call stack
+// 5. Call stack empty → check Microtask Queue → console.log("3")
+// 6. Microtask Queue empty → check Task Queue → console.log("2")
+```
+
+### 19.2 Event Loop Deep Dive
+
+```javascript
+// Microtasks vs Macrotasks (Tasks)
+
+// Macrotasks (Task Queue): setTimeout, setInterval, setImmediate, I/O, UI rendering
+// Microtasks: Promise.then/catch/finally, queueMicrotask, MutationObserver
+
+// Rule: ALL microtasks execute before the next macrotask
+
+console.log("start");
+
+setTimeout(() => console.log("timeout 1"), 0);
+setTimeout(() => console.log("timeout 2"), 0);
+
+Promise.resolve().then(() => {
+  console.log("promise 1");
+  Promise.resolve().then(() => console.log("promise 2"));
+  setTimeout(() => console.log("timeout 3"), 0);
+});
+
+queueMicrotask(() => console.log("microtask 1"));
+
+console.log("end");
+
+// Output: start, end, promise 1, microtask 1, promise 2, timeout 1, timeout 2, timeout 3
+
+// Explanation:
+// 1. "start", "end" — synchronous
+// 2. Promise.then callback — microtask, runs before any timeout
+//    Inside it: "promise 1", then registers promise 2 microtask and timeout 3
+// 3. queueMicrotask — microtask, runs: "microtask 1"
+// 4. Check for more microtasks — promise 2 runs: "promise 2"
+// 5. Microtasks exhausted — first timeout runs: "timeout 1"
+// 6. Next timeout: "timeout 2"
+// 7. Next timeout (registered inside promise): "timeout 3"
+```
+
+### 19.3 Practical Event Loop Patterns
+
+```javascript
+// Defer heavy computation without blocking
+function processLargeArray(items, chunkSize = 100) {
+  return new Promise((resolve) => {
+    let index = 0;
+    const results = [];
+    
+    function processChunk() {
+      const chunk = items.slice(index, index + chunkSize);
+      
+      for (const item of chunk) {
+        results.push(heavyComputation(item));
+      }
+      
+      index += chunkSize;
+      
+      if (index < items.length) {
+        // Yield to event loop between chunks
+        setTimeout(processChunk, 0);
+      } else {
+        resolve(results);
+      }
+    }
+    
+    processChunk();
+  });
+}
+
+// Ensure DOM updates render before heavy work
+async function updateAndProcess() {
+  statusElement.textContent = "Processing...";
+  
+  // Force a render before heavy work
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  
+  // Or use a double rAF for guaranteed paint
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  
+  // Now do heavy work
+  const result = heavyComputation();
+  statusElement.textContent = "Done!";
+  return result;
+}
+
+// requestIdleCallback — run work when browser is idle
+requestIdleCallback((deadline) => {
+  while (deadline.timeRemaining() > 0 && workQueue.length > 0) {
+    doLowPriorityWork(workQueue.shift());
+  }
+  
+  if (workQueue.length > 0) {
+    requestIdleCallback(processWork);  // Schedule more
+  }
+});
+```
+
+---
+## Chapter 20: Closures & Lexical Scope
+
+<Badge variant="red">Expert</Badge>
+
+### 20.1 How Closures Work
+
+A **closure** is a function that remembers and accesses variables from its outer scope, even after the outer function has returned.
+
+```javascript
+// Basic closure
+function outer() {
+  const secret = "I'm hidden";
+  
+  function inner() {
+    console.log(secret);  // inner() remembers secret from outer()
+  }
+  
+  return inner;
+}
+
+const fn = outer();   // outer() has returned, its execution context is gone
+fn();                  // But inner() still has access to secret!
+// → "I'm hidden"
+
+// The closure captures the VARIABLE, not the value
+function createCounter() {
+  let count = 0;  // This variable lives in the closure
+  
+  return {
+    increment() { return ++count; },
+    decrement() { return --count; },
+    get() { return count; },
+    reset() { count = 0; },
+  };
+}
+
+const counter = createCounter();
+console.log(counter.increment());  // 1
+console.log(counter.increment());  // 2
+console.log(counter.get());        // 2
+counter.reset();
+console.log(counter.get());        // 0
+
+// Each call creates a NEW closure with its own variables
+const counter2 = createCounter();
+console.log(counter2.get());       // 0 — independent!
+```
+
+### 20.2 Practical Closure Patterns
+
+```javascript
+// === Module Pattern ===
+const DataStore = (function() {
+  // Private variables (closure)
+  let data = {};
+  let listeners = [];
+  
+  // Public API
+  return {
+    set(key, value) {
+      data[key] = value;
+      listeners.forEach(fn => fn(key, value));
+    },
+    get(key) {
+      return data[key];
+    },
+    subscribe(fn) {
+      listeners.push(fn);
+      // Return unsubscribe function (another closure!)
+      return () => {
+        listeners = listeners.filter(l => l !== fn);
+      };
+    },
+    getAll() {
+      return { ...data };  // Return copy, not reference
+    }
+  };
+})();
+
+const unsub = DataStore.subscribe((key, value) => {
+  console.log(`${key} changed to ${value}`);
+});
+DataStore.set("theme", "dark");  // Logs: "theme changed to dark"
+unsub();  // No more notifications
+
+// === Function Factory ===
+function makeMultiplier(factor) {
+  return function(number) {
+    return number * factor;  // factor is captured from closure
+  };
+}
+
+const double = makeMultiplier(2);
+const triple = makeMultiplier(3);
+console.log(double(5));  // 10
+console.log(triple(5));  // 15
+
+// === Memoization ===
+function memoize(fn) {
+  const cache = new Map();  // cache lives in closure
+  
+  return function(...args) {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    
+    const result = fn.apply(this, args);
+    cache.set(key, result);
+    return result;
+  };
+}
+
+const fibonacci = memoize(function(n) {
+  if (n < 2) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+});
+
+console.log(fibonacci(50));  // Fast due to memoization!
+
+// === Partial Application ===
+function partial(fn, ...presetArgs) {
+  return function(...laterArgs) {
+    return fn(...presetArgs, ...laterArgs);
+  };
+}
+
+const greet = (greeting, name) => `${greeting}, ${name}!`;
+const sayHello = partial(greet, "Hello");
+console.log(sayHello("Alice"));  // "Hello, Alice!"
+
+// === Debounce (performance optimization) ===
+function debounce(fn, delay) {
+  let timerId;  // Lives in closure
+  
+  return function(...args) {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+const handleResize = debounce(() => {
+  console.log("Window resized — recalculating layout...");
+}, 250);
+
+window.addEventListener("resize", handleResize);
+
+// === Throttle ===
+function throttle(fn, limit) {
+  let inThrottle;  // Lives in closure
+  
+  return function(...args) {
+    if (!inThrottle) {
+      fn.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+
+const handleScroll = throttle(() => {
+  console.log("Scroll position:", window.scrollY);
+}, 100);
+
+window.addEventListener("scroll", handleScroll);
+```
+
+### 20.3 Closure Gotchas
+
+```javascript
+// Classic closure loop bug
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100);  // 3, 3, 3 (not 0, 1, 2!)
+}
+// Why? 'var' is function-scoped. All closures share the same 'i'.
+
+// Fix 1: Use let (block-scoped)
+for (let i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100);  // 0, 1, 2 ✓
+}
+
+// Fix 2: IIFE (immediately invoked function expression)
+for (var i = 0; i < 3; i++) {
+  (function(capturedI) {
+    setTimeout(() => console.log(capturedI), 100);
+  })(i);
+}
+
+// Another common gotcha: closures in object methods
+const handlers = [];
+for (let i = 0; i < 3; i++) {
+  handlers.push({
+    value: i,
+    log: () => console.log(handlers[i].value)  // ❌ i is captured, but handlers[i] might not exist
+  });
+}
+// Fix: capture the specific value
+for (let i = 0; i < 3; i++) {
+  const item = { value: i };
+  item.log = () => console.log(item.value);
+  handlers.push(item);
+}
+handlers.forEach(h => h.log());  // 0, 1, 2 ✓
+```
+
+---
+
+## Chapter 21: Prototypes & Inheritance
+
+<Badge variant="red">Expert</Badge>
+
+### 21.1 The Prototype Chain
+
+```javascript
+// Every object has an internal [[Prototype]] link
+// When you access a property, JS walks up the chain until it finds it or reaches null
+
+// Creating objects with prototypes
+const animal = {
+  speak() {
+    return `${this.name} makes a sound.`;
+  }
+};
+
+const dog = {
+  name: "Rex",
+  __proto__: animal  // dog's prototype is animal
+};
+
+console.log(dog.speak());  // "Rex makes a sound." — found on animal!
+console.log(dog.toString()); // "[object Object]" — found on Object.prototype!
+
+// Prototype chain: dog → animal → Object.prototype → null
+
+// Object.create — proper way to set prototype
+const cat = Object.create(animal);
+cat.name = "Whiskers";
+console.log(cat.speak());  // "Whiskers makes a sound."
+
+// Check prototype
+console.log(Object.getPrototypeOf(dog) === animal);  // true
+
+// Checking property location
+console.log(dog.hasOwnProperty("name"));     // true — own property
+console.log(dog.hasOwnProperty("speak"));    // false — inherited
+
+// Property lookup walks the chain
+dog.walk = function() { return "Walking..."; };
+// dog → walk (own), name (own), speak (animal), toString (Object.prototype)
+
+// Shadowing — own property hides inherited one
+const silentDog = Object.create(animal);
+silentDog.speak = function() { return "..."; };
+console.log(silentDog.speak());  // "..." — own property shadows prototype
+```
+
+### 21.2 Constructor Functions & `new`
+
+```javascript
+// Pre-class syntax (still works, understand for legacy code)
+function Person(name, age) {
+  // 'new' does this automatically:
+  // 1. Creates new object: this = {}
+  // 2. Sets prototype: this.__proto__ = Person.prototype
+  // 3. Binds 'this': this is the new object
+  // 4. Returns 'this' (unless you return another object)
+  
+  this.name = name;
+  this.age = age;
+}
+
+// Shared methods go on prototype
+Person.prototype.greet = function() {
+  return `Hi, I'm ${this.name}`;
+};
+
+Person.prototype.isAdult = function() {
+  return this.age >= 18;
+};
+
+const alice = new Person("Alice", 30);
+console.log(alice.greet());    // "Hi, I'm Alice"
+console.log(alice.isAdult());  // true
+
+// Prototype chain: alice → Person.prototype → Object.prototype → null
+console.log(alice instanceof Person);   // true
+console.log(alice instanceof Object);   // true
+
+// Inheritance with constructors
+function Employee(name, age, role) {
+  Person.call(this, name, age);  // Call parent constructor
+  this.role = role;
+}
+
+// Set up prototype chain
+Employee.prototype = Object.create(Person.prototype);
+Employee.prototype.constructor = Employee;  // Fix constructor reference
+
+Employee.prototype.work = function() {
+  return `${this.name} is working as ${this.role}.`;
+};
+
+const dev = new Employee("Bob", 25, "developer");
+console.log(dev.greet());   // "Hi, I'm Bob" — inherited from Person
+console.log(dev.work());    // "Bob is working as developer."
+```
+
+### 21.3 Modern vs Legacy Inheritance
+
+```javascript
+// === Modern (Classes — syntactic sugar over prototypes) ===
+class Animal {
+  constructor(name) { this.name = name; }
+  speak() { return `${this.name} speaks.`; }
+}
+
+class Dog extends Animal {
+  constructor(name, breed) {
+    super(name);
+    this.breed = breed;
+  }
+  speak() { return `${this.name} barks!`; }
+}
+
+// === Legacy (Prototypes) ===
+function AnimalLegacy(name) { this.name = name; }
+AnimalLegacy.prototype.speak = function() { return `${this.name} speaks.`; };
+
+function DogLegacy(name, breed) {
+  AnimalLegacy.call(this, name);
+  this.breed = breed;
+}
+DogLegacy.prototype = Object.create(AnimalLegacy.prototype);
+DogLegacy.prototype.constructor = DogLegacy;
+DogLegacy.prototype.speak = function() { return `${this.name} barks!`; };
+
+// === Under the hood, they're the same ===
+// class syntax is just cleaner syntax for the prototype pattern
+```
+
+---
+
+## Chapter 22: Memory Management
+
+<Badge variant="red">Expert</Badge>
+
+### 22.1 Garbage Collection
+
+```javascript
+// JavaScript uses automatic garbage collection (mark-and-sweep)
+// Objects are collected when no references exist
+
+// Reference counting basics
+let obj = { data: "value" };  // Object has 1 reference
+let ref = obj;                 // Object has 2 references
+obj = null;                    // Object has 1 reference
+ref = null;                    // Object has 0 references → COLLECTED!
+
+// Circular references (handled by mark-and-sweep)
+function createCircular() {
+  const a = {};
+  const b = { ref: a };
+  a.ref = b;  // Circular: a ↔ b
+  return null;  // Both a and b are unreachable → COLLECTED!
+}
+
+// Memory leaks — common causes
+
+// 1. Forgotten timers/intervals
+function leakyComponent() {
+  const data = { hugeArray: new Array(1000000) };
+  
+  setInterval(() => {
+    console.log(data.hugeArray.length);  // Closure keeps data alive forever!
+  }, 1000);
+}
+
+// Fix: Clean up
+function fixedComponent() {
+  const data = { hugeArray: new Array(1000000) };
+  
+  const intervalId = setInterval(() => {
+    console.log(data.hugeArray.length);
+  }, 1000);
+  
+  return () => clearInterval(intervalId);  // Return cleanup function
+}
+
+// 2. Forgotten event listeners
+function attachHandler() {
+  const element = document.getElementById("button");
+  const bigData = new Array(1000000);
+  
+  element.addEventListener("click", () => {
+    console.log(bigData.length);  // bigData kept alive by closure!
+  });
+  // If element is removed from DOM but listener not removed → LEAK!
+}
+
+// Fix: Remove listeners or use WeakRef
+function safeAttach() {
+  const bigData = new Array(1000000);
+  const handler = () => console.log(bigData.length);
+  const element = document.getElementById("button");
+  
+  element.addEventListener("click", handler);
+  
+  return () => element.removeEventListener("click", handler);
+}
+
+// 3. Global variables (accidental)
+function accidentallyGlobal() {
+  leak = "I'm global!";  // Forgot 'const'/'let'/'var' → window.leak
+}
+
+// 4. Closures holding large data
+function processData(hugeDataset) {
+  return {
+    getSummary() {
+      // This closure holds reference to hugeDataset even though
+      // we only use a small summary
+      return hugeDataset.length;
+    }
+  };
+}
+
+// Fix: Only capture what you need
+function processDataFixed(hugeDataset) {
+  const count = hugeDataset.length;  // Extract what we need
+  return {
+    getSummary() {
+      return count;  // Closure only holds the count, not the dataset
+    }
+  };
+}
+```
+
+### 22.2 Performance Profiling
+
+```javascript
+// Measure memory usage (Node.js)
+const before = process.memoryUsage();
+// ... do work ...
+const after = process.memoryUsage();
+console.log("Heap used delta:", after.heapUsed - before.heapUsed);
+
+// Performance API (browser & Node)
+const start = performance.now();
+heavyComputation();
+const duration = performance.now() - start;
+console.log(`Took ${duration.toFixed(2)}ms`);
+
+// Performance marks and measures
+performance.mark("start-process");
+processData();
+performance.mark("end-process");
+performance.measure("process", "start-process", "end-process");
+
+const entries = performance.getEntriesByType("measure");
+console.log(entries[0].duration);
+
+// User Timing API for React/Vue component profiling
+// (Used by React DevTools Profiler)
+```
+
+---
+## Chapter 23: Design Patterns in JavaScript
+
+<Badge variant="red">Expert</Badge>
+
+### 23.1 Creational Patterns
+
+```javascript
+// === Singleton ===
+// Ensure only one instance exists
+class Database {
+  static #instance = null;
+  
+  constructor() {
+    if (Database.#instance) {
+      return Database.#instance;
+    }
+    this.connection = this.connect();
+    Database.#instance = this;
+  }
+  
+  connect() { /* ... */ }
+  
+  static getInstance() {
+    if (!Database.#instance) {
+      Database.#instance = new Database();
+    }
+    return Database.#instance;
+  }
+}
+
+// Modern approach with module system (preferred)
+// db.js
+class Database { /* ... */ }
+export default new Database();  // Single export = singleton
+
+// === Factory ===
+// Create objects without specifying exact class
+class User { /* ... */ }
+class Admin { /* ... */ }
+class Guest { /* ... */ }
+
+function createUser(type, data) {
+  const types = { user: User, admin: Admin, guest: Guest };
+  const UserClass = types[type] || User;
+  return new UserClass(data);
+}
+
+const user = createUser("admin", { name: "Alice" });
+
+// === Builder ===
+// Step-by-step object construction
+class QueryBuilder {
+  #parts = [];
+  
+  select(...columns) {
+    this.#parts.push(`SELECT ${columns.join(", ")}`);
+    return this;  // Enable chaining
+  }
+  
+  from(table) {
+    this.#parts.push(`FROM ${table}`);
+    return this;
+  }
+  
+  where(condition) {
+    this.#parts.push(`WHERE ${condition}`);
+    return this;
+  }
+  
+  limit(n) {
+    this.#parts.push(`LIMIT ${n}`);
+    return this;
+  }
+  
+  build() {
+    return this.#parts.join(" ");
+  }
+}
+
+const query = new QueryBuilder()
+  .select("name", "email")
+  .from("users")
+  .where("age > 18")
+  .limit(10)
+  .build();
+// "SELECT name, email FROM users WHERE age > 18 LIMIT 10"
+```
+
+### 23.2 Structural Patterns
+
+```javascript
+// === Decorator ===
+// Add behavior dynamically
+function timingDecorator(fn) {
+  return async function(...args) {
+    const start = performance.now();
+    const result = await fn.apply(this, args);
+    console.log(`${fn.name} took ${performance.now() - start}ms`);
+    return result;
+  };
+}
+
+const timedFetch = timingDecorator(fetch);
+
+// === Adapter ===
+// Convert one interface to another
+class ModernStorage {
+  get(key) { return localStorage.getItem(key); }
+  set(key, value) { localStorage.setItem(key, value); }
+}
+
+class LegacyStorageAdapter {
+  constructor() { this.storage = new ModernStorage(); }
+  
+  read(key) { return this.storage.get(key); }
+  write(key, value) { this.storage.set(key, value); }
+}
+
+// === Proxy ===
+// Intercept object operations
+const handler = {
+  get(target, prop) {
+    console.log(`Getting ${String(prop)}`);
+    return target[prop];
+  },
+  
+  set(target, prop, value) {
+    console.log(`Setting ${String(prop)} = ${value}`);
+    target[prop] = value;
+    return true;
+  },
+  
+  has(target, prop) {
+    return prop in target && !prop.startsWith("_");
+  }
+};
+
+const logged = new Proxy({}, handler);
+logged.name = "Alice";   // Logs: Setting name = Alice
+console.log(logged.name); // Logs: Getting name → "Alice"
+
+// Practical: Validation proxy
+function createValidator(schema) {
+  return {
+    set(target, prop, value) {
+      if (schema[prop] && !schema[prop](value)) {
+        throw new TypeError(`Invalid value for ${String(prop)}: ${value}`);
+      }
+      target[prop] = value;
+      return true;
+    }
+  };
+}
+
+const user = new Proxy({}, createValidator({
+  age: v => typeof v === "number" && v >= 0,
+  email: v => typeof v === "string" && v.includes("@"),
+}));
+
+user.age = 30;     // ✓
+// user.age = -5;  // ❌ TypeError!
+```
+
+### 23.3 Behavioral Patterns
+
+```javascript
+// === Observer / Pub-Sub ===
+class EventEmitter {
+  #listeners = new Map();
+  
+  on(event, callback) {
+    if (!this.#listeners.has(event)) {
+      this.#listeners.set(event, new Set());
+    }
+    this.#listeners.get(event).add(callback);
+    
+    // Return unsubscribe
+    return () => this.#listeners.get(event)?.delete(callback);
+  }
+  
+  emit(event, data) {
+    this.#listeners.get(event)?.forEach(cb => cb(data));
+  }
+  
+  once(event, callback) {
+    const wrapper = (data) => {
+      callback(data);
+      this.off(event, wrapper);
+    };
+    this.on(event, wrapper);
+  }
+  
+  off(event, callback) {
+    this.#listeners.get(event)?.delete(callback);
+  }
+}
+
+// === Strategy ===
+// Encapsulate interchangeable algorithms
+const paymentStrategies = {
+  creditCard: {
+    process(amount) { return `Processing $${amount} via Credit Card`; }
+  },
+  paypal: {
+    process(amount) { return `Processing $${amount} via PayPal`; }
+  },
+  crypto: {
+    process(amount) { return `Processing $${amount} via Crypto`; }
+  }
+};
+
+function processPayment(method, amount) {
+  const strategy = paymentStrategies[method];
+  if (!strategy) throw new Error("Unknown payment method");
+  return strategy.process(amount);
+}
+
+// === Command ===
+// Encapsulate operations as objects
+class CommandManager {
+  #history = [];
+  #redoStack = [];
+  
+  execute(command) {
+    command.execute();
+    this.#history.push(command);
+    this.#redoStack = [];  // Clear redo on new action
+  }
+  
+  undo() {
+    const command = this.#history.pop();
+    if (command) {
+      command.undo();
+      this.#redoStack.push(command);
+    }
+  }
+  
+  redo() {
+    const command = this.#redoStack.pop();
+    if (command) {
+      command.execute();
+      this.#history.push(command);
+    }
+  }
+}
+
+class AddTodoCommand {
+  constructor(todos, text) {
+    this.todos = todos;
+    this.text = text;
+    this.id = null;
+  }
+  
+  execute() {
+    this.id = Date.now();
+    this.todos.push({ id: this.id, text: this.text });
+  }
+  
+  undo() {
+    this.todos = this.todos.filter(t => t.id !== this.id);
+  }
+}
+```
+
+---
+
+## Chapter 24: Performance Optimization
+
+<Badge variant="red">Expert</Badge>
+
+### 24.1 Algorithmic Optimization
+
+```javascript
+// O(n²) → O(n) with Set lookup
+function hasDuplicateSlow(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      if (arr[i] === arr[j]) return true;
+    }
+  }
+  return false;
+}
+
+function hasDuplicateFast(arr) {
+  const seen = new Set();
+  for (const item of arr) {
+    if (seen.has(item)) return true;
+    seen.add(item);
+  }
+  return false;
+}
+
+// O(n) → O(1) with Map lookup
+function findByIdSlow(users, id) {
+  return users.find(u => u.id === id);  // Linear scan
+}
+
+function buildUserMap(users) {
+  return new Map(users.map(u => [u.id, u]));
+}
+const userMap = buildUserMap(users);
+const user = userMap.get(userId);  // O(1) lookup!
+
+// Pre-computation / caching
+function createLookupIndex(items, keyFn) {
+  const index = new Map();
+  for (const item of items) {
+    const key = keyFn(item);
+    if (!index.has(key)) index.set(key, []);
+    index.get(key).push(item);
+  }
+  return index;
+}
+
+// Batch processing to avoid blocking
+async function* batchProcessor(items, batchSize, processFn) {
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    yield await processFn(batch);
+    // Yield to event loop between batches
+    await new Promise(r => setTimeout(r, 0));
+  }
+}
+```
+
+### 24.2 Memory Optimization
+
+```javascript
+// Object pooling — reuse objects instead of creating new ones
+class ObjectPool {
+  #available = [];
+  #inUse = new Set();
+  #factory;
+  #reset;
+  
+  constructor(factory, reset, initialSize = 10) {
+    this.#factory = factory;
+    this.#reset = reset;
+    for (let i = 0; i < initialSize; i++) {
+      this.#available.push(factory());
+    }
+  }
+  
+  acquire() {
+    const obj = this.#available.pop() || this.#factory();
+    this.#inUse.add(obj);
+    return obj;
+  }
+  
+  release(obj) {
+    if (this.#inUse.has(obj)) {
+      this.#inUse.delete(obj);
+      this.#reset(obj);
+      this.#available.push(obj);
+    }
+  }
+}
+
+// Flyweight pattern — share common data
+class Particle {
+  static sharedSprite = loadSprite("particle.png");
+  
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    // sprite is accessed via the shared static, not per-instance
+  }
+}
+
+// Structured cloning for transferables
+const buffer = new ArrayBuffer(1024 * 1024);
+// Transfer ownership (zero-copy) to worker
+worker.postMessage({ buffer }, [buffer]);
+// buffer is now detached in main thread
+```
+
+### 24.3 Rendering Performance
+
+```javascript
+// Debounce and throttle (see Chapter 20 for implementations)
+
+// Intersection Observer for lazy loading
+const imageObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      img.src = img.dataset.src;
+      imageObserver.unobserve(img);
+    }
+  });
+});
+
+document.querySelectorAll("img[data-src]").forEach(img => {
+  imageObserver.observe(img);
+});
+
+// Web Workers for CPU-intensive tasks
+// worker.js
+self.addEventListener("message", (e) => {
+  const result = heavyComputation(e.data);
+  self.postMessage(result);
+});
+
+// main.js
+const worker = new Worker("worker.js");
+worker.postMessage(largeDataset);
+worker.onmessage = (e) => console.log("Result:", e.data);
+
+// RequestAnimationFrame for animations
+function smoothAnimation() {
+  let start;
+  function step(timestamp) {
+    if (!start) start = timestamp;
+    const progress = (timestamp - start) / 1000;  // seconds
+    
+    element.style.transform = `translateX(${progress * 100}px)`;
+    
+    if (progress < 2) {
+      requestAnimationFrame(step);
+    }
+  }
+  requestAnimationFrame(step);
+}
+```
+
+---
+## Chapter 25: Generators & Iterators
+
+<Badge variant="red">Expert</Badge>
+
+### 25.1 Generator Functions
+
+```javascript
+// Generator functions can pause and resume execution
+function* countUpTo(max) {
+  let n = 1;
+  while (n <= max) {
+    yield n;  // Pause here, return n
+    n++;
+  }
+}
+
+const counter = countUpTo(3);
+console.log(counter.next());  // { value: 1, done: false }
+console.log(counter.next());  // { value: 2, done: false }
+console.log(counter.next());  // { value: 3, done: false }
+console.log(counter.next());  // { value: undefined, done: true }
+
+// Iteration with for...of
+for (const num of countUpTo(5)) {
+  console.log(num);  // 1, 2, 3, 4, 5
+}
+
+// Spread with generators
+const numbers = [...countUpTo(5)];  // [1, 2, 3, 4, 5]
+
+// Two-way communication
+function* echoGenerator() {
+  const received = yield "Ready";  // yield sends "Ready", receives value
+  yield `You said: ${received}`;
+}
+
+const gen = echoGenerator();
+console.log(gen.next());           // { value: "Ready", done: false }
+console.log(gen.next("Hello!"));   // { value: "You said: Hello!", done: false }
+
+// Infinite generator
+function* fibonacci() {
+  let [a, b] = [0, 1];
+  while (true) {
+    yield a;
+    [a, b] = [b, a + b];
+  }
+}
+
+const fib = fibonacci();
+console.log(fib.next().value);  // 0
+console.log(fib.next().value);  // 1
+console.log(fib.next().value);  // 1
+console.log(fib.next().value);  // 2
+console.log(fib.next().value);  // 3
+
+// Lazy evaluation pipeline
+function* range(start, end) {
+  for (let i = start; i <= end; i++) yield i;
+}
+
+function* filter(iterable, predicate) {
+  for (const item of iterable) {
+    if (predicate(item)) yield item;
+  }
+}
+
+function* map(iterable, transform) {
+  for (const item of iterable) {
+    yield transform(item);
+  }
+}
+
+// Process 1,000,000 items without creating intermediate arrays!
+const result = [...map(
+  filter(range(1, 1000000), n => n % 2 === 0),
+  n => n * n
+)].slice(0, 10);  // [4, 16, 36, 64, 100, 144, 196, 256, 324, 400]
+
+// Async generators
+async function* fetchPages(url) {
+  let nextUrl = url;
+  while (nextUrl) {
+    const response = await fetch(nextUrl);
+    const data = await response.json();
+    yield data.results;
+    nextUrl = data.next;  // Pagination link
+  }
+}
+
+// Usage
+for await (const page of fetchPages("/api/items")) {
+  console.log(`Loaded ${page.length} items`);
+}
+
+// yield* — delegate to another generator
+function* combined() {
+  yield* [1, 2, 3];        // Delegate to array iterator
+  yield* countUpTo(3);      // Delegate to another generator
+}
+console.log([...combined()]);  // [1, 2, 3, 1, 2, 3]
+```
+
+### 25.2 Custom Iterators
+
+```javascript
+// Make any object iterable
+class Range {
+  constructor(start, end, step = 1) {
+    this.start = start;
+    this.end = end;
+    this.step = step;
+  }
+  
+  [Symbol.iterator]() {
+    let current = this.start;
+    return {
+      next: () => {
+        if (current > this.end) {
+          return { done: true };
+        }
+        const value = current;
+        current += this.step;
+        return { value, done: false };
+      }
+    };
+  }
+  
+  // Reverse iterator
+  [Symbol.asyncIterator]() { /* ... */ }
+}
+
+for (const n of new Range(1, 5)) {
+  console.log(n);  // 1, 2, 3, 4, 5
+}
+
+for (const n of new Range(0, 10, 2)) {
+  console.log(n);  // 0, 2, 4, 6, 8, 10
+}
+
+// Iterator helpers (ES2025)
+const nums = [1, 2, 3, 4, 5, 6];
+const result = nums.values()
+  .filter(n => n % 2 === 0)   // [2, 4, 6]
+  .map(n => n ** 2)            // [4, 16, 36]
+  .take(2)                     // [4, 16]
+  .toArray();
+```
+
+---
+
+# Part 4: Practical Projects
+
+## Project 1: Task Manager (Intermediate)
+
+```javascript
+// task-manager.js — Full-featured task manager
+
+class TaskManager extends EventEmitter {
+  #tasks = new Map();
+  #categories = new Set(["default"]);
+  #filters = { status: "all", category: "all", search: "" };
+  #sortBy = "createdAt";
+  #sortOrder = "desc";
+
+  constructor() {
+    super();
+    this.#loadFromStorage();
+  }
+
+  // === CRUD Operations ===
+  
+  create({ title, description = "", category = "default", priority = "medium", dueDate = null }) {
+    if (!title?.trim()) throw new ValidationError("title", "Title is required");
+    
+    const task = {
+      id: crypto.randomUUID(),
+      title: title.trim(),
+      description,
+      category,
+      priority,  // "low" | "medium" | "high"
+      status: "pending",  // "pending" | "in-progress" | "completed"
+      dueDate,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      completedAt: null,
+    };
+    
+    this.#tasks.set(task.id, Object.freeze(task));
+    this.#categories.add(category);
+    this.#save();
+    this.emit("created", task);
+    return task;
+  }
+
+  update(id, updates) {
+    const task = this.#tasks.get(id);
+    if (!task) throw new Error(`Task ${id} not found`);
+    
+    const updated = {
+      ...task,
+      ...updates,
+      id: task.id,  // Prevent ID change
+      updatedAt: Date.now(),
+    };
+    
+    if (updates.status === "completed" && task.status !== "completed") {
+      updated.completedAt = Date.now();
+    }
+    
+    this.#tasks.set(id, Object.freeze(updated));
+    this.#save();
+    this.emit("updated", updated);
+    return updated;
+  }
+
+  delete(id) {
+    const task = this.#tasks.get(id);
+    if (!task) return false;
+    
+    this.#tasks.delete(id);
+    this.#save();
+    this.emit("deleted", { id });
+    return true;
+  }
+
+  toggleStatus(id) {
+    const task = this.#tasks.get(id);
+    const newStatus = task.status === "completed" ? "pending" : "completed";
+    return this.update(id, { status: newStatus });
+  }
+
+  // === Querying ===
+  
+  getById(id) {
+    return this.#tasks.get(id) ?? null;
+  }
+
+  getFiltered() {
+    let result = [...this.#tasks.values()];
+    
+    // Apply filters
+    if (this.#filters.status !== "all") {
+      result = result.filter(t => t.status === this.#filters.status);
+    }
+    if (this.#filters.category !== "all") {
+      result = result.filter(t => t.category === this.#filters.category);
+    }
+    if (this.#filters.search) {
+      const q = this.#filters.search.toLowerCase();
+      result = result.filter(t => 
+        t.title.toLowerCase().includes(q) || 
+        t.description.toLowerCase().includes(q)
+      );
+    }
+    
+    // Apply sorting
+    const order = this.#sortOrder === "asc" ? 1 : -1;
+    result.sort((a, b) => {
+      const aVal = a[this.#sortBy] ?? 0;
+      const bVal = b[this.#sortBy] ?? 0;
+      return (aVal > bVal ? 1 : -1) * order;
+    });
+    
+    return result;
+  }
+
+  getStats() {
+    const tasks = [...this.#tasks.values()];
+    return {
+      total: tasks.length,
+      pending: tasks.filter(t => t.status === "pending").length,
+      inProgress: tasks.filter(t => t.status === "in-progress").length,
+      completed: tasks.filter(t => t.status === "completed").length,
+      overdue: tasks.filter(t => t.dueDate && t.dueDate < Date.now() && t.status !== "completed").length,
+    };
+  }
+
+  // === Persistence ===
+  
+  #save() {
+    localStorage.setItem("tasks", JSON.stringify([...this.#tasks]));
+    localStorage.setItem("categories", JSON.stringify([...this.#categories]));
+  }
+
+  #loadFromStorage() {
+    try {
+      const stored = localStorage.getItem("tasks");
+      if (stored) {
+        const entries = JSON.parse(stored);
+        this.#tasks = new Map(entries);
+      }
+      const cats = localStorage.getItem("categories");
+      if (cats) {
+        this.#categories = new Set(JSON.parse(cats));
+      }
+    } catch {
+      // Ignore corrupted storage
+    }
+  }
+
+  exportToJSON() {
+    return JSON.stringify([...this.#tasks.values()], null, 2);
+  }
+
+  importFromJSON(json) {
+    const tasks = JSON.parse(json);
+    for (const task of tasks) {
+      this.#tasks.set(task.id, Object.freeze(task));
+      this.#categories.add(task.category);
+    }
+    this.#save();
+    this.emit("imported", { count: tasks.length });
+  }
+}
+```
+
+---
+
+## Project 2: Reactive State Library (Expert)
+
+```javascript
+// reactive.js — A simplified Vue-like reactivity system
+
+// === Effect Tracking ===
+let activeEffect = null;
+const effectStack = [];
+
+function effect(fn, options = {}) {
+  const e = createEffect(fn, options);
+  e.run();
+  return e;
+}
+
+function createEffect(fn, options) {
+  const e = {
+    run() {
+      if (e.dirty) {
+        try {
+          effectStack.push(e);
+          activeEffect = e;
+          e.dirty = false;
+          return fn();
+        } finally {
+          effectStack.pop();
+          activeEffect = effectStack[effectStack.length - 1] || null;
+        }
+      }
+    },
+    stop() {
+      // Cleanup subscriptions
+      e.deps?.forEach(dep => dep.delete(e));
+      e.deps = new Set();
+    },
+    dirty: true,
+    deps: new Set(),
+    scheduler: options.scheduler,
+  };
+  return e;
+}
+
+// === Reactive Proxy ===
+const targetMap = new WeakMap();
+
+function track(target, key) {
+  if (!activeEffect) return;
+  
+  let depsMap = targetMap.get(target);
+  if (!depsMap) {
+    depsMap = new Map();
+    targetMap.set(target, depsMap);
+  }
+  
+  let dep = depsMap.get(key);
+  if (!dep) {
+    dep = new Set();
+    depsMap.set(key, dep);
+  }
+  
+  dep.add(activeEffect);
+  activeEffect.deps.add(dep);
+}
+
+function trigger(target, key) {
+  const depsMap = targetMap.get(target);
+  if (!depsMap) return;
+  
+  const dep = depsMap.get(key);
+  if (dep) {
+    dep.forEach(e => {
+      if (e.scheduler) {
+        e.scheduler(e.run);
+      } else {
+        e.run();
+      }
+    });
+  }
+}
+
+function reactive(target) {
+  return new Proxy(target, {
+    get(target, key) {
+      track(target, key);
+      return target[key];
+    },
+    set(target, key, value) {
+      const oldValue = target[key];
+      target[key] = value;
+      if (oldValue !== value) {
+        trigger(target, key);
+      }
+      return true;
+    },
+  });
+}
+
+function ref(value) {
+  const r = {
+    get value() {
+      track(r, "value");
+      return value;
+    },
+    set value(newValue) {
+      if (value !== newValue) {
+        value = newValue;
+        trigger(r, "value");
+      }
+    },
+  };
+  return r;
+}
+
+function computed(getter) {
+  const c = ref();
+  effect(() => {
+    c.value = getter();
+  }, { scheduler: queueJob });
+  return c;
+}
+
+// === Batching / Scheduler ===
+const queue = new Set();
+let isFlushing = false;
+
+function queueJob(job) {
+  queue.add(job);
+  if (!isFlushing) {
+    isFlushing = true;
+    Promise.resolve().then(() => {
+      queue.forEach(job => job());
+      queue.clear();
+      isFlushing = false;
+    });
+  }
+}
+
+// === Usage ===
+const state = reactive({ count: 0, message: "Hello" });
+const doubled = computed(() => state.count * 2);
+
+// Track and re-run when state changes
+effect(() => {
+  console.log(`Count: ${state.count}, Doubled: ${doubled.value}`);
+});
+
+state.count++;  // Effect re-runs automatically!
+```
+
+---
+
+# Part 5: Common Pitfalls & Solutions
+
+## 1. `this` Binding Confusion
+
+```javascript
+const obj = {
+  name: "Alice",
+  greet() {
+    return `Hello, ${this.name}`;
+  }
+};
+
+obj.greet();           // "Hello, Alice" ✓ — method call
+
+const greet = obj.greet;
+greet();               // "Hello, undefined" ✗ — 'this' is lost!
+
+// Solutions:
+// 1. Arrow functions (lexical this)
+const obj2 = {
+  name: "Alice",
+  greet: () => `Hello, ${this.name}`  // ⚠️ Arrow inherits this from surrounding scope
+};
+
+// 2. bind()
+const boundGreet = obj.greet.bind(obj);
+boundGreet();          // "Hello, Alice" ✓
+
+// 3. Arrow in method
+class User {
+  constructor(name) { this.name = name; }
+  greet = () => `Hello, ${this.name}`;  // Arrow: 'this' always bound
+}
+const user = new User("Alice");
+const extracted = user.greet;
+extracted();           // "Hello, Alice" ✓
+```
+## 2. Closure in Loops
+
+```javascript
+// WRONG: All functions share the same 'i'
+const fns = [];
+for (var i = 0; i < 3; i++) {
+  fns.push(() => console.log(i));
+}
+fns.forEach(fn => fn());  // 3, 3, 3
+
+// RIGHT: Use let (block-scoped)
+const fns2 = [];
+for (let i = 0; i < 3; i++) {
+  fns2.push(() => console.log(i));
+}
+fns2.forEach(fn => fn());  // 0, 1, 2
+
+// RIGHT: IIFE
+const fns3 = [];
+for (var i = 0; i < 3; i++) {
+  fns3.push((function(captured) {
+    return () => console.log(captured);
+  })(i));
+}
+```
+
+## 3. Mutating Function Arguments
+
+```javascript
+// WRONG: Mutating input
+function addDefaults(config) {
+  config.timeout = config.timeout || 5000;  // Mutates caller's object!
+  return config;
+}
+
+// RIGHT: Create a copy
+function addDefaults(config) {
+  return { timeout: 5000, ...config };  // Spread creates shallow copy
+}
+
+// RIGHT: For deep objects, use structuredClone
+function deepCopy(obj) {
+  return structuredClone(obj);  // Deep clone (available in modern environments)
+}
+```
+
+## 4. Floating Point Precision
+
+```javascript
+console.log(0.1 + 0.2 === 0.3);  // false!
+console.log(0.1 + 0.2);           // 0.30000000000000004
+
+// Solutions:
+// 1. Use epsilon comparison
+function floatEqual(a, b, epsilon = 1e-10) {
+  return Math.abs(a - b) < epsilon;
+}
+floatEqual(0.1 + 0.2, 0.3);  // true
+
+// 2. Convert to integers for money
+const total = (1999 + 499) / 100;  // $19.99 + $4.99 = $24.98
+
+// 3. Use decimal.js library for financial calculations
+```
+
+## 5. `==` vs `===`
+
+```javascript
+// NEVER use == (loose equality)
+0 == "0"       // true
+0 == []        // true
+"" == false    // true
+null == undefined // true
+"1" == true    // true
+
+// ALWAYS use === (strict equality)
+0 === "0"      // false ✓
+0 === []       // false ✓
+null === undefined // false ✓
+
+// Exception: checking null or undefined
+if (x == null)  // Acceptable: catches both null and undefined
+if (x === null || x === undefined)  // Same but more explicit
+```
+
+## 6. Async/Await Mistakes
+
+```javascript
+// WRONG: No error handling
+const data = await fetchData();  // Unhandled rejection if fetch fails!
+
+// RIGHT: Always use try/catch
+async function safeFetch() {
+  try {
+    return await fetchData();
+  } catch (error) {
+    console.error("Fetch failed:", error);
+    return null;
+  }
+}
+
+// WRONG: forEach with async
+items.forEach(async (item) => {  // Fire-and-forget! Errors lost!
+  await process(item);
+});
+
+// RIGHT: Use for...of for sequential
+for (const item of items) {
+  await process(item);
+}
+
+// RIGHT: Use Promise.all for parallel
+await Promise.all(items.map(item => process(item)));
+
+// WRONG: Implicit Promise return in map
+const results = items.map(async (item) => {
+  return await fetch(item.id);  // Returns Promise, not result!
+});
+console.log(results);  // [Promise, Promise, Promise] — not the data!
+
+// RIGHT: Await Promise.all
+const results = await Promise.all(items.map(async (item) => {
+  return await fetch(item.id);
+}));
+console.log(results);  // [data1, data2, data3] ✓
+```
+
+---
+
+# Appendix A: Quick Reference Card
+
+## Type Conversions
+
+| From | To | Method |
+|------|-----|--------|
+| String → Number | `parseInt("42")`, `parseFloat("3.14")`, `Number("42")`, `+"42"` |
+| Number → String | `String(42)`, `42.toString()`, `` `${42}` `` |
+| Any → Boolean | `Boolean(x)`, `!!x` |
+| Any → String | `String(x)` |
+| Object → JSON | `JSON.stringify(obj)` |
+| JSON → Object | `JSON.parse(str)` |
+
+## Array Methods
+
+| Method | Purpose | Mutates? |
+|--------|---------|----------|
+| `push()` | Add to end | Yes |
+| `pop()` | Remove from end | Yes |
+| `shift()` | Remove from start | Yes |
+| `unshift()` | Add to start | Yes |
+| `splice()` | Add/remove at index | Yes |
+| `slice()` | Copy portion | No |
+| `map()` | Transform each | No |
+| `filter()` | Keep matching | No |
+| `reduce()` | Reduce to value | No |
+| `find()` | First match | No |
+| `some()` | Any match? | No |
+| `every()` | All match? | No |
+| `sort()` | Sort (with comparator) | Yes |
+| `reverse()` | Reverse order | Yes |
+| `toSorted()` | Return sorted copy | No (ES2023) |
+
+## String Escapes
+
+| Escape | Meaning |
+|--------|---------|
+| `\n` | New line |
+| `\t` | Tab |
+| `\\` | Backslash |
+| `\'` | Single quote |
+| `\"` | Double quote |
+| `\`` | Backtick |
+| `\u{1F600}` | Unicode emoji |
+
+## Operator Precedence (High to Low)
+
+1. `()` Grouping
+2. `.` `[]` `()` `?.` Member access, call
+3. `++` `--` (postfix)
+4. `!` `~` `+` `-` `++` `--` (prefix) `typeof` `void` `delete` `await`
+5. `**` Exponentiation
+6. `*` `/` `%`
+7. `+` `-`
+8. `<<` `>>` `>>>`
+9. `<` `<=` `>` `>=` `instanceof` `in`
+10. `==` `!=` `===` `!==`
+11. `&`
+12. `^`
+13. `\|` (bitwise OR)
+14. `&&`
+15. `\|\|` `??`
+16. `? :` Ternary
+17. `=` `+=` `-=` etc.
+18. `,` (comma)
+
+---
+
+# Appendix B: ES Version Features
+
+| Version | Year | Key Features |
+|---------|------|-------------|
+| ES6/ES2015 | 2015 | `let`/`const`, arrow functions, classes, modules, template literals, destructuring, spread, `Map`/`Set`, Promises, `for...of`, generators |
+| ES2016 | 2016 | `Array.prototype.includes`, exponentiation operator `**` |
+| ES2017 | 2017 | `async`/`await`, `Object.entries`/`values`, string padding, trailing commas |
+| ES2018 | 2018 | Rest/spread properties, `for await...of`, `Promise.finally`, RegExp improvements |
+| ES2019 | 2019 | `Array.flat`/`flatMap`, `Object.fromEntries`, `String.trimStart`/`End`, optional catch binding |
+| ES2020 | 2020 | `BigInt`, `nullish coalescing ??`, `optional chaining ?.`, `Promise.allSettled`, `import()`, `globalThis` |
+| ES2021 | 2021 | `Promise.any`, `String.replaceAll`, logical assignment `??=` `||=` `&&=`, numeric separators `1_000_000` |
+| ES2022 | 2022 | Class fields & private methods `#`, `at()` method, top-level `await`, error cause |
+| ES2023 | 2023 | `toSorted`/`toReversed`/`toSpliced`/`with`, `findLast`/`findLastIndex`, `Array.fromAsync` |
+| ES2024 | 2024 | `Object.groupBy`/`Map.groupBy`, `Promise.withResolvers`, `ArrayBuffer.transfer`, `RegExp` `/v` flag, `Well-formed` Unicode strings |
+| ES2025 | 2025 | `Set` methods (union, intersection, etc.), `Iterator` helpers, `import.defer` |
+
+---
+
+# Appendix C: Browser & Node.js Compatibility
+
+## Feature Detection
+
+```javascript
+// Check if feature exists before using
+if (typeof structuredClone === "function") {
+  const copy = structuredClone(obj);
+} else {
+  // Fallback
+  const copy = JSON.parse(JSON.stringify(obj));
+}
+
+// Modern: Optional chaining handles missing features
+const supportsAt = [].at !== undefined;
+```
+
+## Polyfills
+
+```javascript
+// Simple polyfill for Array.prototype.at (if needed)
+if (!Array.prototype.at) {
+  Array.prototype.at = function(index) {
+    if (index < 0) index = this.length + index;
+    return this[index];
+  };
+}
+```
+
+---
+
+# Glossary
+
+| Term | Definition |
+|------|------------|
+| **Hoisting** | JavaScript's behavior of moving declarations to the top of their scope |
+| **Closure** | A function that retains access to its outer scope's variables |
+| **Prototype** | The object from which another object inherits properties |
+| **Event Loop** | The mechanism that handles async callbacks in JavaScript |
+| **Promise** | An object representing a future value that may not be available yet |
+| **Microtask** | High-priority async task (Promise callbacks, queueMicrotask) |
+| **Macrotask** | Regular async task (setTimeout, setInterval, I/O) |
+| **Garbage Collection** | Automatic memory management that removes unreachable objects |
+| **Tree Shaking** | Build optimization that removes unused code |
+| **Polyfill** | Code that provides modern features in older environments |
+| **IIFE** | Immediately Invoked Function Expression: `(function(){})()` |
+| **Currying** | Transforming a function that takes multiple args into a sequence of single-arg functions |
+| **Memoization** | Caching function results to avoid recomputation |
+| **JIT** | Just-In-Time compilation (how V8 optimizes hot code) |
+| **AST** | Abstract Syntax Tree — the parsed representation of code |
+
+---
+
+# Resources & Further Reading
+
+## Official Documentation
+- [MDN JavaScript Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript) — The definitive reference
+- [ECMAScript Specification](https://tc39.es/ecma262/) — The official language spec
+- [JavaScript.info](https://javascript.info) — Excellent modern tutorial
+
+## Books
+- **"You Don't Know JS"** by Kyle Simpson — Deep dive into language mechanics
+- **"Eloquent JavaScript"** by Marijn Haverbeke — Comprehensive guide
+- **"JavaScript: The Good Parts"** by Douglas Crockford — Classic
+
+## Practice
+- [Exercism JavaScript Track](https://exercism.org/tracks/javascript)
+- [Codewars](https://codewars.com)
+- [LeetCode](https://leetcode.com)
+
+## Tools
+- **ESLint** — Static code analysis
+- **Prettier** — Code formatting
+- **TypeScript** — Typed superset of JavaScript
+- **Jest / Vitest** — Testing frameworks
+
+---
+
+*This guide is a living document. JavaScript evolves rapidly through the TC39 process. Check the official ECMAScript specification and MDN for the latest features.*
+
+*Last updated: June 2026*
+
