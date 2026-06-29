@@ -53,6 +53,26 @@ Each `<Tab>` accepts:
 </Tabs>
 ````
 
+### Live Example :
+
+<Tabs>
+<Tab label="npm">
+```bash
+npm install
+```
+</Tab>
+<Tab label="pnpm" icon="zap">
+```bash
+pnpm install
+```
+</Tab>
+<Tab label="bun">
+```bash
+bun install
+```
+</Tab>
+</Tabs>
+
 ### Pills Variant
 
 Use `variant="pills"` for a filled button-style tab bar:
@@ -63,6 +83,13 @@ Use `variant="pills"` for a filled button-style tab bar:
 <Tab label="JavaScript">// JavaScript code here</Tab>
 </Tabs>
 ```
+
+### Live Example :
+
+<Tabs variant="pills">
+<Tab label="HTML">// some html</Tab>
+<Tab label="CSS">// some  css</Tab>
+</Tabs>
 
 ### Keyboard Navigation
 
@@ -128,6 +155,39 @@ Navigate to `http://localhost:3000` to see your site.
 </Steps>
 ````
 
+### Live Example:
+
+<Steps>
+<Step title="Install Dependencies">
+<div>
+
+Run `pnpm install` to install all project dependencies.
+This includes React, Vite, MDX, and all plugins.
+
+</div>
+</Step>
+<Step title="Configure Your Theme" icon="settings">
+<div>
+
+Open `src/index.css` and customize the color palette
+to match your brand. The project uses OKLCH color
+spaces via TailwindCSS v4.
+
+</div>
+</Step>
+<Step title="Start the Dev Server">
+<div>
+
+```bash
+pnpm run dev
+```
+
+Navigate to `http://localhost:3000` to see your site.
+
+</div>
+</Step>
+</Steps>
+
 ### How It Works
 
 - Each `<Step>` is rendered as a separate step with an auto-incrementing number
@@ -161,6 +221,14 @@ graph TD
   D --> E[Static Site]
 " caption="High-level content pipeline" />
 ```
+### Mermaid
+<Mermaid chart="
+graph TD
+  A[Content] --> B[MDX Pipeline]
+  B --> C[React Components]
+  C --> D[Vite Build]
+  D --> E[Static Site]
+" caption="High-level content pipeline" />
 
 ### Flowchart
 
@@ -173,6 +241,14 @@ graph LR
   D --> B
 " caption="A simple decision flowchart" />
 ```
+### Some Flowchart
+<Mermaid chart="
+graph LR
+  A[Start] --> B{Is it working?}
+  B -->|Yes| C[Great!]
+  B -->|No| D[Debug]
+  D --> B
+" caption="A simple decision flowchart" />
 
 ### Sequence Diagram
 
@@ -189,6 +265,17 @@ sequenceDiagram
   Blog->>User: Render page
 " caption="Post loading sequence" />
 ```
+<Mermaid chart="
+sequenceDiagram
+  participant User
+  participant Blog
+  participant API
+
+  User->>Blog: Click post
+  Blog->>API: Fetch content
+  API-->>Blog: Return MDX
+  Blog->>User: Render page
+" caption="Post loading sequence" />
 
 ### Pie Chart
 
@@ -201,6 +288,15 @@ pie title My Tech Stack
   "Vite" : 15
 " />
 ```
+### A Pie chart/
+
+<Mermaid chart="
+pie title My Tech Stack
+  "React" : 40
+  "TypeScript" : 25
+  "TailwindCSS" : 20
+  "Vite" : 15
+"/>
 
 ### Class Diagram
 
@@ -223,6 +319,26 @@ classDiagram
   Component <|-- Card
 " caption="Component inheritance diagram" />
 ```
+
+### Class Diagram
+
+<Mermaid chart="
+classDiagram
+  class Component {
+    +render()
+    +props
+  }
+  class Button {
+    +variant
+    +onClick()
+  }
+  class Card {
+    +title
+    +children
+  }
+  Component <|-- Button
+  Component <|-- Card
+" caption="Component inheritance diagram" />
 
 ### Supported Diagram Types
 

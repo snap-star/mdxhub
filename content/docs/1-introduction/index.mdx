@@ -2,21 +2,21 @@
 title: "Introduction"
 section: "1. Getting Started"
 order: 10
-version: "v1.0"
-description: "Welcome to the ReactMDX documentation — a blazingly fast blog and docs platform built on React 19, Vite, and MDX."
+version: "v1.1"
+description: "Welcome to the MDXHub documentation — a blazingly fast blog and docs platform built on React 19, Vite, and MDX."
 next: "docs/getting-started"
 ---
 
-Welcome to **ReactMDX** — a production-ready, zero-configuration content platform that combines the power of React 19, MDX, Vite, and TailwindCSS v4 into a stunning and developer-friendly writing experience.
+Welcome to **MDXHub** — a production-ready, zero-configuration content platform that combines the power of React 19, MDX, Vite, and TailwindCSS v4 into a stunning and developer-friendly writing experience.
 
-## What is ReactMDX?
+## What is MDXHub?
 
-ReactMDX is a Single Page Application that gives you the best of both worlds:
+MDXHub is a Single Page Application that gives you the best of both worlds:
 
 - **Markdown simplicity** — write content naturally without fighting a CMS
 - **React power** — embed interactive components, videos, callouts, and charts anywhere in your prose
 - **Zero routing config** — drop an `.mdx` or `.md` file into the right folder and it instantly appears, auto-discovered by Vite's `import.meta.glob`
-- **Nested routes supported** — blog and docs support nested folders, and `index.mdx` inside a folder maps to the parent slug
+- **Nested routes supported** — blog and docs support nested folders, any of your file `*.md` or `*.mdx`.
 - **Relative asset loading** — images inside `content/blog/**` and `content/docs/**` can be referenced with relative paths in MDX
 
 ## Feature Overview
@@ -24,13 +24,14 @@ ReactMDX is a Single Page Application that gives you the best of both worlds:
 | Feature | Details |
 | :--- | :--- |
 | ✍️ **MDX authoring** | Full MDX 3 support — Markdown + React components in the same file |
-| 📄 **`.md` / `.mdx` support** | Both Markdown and MDX files are discovered automatically |
+| 📄 **`.md` / `.mdx` support** | Both Markdown and MDX files are discovered automatically via `import.meta.glob` |
 | 🌲 **Nested routing** | Blog and docs pages support nested folder paths and `index.mdx` slugs |
 | 🖼️ **Relative asset loading** | Resolve images from the current content folder or use `/public` assets |
 | 🎨 **Syntax Highlighting** | Shiki v4 with Monokai dark / GitHub Light themes |
 | 🌙 **Dark Mode** | Discord-inspired palette with brand blue accents |
 | 🔍 **Full-text Search** | Fuse.js powered — press `Ctrl+K` / `Cmd+K` anywhere |
 | 📐 **Math (KaTeX)** | Inline and block LaTeX via `remark-math` + `rehype-katex` |
+| 📊 **Mermaid** | Mermaid.js for diagram and charting tools |
 | 🎬 **Video Embeds** | YouTube, Shorts, Vimeo — drop a URL and it just works |
 | 🔗 **SEO Ready** | Per-page title, description, Open Graph, and Twitter Cards |
 | ⚡ **Page Transitions** | Framer Motion `AnimatePresence` with scroll-to-top on nav |
@@ -46,7 +47,8 @@ This project is built on the latest 2026 web standards:
 4. **TailwindCSS v4** — CSS-first config with OKLCH color spaces
 5. **Zustand v5** — minimal, boilerplate-free global state
 6. **Shiki v4** — build-time syntax highlighting with full VS Code theme support
-7. **Framer Motion 12** — production-grade animations and page transitions
+7. **Mermaid** — Diagram and charting tools support
+8. **Framer Motion 12** — production-grade animations and page transitions
 
 <Callout type="tip">
 Press `Ctrl+K` (or `Cmd+K` on Mac) anywhere on the site to instantly search across all blog posts and documentation pages!
@@ -76,6 +78,6 @@ reactmdx/
 
 ## Next Steps
 
-- Follow the [Installation Guide](/docs/guides/installation) to run the project locally
+- Follow the [Installation Guide](/docs/2-guides/installation) to run the project locally
 - Read [Creating Posts](/blog/creating-posts-guide) for the full MDX authoring reference
-- See [Deployment](/docs/deployment/hosting) to publish your site
+- See [Deployment](/docs/3-deployment/hosting) to publish your site
