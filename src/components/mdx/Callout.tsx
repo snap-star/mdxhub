@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-router'
 import { Info, CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
 
 interface CalloutProps {

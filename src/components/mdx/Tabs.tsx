@@ -40,7 +40,6 @@ interface TabProps {
   children: React.ReactNode
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function Tab({ children }: TabProps) {
   // Tab is just a data container — rendering is handled by Tabs
   return <>{children}</>
@@ -119,12 +118,16 @@ export function Tabs({ defaultIndex = 0, variant = 'underline', children }: Tabs
         {tabs.map((tab, i) => {
           const isActive = i === safeIndex
           const IconComponent = tab.icon ? ICON_MAP[tab.icon] : null
-          const tabBaseClass = 'relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-150 cursor-pointer bg-transparent border-0'
+          const tabBaseClass = 'relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all duration-150 cursor-pointer border-0'
           let tabVariantClass: string
           if (isActive) {
-            tabVariantClass = variant === 'underline' ? 'text-foreground font-semibold' : 'text-primary-foreground bg-primary shadow-sm rounded-md'
+            tabVariantClass = variant === 'underline'
+              ? 'text-foreground font-semibold'
+              : 'bg-primary text-primary-foreground shadow-sm rounded-md'
           } else {
-            tabVariantClass = variant === 'pills' ? 'text-foreground/70 hover:text-foreground hover:bg-muted/60 dark:hover:bg-muted/40 rounded-md' : 'text-foreground/60 hover:text-foreground'
+            tabVariantClass = variant === 'pills'
+              ? 'text-foreground/70 hover:text-foreground hover:bg-muted/60 dark:hover:bg-muted/40 rounded-md'
+              : 'text-foreground/60 hover:text-foreground rounded-md'
           }
           return (
             <button

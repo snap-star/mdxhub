@@ -4,6 +4,7 @@ import { Logo } from './Logo'
 import { Heart, Rss } from 'lucide-react'
 import { siGithub, siX, siReact, siMdx, siVite } from 'simple-icons'
 import type { SimpleIcon } from 'simple-icons'
+import siteConfig from '../../../site.config.json'
 
 function SimpleIconSvg({ icon, size = 14 }: { icon: SimpleIcon; size?: number }) {
   return (
@@ -100,7 +101,7 @@ export function Footer() {
 
         <div className="border-t border-border pt-6 flex justify-between items-center flex-wrap gap-2">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} MDX Hub. Built with <Heart className="inline-block w-4 h-4 text-red-800/40 fill-red-400" /> in this chaotic world.
+            © {new Date().getFullYear()} {siteConfig.copyright || 'MDX Hub'}. Built with <Heart className="inline-block w-4 h-4 text-red-800/40 fill-red-400" /> in this chaotic world.
           </p>
           <div className="text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-2">

@@ -1,3 +1,37 @@
 {
-  "githubUrl": "https://github.com/snap-star/mdxhub"
+  "githubUrl": "https://github.com/snap-star/mdxhub",
+  "title": "MDXHub",
+  "titleTemplate": "%s | MDXHub",
+  "description": "A blazingly fast documentation and blog platform built with React, Vite, and MDX.",
+  "siteUrl": "https://mdxhub.vercel.app",
+  "defaultImage": "/mdxhub.png",
+  "twitterUsername": "snap-star",
+  "language": "en",
+  "copyright": "MDX Hub",
+  "profile": {
+    "name": "Chigusa Asuha",
+    "avatar": "/snap-star.png",
+    "title": "Lead Developer & Creative Technologist",
+    "location": "East Java, Indonesia",
+    "bio": "I love building beautiful, performant, and accessible web applications. When I'm not coding, you can find me writing articles about React, experimenting with new UI frameworks, or exploring the intersection of design and engineering.",
+    "discord": "reirainch",
+    "github": "snap-star",
+    "twitter": "a0ki_san",
+    "email": "zapkhiell@gmail.com"
+  },
+  "hero": {
+    "title": "MDX Hub",
+    "subtitle": "Thoughts, tutorials, and insights on modern web development, React, and MDX.",
+    "image": "/hero.png"
+  },
+  "share": {
+    "tagline": "Enjoyed this article?",
+    "taglineSubtitle": "Share it with your community and help others discover it.",
+    "platforms": {
+      "twitter": { "enabled": true },
+      "facebook": { "enabled": true },
+      "linkedin": { "enabled": true },
+      "copyLink": { "enabled": true }
+    }
+  }
 }

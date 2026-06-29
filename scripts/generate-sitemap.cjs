@@ -16,8 +16,15 @@ const BLOG_DIR = path.join(CONTENT_DIR, 'blog')
 const DOCS_DIR = path.join(CONTENT_DIR, 'docs')
 const PUBLIC_DIR = path.join(ROOT, 'public')
 
-// Site configuration — keep in sync with src/components/common/SEO.tsx
-const SITE_URL = 'https://mdxhub.vercel.app'
+// ─── Site configuration (read from site.config.json) ──────────────────────
+let siteConfig = {}
+try {
+  siteConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'site.config.json'), 'utf-8'))
+} catch (err) {
+  console.warn(`  ⚠ Could not read site.config.json: ${err.message}`)
+}
+
+const SITE_URL = siteConfig.siteUrl || 'https://mdxhub.vercel.app'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
