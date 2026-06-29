@@ -2,6 +2,30 @@
 
 ![MDXHub](./public/mdxhub.png)
 
+<p align="center">
+  <a href="CONTRIBUTING.md">
+    <img src="https://img.shields.io/badge/contributions-welcome-brightgreen?style=flat&logo=github" alt="Contributions welcome" />
+  </a>
+  <a href="CODE_OF_CONDUCT.md">
+    <img src="https://img.shields.io/badge/code%20of-conduct-ff69b4?style=flat&logo=contributorcovenant" alt="Code of Conduct" />
+  </a>
+  <a href="SECURITY.md">
+    <img src="https://img.shields.io/badge/security-policy-1f73b7?style=flat&logo=security" alt="Security policy" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react" alt="React 19" /></a>
+  <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat&logo=vite" alt="Vite 8" /></a>
+  <a href="https://mdxjs.com/"><img src="https://img.shields.io/badge/MDX-v3-1B1F24?style=flat&logo=mdx" alt="MDX v3" /></a>
+  <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat&logo=tailwindcss" alt="Tailwind CSS v4" /></a>
+  <a href="https://reactrouter.com/"><img src="https://img.shields.io/badge/React_Router-v8-CA4245?style=flat&logo=reactrouter" alt="React Router v8" /></a>
+  <a href="https://zustand-demo.pmnd.rs/"><img src="https://img.shields.io/badge/Zustand-v5-433E38?style=flat&logo=react" alt="Zustand v5" /></a>
+  <a href="https://www.framer.com/motion/"><img src="https://img.shields.io/badge/Framer_Motion-12-0055FF?style=flat&logo=framer" alt="Framer Motion 12" /></a>
+  <a href="https://shiki.style/"><img src="https://img.shields.io/badge/Shiki-v4-3C89E3?style=flat&logo=shiki" alt="Shiki v4" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=flat&logo=typescript" alt="TypeScript 6" /></a>
+</p>
+
 A blazingly fast, highly interactive, and beautiful MDX-powered platform for building blogs and documentation sites. Built from the ground up to provide a world-class developer and authoring experience.
 
 **No database required.** Just write your `.md` or `.mdx` files in the `content/` directory, commit them to Git, and let the build system handle the rest.
