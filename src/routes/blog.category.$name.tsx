@@ -8,8 +8,8 @@ import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
 export default function BlogCategory() {
   const { name } = useParams()
   const allPosts = useContentStore((s) => s.posts)
-  const posts = React.useMemo(() => allPosts.filter((p) => p.frontmatter.category === name), [allPosts, name])
-  const categories = React.useMemo(() => [...new Set(allPosts.map((p) => p.frontmatter.category))], [allPosts])
+  const posts = React.useMemo(() => allPosts.filter((p) => p.category === name), [allPosts, name])
+  const categories = React.useMemo(() => [...new Set(allPosts.map((p) => p.category))], [allPosts])
 
   if (!name || (!categories.includes(name) && posts.length === 0)) {
     return <Navigate to="/blog" replace />

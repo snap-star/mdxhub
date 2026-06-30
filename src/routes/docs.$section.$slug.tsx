@@ -4,48 +4,59 @@ import { useContentStore } from '@/store/contentStore'
 import { SEO } from '@/components/common/SEO'
 import { VersionBadge } from '@/components/docs/VersionBadge'
 import { PrevNextNav } from '@/components/docs/PrevNextNav'
-import { TableOfContents, useActiveHeading } from '@/components/blog/TableOfContents'
-import { extractHeadingsFromHtml, slugify, type HeadingItem } from '@/lib/utils'
+import { TableOfContents } from '@/components/blog/TableOfContents'
+import { useActiveHeading } from '@/hooks/useActiveHeading'
+
 import { ChevronRight } from 'lucide-react'
-import { MobileTocSheet, setTocData } from '@/components/blog/MobileTocSheet'
+import { MobileTocSheet } from '@/components/blog/MobileTocSheet'
+import { setTocData } from '@/lib/tocStore'
+import { useContentHeadings } from '@/hooks/useContentHeadings'
 
 export default function DocPage() {
   const params = useParams()
   const fullSlug = params['*']
+
+  // ── Lazy-load the MDX component for this specific doc ──────────────
+  const [MdxComponent, setMdxComponent] = React.useState<React.ComponentType | null>(null)
+  const [mdxLoading, setMdxLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    let cancelled = false
+    setMdxLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
+
+    async function load() {
+      if (!fullSlug) {
+        setMdxLoading(false)
+        return
+      }
+      const Component = await useContentStore.getState().loadDocComponent(fullSlug)
+      if (!cancelled) {
+        setMdxComponent(() => Component || null)
+        setMdxLoading(false)
+      }
+    }
+    load()
+
+    return () => { cancelled = true }
+  }, [fullSlug])
+
+  // ── Metadata from the lightweight content index ───────────────────
   const docs = useContentStore((s) => s.docs)
   const status = useContentStore((s) => s.status)
   const doc = React.useMemo(() => docs.find((d) => d.slug === fullSlug), [docs, fullSlug])
   
-  const [headings, setHeadings] = React.useState<HeadingItem[]>([])
-
-  React.useEffect(() => {
-    if (!doc) return
-    setTimeout(() => {
-      const article = document.querySelector('article.prose')
-      if (article) {
-        // Ensure all h2/h3 have an id so TOC navigation works (especially for .md files
-        // that bypass the rehypeSlug plugin)
-        article.querySelectorAll('h2, h3').forEach(el => {
-          if (!el.id) {
-            el.id = slugify(el.textContent || '')
-          }
-        })
-        setHeadings(extractHeadingsFromHtml(article.innerHTML))
-      }
-    }, 100)
-  }, [doc])
+  const headings = useContentHeadings(doc?.slug)
 
   const headingIds = React.useMemo(() => headings.map((h) => h.id), [headings])
   const activeId = useActiveHeading(headingIds)
 
   // Push heading data to the shared MobileTocSheet store
   // Respect frontmatter.toc — hide when explicitly disabled
-  // Use doc?.frontmatter?.toc instead of destructured frontmatter (which is declared later)
   React.useEffect(() => {
-    if (doc?.frontmatter?.toc === false) return
+    if (doc?.toc === false) return
     setTocData(headings, activeId)
     return () => setTocData([], '')
-  }, [headings, activeId, doc?.frontmatter?.toc])
+  }, [headings, activeId, doc?.toc])
 
   if (status === 'loading' || status === 'idle') {
     return (
@@ -62,7 +73,7 @@ export default function DocPage() {
     throw new Response("Not Found", { status: 404, statusText: "The requested documentation page could not be found." })
   }
 
-  const { frontmatter, Component } = doc
+  const { title, description, section, version, toc } = doc
 
   // Find prev/next docs within the same section or globally based on order
   const currentIndex = docs.findIndex(d => d.slug === fullSlug)
@@ -72,43 +83,58 @@ export default function DocPage() {
   return (
     <>
       <SEO 
-        title={`${frontmatter.title} | Docs`} 
-        description={frontmatter.description || `Documentation for ${frontmatter.title}`} 
+        title={`${title} | Docs`}
+        description={description || `Documentation for ${title}`}
       />
       <main className="docs-main min-w-0">
         {/* Section breadcrumb */}
         <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-        <span className="font-medium">{frontmatter.section}</span>
+        <span className="font-medium">{section}</span>
         <ChevronRight size={14} className="opacity-50" />
-        <span className="text-foreground">{frontmatter.title}</span>
+        <span className="text-foreground">{title}</span>
       </div>
 
       <header className="mb-10">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <h1 className="text-4xl font-bold tracking-tight leading-tight m-0">
-            {frontmatter.title}
+            {title}
           </h1>
-          {frontmatter.version && (
+          {version && (
             <div className="mt-2">
-              <VersionBadge version={frontmatter.version} />
+              <VersionBadge version={version} />
             </div>
           )}
         </div>
-        {frontmatter.description && (
+        {description && (
           <p className="text-lg text-muted-foreground mt-4 leading-relaxed">
-            {frontmatter.description}
+            {description}
           </p>
         )}
       </header>
 
       <article className="prose">
-        <Component />
+        {mdxLoading ? (
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-muted rounded w-full" />
+            <div className="h-4 bg-muted rounded w-5/6" />
+            <div className="h-4 bg-muted rounded w-4/6" />
+          </div>
+        ) : MdxComponent ? (
+          <MdxComponent />
+        ) : (
+          <p className="text-muted-foreground italic">Content could not be loaded.</p>
+        )}
       </article>
 
-      <PrevNextNav prev={prevDoc} next={nextDoc} />
+      {prevDoc || nextDoc ? (
+        <PrevNextNav
+          prev={prevDoc}
+          next={nextDoc}
+        />
+      ) : null}
       </main>
 
-      {frontmatter.toc !== false && (
+      {toc !== false && (
         <div className="docs-toc sticky top-[100px] self-start hidden xl:block pr-2 max-h-[calc(100vh-140px)] overflow-y-auto">
           <TableOfContents items={headings} activeId={activeId} />
         </div>

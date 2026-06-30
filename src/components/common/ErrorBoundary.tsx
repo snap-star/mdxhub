@@ -36,8 +36,6 @@ function ErrorFallback({
   error: Error | null
   onReset: () => void
 }) {
-  const siteName = siteConfig.copyright || 'MDX Hub'
-
   // Build GitHub issue URL for reporting the error
   const githubIssueUrl = React.useMemo(() => {
     const repoPath = siteConfig.githubUrl.replace('https://github.com/', '')

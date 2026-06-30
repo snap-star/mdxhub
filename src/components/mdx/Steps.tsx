@@ -37,7 +37,6 @@ interface StepProps {
   children?: React.ReactNode
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function Step({ children }: StepProps) {
   // Step is just a data container — rendering is handled by Steps
   return <>{children}</>

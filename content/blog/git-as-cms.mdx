@@ -50,6 +50,16 @@ When you push a new `.md` or `.mdx` file to the `main` branch on GitHub:
 
 This whole process takes seconds, and the result is a blazingly fast Single Page Application where content loads instantly because it's already pre-compiled.
 
+### The Content Index: A Build-Time Database
+
+During the build, a custom Node.js script (`scripts/generate-content-index.cjs`) scans every `.md` and `.mdx` file, extracts YAML frontmatter fields — including `tags`, `featured`, `series`, `seriesOrder`, and `cc` — and compiles them into a single `public/content-index.json` file. This JSON file acts as the application's "database" at runtime:
+
+- The blog homepage reads it to render post cards, filter by category/tag, and surface featured posts
+- The docs sidebar reads it to build navigation
+- The search index is built from it for `Ctrl+K` / `Cmd+K` full-text search
+
+Because it's a static JSON file, there's zero server cost to query it. And with the included `dev:watch` script, it auto-regenerates every time you save a file — no full rebuild needed during development.
+
 ---
 
 ## Why Git beats a Traditional CMS

@@ -65,7 +65,6 @@ const DARK_THEME: MermaidThemeVars = {
 
 // ─── Module-level Mermaid instance ─────────────────────────────────────────
 
-let mermaidPromise: Promise<typeof import('mermaid')> | null = null
 let mermaidModule: typeof import('mermaid') | null = null
 
 async function getMermaid(theme: MermaidThemeVars): Promise<typeof import('mermaid')> {
@@ -104,15 +103,15 @@ export function Mermaid({ chart, caption, title }: MermaidProps) {
   // Re-render when theme or chart changes
   React.useEffect(() => {
     let cancelled = false
-    setLoading(true)
+    setLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
     setError(null)
 
     async function render() {
       try {
         const theme = resolvedTheme === 'dark' ? DARK_THEME : LIGHT_THEME
-        // Re-initialize mermaid with the current theme on theme change
-        // getMermaid always re-initializes with the current theme vars
-        mermaidModule = null // Force re-initialize on theme change
+        // Re-initialize mermaid with the current theme on theme change.
+        // getMermaid always re-initializes with the theme vars passed in,
+        // so there's no need to nullify the cached module.
         const mermaid = await getMermaid(theme)
         if (cancelled) return
 

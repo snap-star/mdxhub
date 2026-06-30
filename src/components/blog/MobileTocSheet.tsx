@@ -2,39 +2,7 @@ import React from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { List, X } from 'lucide-react'
-import type { TocItem } from '@/lib/content/types'
-
-// ─── Module-level store (same pattern as ImageLightbox) ────────────────
-// This lets MobileTocSheet render at the RootLayout level (outside framer-motion
-// animated wrappers that break position:fixed) while receiving data from
-// blog/doc route pages.
-
-interface TocStoreState {
-  items: TocItem[]
-  activeId: string
-}
-
-let storeState: TocStoreState = { items: [], activeId: '' }
-const listeners = new Set<React.DispatchWithoutAction>()
-
-function subscribe(fn: () => void) {
-  listeners.add(fn)
-  return () => listeners.delete(fn)
-}
-
-function getSnapshot(): TocStoreState {
-  return storeState
-}
-
-function emitChange() {
-  listeners.forEach((fn) => fn())
-}
-
-/** Call this from blog/doc pages when headings change */
-export function setTocData(items: TocItem[], activeId: string) {
-  storeState = { items, activeId }
-  emitChange()
-}
+import { useTocStore } from '@/lib/tocStore'
 
 // ─── Backdrop animation ───────────────────────────────────────────────────
 
@@ -62,7 +30,7 @@ const sheetVariants = {
 // ─── Component ────────────────────────────────────────────────────────────
 
 export function MobileTocSheet() {
-  const { items, activeId } = React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+  const { items, activeId } = useTocStore()
   const [open, setOpen] = React.useState(false)
   const listRef = React.useRef<HTMLDivElement>(null)
   const hasItems = items.length > 0

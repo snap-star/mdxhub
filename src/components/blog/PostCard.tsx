@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router'
-import { motion } from 'framer-motion'
-import type { BlogPost } from '@/lib/content/types'
+import type { PostIndexEntry } from '@/lib/content/contentIndex'
+import { useContentStore } from '@/store/contentStore'
 import { formatDateShort } from '@/lib/utils'
 import { Clock, Calendar, ChevronRight, MessageCircle } from 'lucide-react'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
@@ -9,34 +9,39 @@ import { SeriesBadge } from '@/components/blog/SeriesBadge'
 import { OptimizedImage } from '@/components/mdx/OptimizedImage'
 
 interface PostCardProps {
-  post: BlogPost
+  post: PostIndexEntry
   index?: number
 }
 
 export function PostCard({ post, index = 0 }: PostCardProps) {
-  const { frontmatter, author, readingTime, slug } = post
+  const { title, description, coverImage, date, category, tags, slug, featured, series, seriesOrder, readingTime, comments } = post
+
+  // Compute total parts for series badge (how many posts share this series name)
+  const allPosts = useContentStore((s) => s.posts)
+  const totalPartsInSeries = React.useMemo(() =>
+    series ? allPosts.filter((p) => p.series === series).length : 0,
+    [series, allPosts],
+  )
 
   return (
-    <motion.article
+    <article
       className="post-card group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-md hover:border-primary/50"
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.06, ease: [0.4, 0, 0.2, 1] }}
+      style={{ animationDelay: `${index * 0.06}s` }}
     >
       {/* Cover image — real thumbnail if available, else decorative gradient */}
       <Link to={`/blog/${slug}`} className="block w-full no-underline shrink-0">
         <div
           className="h-[200px] flex items-center justify-center relative overflow-hidden"
-          style={!frontmatter.coverImage ? {
+          style={!coverImage ? {
             background: `linear-gradient(135deg, 
               oklch(${57 - index * 4}% 0.155 ${240 + index * 12}) 0%, 
               oklch(${47 - index * 4}% 0.148 ${255 + index * 8}) 100%)`,
           } : undefined}
         >
-          {frontmatter.coverImage ? (
+          {coverImage ? (
             <OptimizedImage
-              src={frontmatter.coverImage}
-              alt={frontmatter.title}
+              src={coverImage}
+              alt={title}
               imgClassName="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               usePicture={false}
             />
@@ -46,21 +51,22 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
             </div>
           )}
           {/* Overlay gradient for readability on images */}
-          {frontmatter.coverImage && (
+          {coverImage && (
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
           )}
           <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
             <span className="category-badge bg-white/25 text-white border-white/30 backdrop-blur-sm shadow-sm">
-              {frontmatter.category}
+              {category}
             </span>
-            {frontmatter.series && (
+            {series && (
               <SeriesBadge
-                seriesName={frontmatter.series}
-                seriesOrder={frontmatter.seriesOrder}
+                seriesName={series}
+                seriesOrder={seriesOrder}
+                totalParts={totalPartsInSeries}
               />
             )}
           </div>
-          {frontmatter.featured && (
+          {featured && (
             <div className="absolute top-3 right-3 z-10">
               <span className="relative inline-flex items-center gap-1.5 bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 text-white font-extrabold text-[0.6rem] uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg shadow-brand border border-brand-300/20 group-hover:shadow-xl group-hover:shadow-brand group-hover:scale-105 transition-all duration-300">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="shrink-0 drop-shadow-sm">
@@ -75,7 +81,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
 
       <div className="p-5 pb-6 flex flex-col flex-1">
         <div className="flex gap-1.5 flex-wrap mb-3">
-          {frontmatter.tags.slice(0, 3).map((tag) => (
+          {tags.slice(0, 3).map((tag) => (
             <Link key={tag} to={`/blog/tag/${tag}`} className="tag-pill bg-muted hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground border-border">
               #{tag}
             </Link>
@@ -84,49 +90,43 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
 
         <Link to={`/blog/${slug}`} className="no-underline">
           <h2 className="font-serif text-[1.2rem] font-bold leading-tight tracking-tight mb-2.5 text-card-foreground group-hover:text-primary transition-colors">
-            {frontmatter.title}
+            {title}
           </h2>
         </Link>
 
-        {frontmatter.description && (
+        {description && (
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            {frontmatter.description.length > 120
-              ? frontmatter.description.slice(0, 120) + '…'
-              : frontmatter.description}
+            {description.length > 120
+              ? description.slice(0, 120) + '…'
+              : description}
           </p>
         )}
 
         <div className="flex items-center justify-between flex-wrap gap-2 mt-auto pt-3.5 border-t border-border">
           <div className="flex items-center gap-2">
-            {author ? (
-              <>
-                <img
-                  src={author.avatar}
-                  alt={author.name}
-                  className="w-7 h-7 rounded-full object-cover shrink-0 author-avatar"
-                  onError={(e) => { e.currentTarget.style.display = 'none' }}
-                />
-                <span className="text-[0.8rem] font-medium text-muted-foreground">
-                  {author.name}
-                </span>
-              </>
-            ) : (
-              <span className="text-[0.8rem] text-muted-foreground">
-                {frontmatter.author}
-              </span>
-            )}
+            {post.authorAvatar ? (
+              <img
+                src={post.authorAvatar}
+                alt={post.authorName}
+                className="w-7 h-7 rounded-full object-cover shrink-0"
+                onError={(e) => { e.currentTarget.style.display = 'none' }}
+              />
+            ) : null}
+            <span className="text-[0.8rem] font-medium text-muted-foreground">
+              {post.authorName || post.author || 'Unknown'}
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
             <span className="reading-time flex items-center gap-1 text-[0.75rem] text-muted-foreground">
               <Calendar size={12} />
-              {formatDateShort(frontmatter.date)}
+              {formatDateShort(date)}
             </span>
             <span className="reading-time flex items-center gap-1 text-[0.75rem] text-muted-foreground">
               <Clock size={12} />
               {readingTime} min
             </span>
-            {frontmatter.comments !== false && (
+            {comments !== false && (
               <span className="reading-time flex items-center gap-1 text-[0.75rem] text-muted-foreground">
                 <MessageCircle size={12} />
                 <DisqusCommentCount
@@ -146,6 +146,6 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
           Read more <ChevronRight size={14} />
         </Link>
       </div>
-    </motion.article>
+    </article>
   )
 }

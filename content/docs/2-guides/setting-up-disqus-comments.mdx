@@ -92,12 +92,15 @@ This project ships two React components that handle all Disqus interaction:
 
 ### `DisqusComments`
 
-Rendered inside the blog post template (`src/routes/blog.$slug.tsx`), this component:
+Rendered inside the blog post template (`src/routes/blog.$slug.tsx`), this component uses a **lazy-loading architecture** to keep initial page loads fast:
 
-- Reads `VITE_DISQUS_SHORTNAME` from environment variables
-- Injects the Disqus embed script (`embed.js`) into the page
-- Passes the post title, URL, and a unique identifier (e.g., `blog:my-post-slug`) so Disqus can associate comments with the correct thread
-- Calls `window.DISQUS.reset()` on navigation, so comments are not duplicated when moving between posts
+- The top-level `DisqusComments` component wraps everything in a `LazySection` that uses `IntersectionObserver`.
+- An internal `DisqusEmbed` child component only mounts when the user scrolls near the comment section.
+- Once mounted, `DisqusEmbed`:
+  - Reads `VITE_DISQUS_SHORTNAME` from environment variables
+  - Injects the Disqus embed script (`embed.js`) into the page
+  - Passes the post title, URL, and a unique identifier (e.g., `blog:my-post-slug`) so Disqus can associate comments with the correct thread
+  - Calls `window.DISQUS.reset()` on navigation, so comments are not duplicated when moving between posts
 
 ```tsx
 <DisqusComments
@@ -126,9 +129,15 @@ Rendered on the blog index cards, this component shows a live count of comments 
 The data flow is straightforward:
 
 ```
-[Disqus CDN] ──embed.js──→ [DisqusComments] ──renders──→ [#disqus_thread div]
-     │                                                                    
-     └────count.js──→ [DisqusCommentCount] ──renders──→ [comment count on card]
+[User scrolls near comments]
+        │
+        ▼
+[LazySection triggers] ──→ [DisqusEmbed mounts]
+                                │
+                                ▼
+                         [Disqus CDN] ──embed.js──→ [#disqus_thread div]
+                              │
+                              └────count.js──→ [DisqusCommentCount] ──renders──→ [comment count on card]
 ```
 
 Both components are already wired into the blog templates. You only need to provide `VITE_DISQUS_SHORTNAME`.
@@ -192,7 +201,7 @@ Here is every file that participates in the Disqus integration:
 | File | Purpose |
 | :--- | :--- |
 | `.env.local` | Stores `VITE_DISQUS_SHORTNAME` (your shortname) |
-| `src/components/blog/DisqusComments.tsx` | Injects the Disqus embed script and renders the comment thread |
+| `src/components/blog/DisqusComments.tsx` | Lazy-loads comments via `LazySection` + `DisqusEmbed` |
 | `src/components/blog/DisqusCommentCount.tsx` | Displays the comment count badge on blog cards |
 | `src/routes/blog.$slug.tsx` | Wire-up: renders `<DisqusComments />` in the post footer |
 | `src/components/blog/PostCard.tsx` | Wire-up: renders `<DisqusCommentCount />` on each card |

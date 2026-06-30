@@ -35,11 +35,13 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 ## ✨ Features
 
 ### 📝 Content Authoring
-- **Git-Backed CMS**: Write content as Markdown/MDX files right in your editor. Automatically discovered and routed using Vite's `import.meta.glob`.
+- **Git-Backed CMS**: Write content as Markdown/MDX files right in your editor. Automatically discovered and routed using Vite's `import.meta.glob`. A build-time `content-index.json` powers the blog index, category/tag filters, series navigation, and search — no database needed.
 - **Nested Content Routing**: Supports nested folders in `content/blog/**` and `content/docs/**`, with `index.mdx` folder slug support.
 - **Relative MDX Assets**: Resolve image sources relative to the current content folder, or use static `/public` assets.
 - **Rich MDX Components**: Use React components directly inside your Markdown — globally available, no imports needed.
-- **Series Support**: Group related posts into series with automatic navigation between parts.
+- **Featured Posts**: Set `featured: true` in frontmatter to highlight posts in the Featured widget on the homepage.
+- **Series Support**: Group related posts into series with automatic prev/next navigation, progress bar, and expandable part list.
+- **CC License Badges**: Set `cc: "CC-BY-4.0"` in frontmatter to automatically render a Creative Commons license badge in the post footer.
 - **Draft System**: Set `draft: true` in frontmatter to exclude posts from the published feed.
 
 ### 🧩 Built-in MDX Components
@@ -49,6 +51,9 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 | `<Callout />` | Admonitions: `note`, `tip`, `info`, `warning`, `danger` — with themed icons |
 | `<Badge />` | Colorful inline pill — 22+ colors, 40+ icons, admonition variants |
 | `<Tooltip />` | Accessible hover/focus tooltip with placement control (`top`, `bottom`, `left`, `right`) |
+| `<Tabs />` | Tabbed content panels — `underline` and `pills` variants, keyboard navigable |
+| `<Steps />` + `<Step />` | Numbered step-by-step guides with connecting lines and optional icons |
+| `<Mermaid />` | Diagram renderer — flowcharts, sequence diagrams, pie charts, class diagrams, and more |
 | `<ProfileBadge />` | Author profile card for About pages |
 | `<CCLicense />` | One-line Creative Commons badge for any post |
 | `<AuthorCard />` | Full author card with avatar, bio, and social links |
@@ -72,8 +77,8 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Full-Text Search**: Press `Ctrl+K`/`Cmd+K` anywhere — fuzzy search across all blog posts and docs using Fuse.js
 - **Table of Contents**: Scroll-spy powered by IntersectionObserver, with mobile slide-out sheet
 - **Breadcrumbs**: Contextual navigation in blog posts and docs pages
-- **Category & Tag Filtering**: Filter blog posts by category or tag, with sidebar widgets and tag clouds
-- **Series Navigation**: Inline series indicator with prev/next navigation between parts
+- **Category & Tag Filtering**: Filter blog posts by category or tag, with sidebar widgets and interactive tag clouds
+- **Series Navigation**: Inline series badge and prev/next navigation with progress indicator between parts
 
 ### 🔗 SEO & Discovery
 - **Automatic SEO**: Per-page `og:image`, `twitter:card`, canonical URLs, and meta tags via `react-helmet-async`
@@ -87,7 +92,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Image Optimization**: Build-time WebP/AVIF generation, lazy loading, and responsive `<picture>` elements
 - **Code Splitting**: Manual chunk splitting for React, Framer Motion, Shiki, KaTeX, icons, and utilities
 - **CSS View Transitions**: Native `@view-transition` API for smooth page navigations
-- **Lazy Loading**: Images and videos are lazy-loaded by default
+- **Lazy Loading**: Images and videos are lazy-loaded by default. The Disqus comment section uses a lazy-loading pattern with `IntersectionObserver` — the embed script is only loaded when the user scrolls near the comments.
 
 ---
 
@@ -132,7 +137,17 @@ pnpm install
 pnpm run dev
 ```
 
-This starts the Vite dev server at [http://localhost:3000](http://localhost:3000). On startup, it automatically generates the RSS feed and sitemap.
+This starts the Vite dev server at [http://localhost:3000](http://localhost:3000). On startup, it automatically generates the content index, RSS feed, and sitemap.
+
+For a smoother experience with instant content-index regeneration, run the watch script in a **separate terminal**:
+
+```bash
+# Terminal 1 — Vite dev server with HMR
+pnpm run dev
+
+# Terminal 2 — content file watcher (auto-regenerates content-index.json on every save)
+pnpm run dev:watch
+```
 
 ### Production Build
 
@@ -141,11 +156,12 @@ pnpm run build
 ```
 
 The build pipeline:
-1. Generates WebP/AVIF image variants from source images
-2. Generates the RSS feed (`public/rss.xml`)
-3. Generates the sitemap (`public/sitemap.xml`) and `robots.txt`
-4. Type-checks the project with TypeScript
-5. Bundles everything with Vite into `dist/`
+1. Generates the content index (`public/content-index.json`) — extracting frontmatter fields including `tags`, `featured`, `series`, `seriesOrder`, `cc` — covering 59+ posts and 13+ docs pages
+2. Generates WebP/AVIF image variants from source images via Sharp
+3. Generates the RSS feed (`public/rss.xml`)
+4. Generates the sitemap (`public/sitemap.xml`) and `robots.txt`
+5. Type-checks the project with TypeScript
+6. Bundles everything with Vite into `dist/`
 
 Preview the build locally:
 
@@ -181,9 +197,11 @@ pnpm run preview
 │   ├── robots.txt             # Auto-generated robots.txt (via prebuild)
 │   └── ...                    # Images, icons, etc.
 ├── scripts/
+│   ├── generate-content-index.cjs    # Builds content-index.json from frontmatter
 │   ├── generate-image-variants.cjs   # WebP/AVIF generation
 │   ├── generate-rss.cjs              # RSS feed generation
-│   └── generate-sitemap.cjs          # Sitemap + robots.txt generation
+│   ├── generate-sitemap.cjs          # Sitemap + robots.txt generation
+│   └── watch-content.cjs             # Dev file watcher (auto-regenerates on save)
 ├── src/
 │   ├── components/
 │   │   ├── blog/             # Blog-specific components (PostCard, TOC, Breadcrumbs, etc.)
@@ -241,17 +259,17 @@ pnpm run preview
 ---
 title: "My Awesome Post"
 date: "2026-06-21"
-author: "chigusa-asuha"     # Must match an id in content/authors/authors.yaml
+author: "chigusa-asuha"       # Must match an id in content/authors/authors.yaml
 category: "Tutorial"
-tags: ["react", "mdx", "vite"]
+tags: ["react", "mdx", "vite"] # Array — inline ["a","b"] or indented list both work
 description: "A short summary for the post card and SEO meta description."
 coverImage: "https://..."    # Thumbnail and Open Graph image
-cc: "CC-BY-4.0"              # Optional Creative Commons license
-series: "My Series Name"     # Optional — groups related posts
-seriesOrder: 1               # Optional — sort order within a series
-draft: false                 # Optional — hides from feed when true
-featured: true               # Optional — shows in featured posts widget
-readingTime: 5               # Optional — override auto-calculated reading time
+featured: true                # Optional — highlights in featured posts widget
+cc: "CC-BY-4.0"              # Optional — Creative Commons license badge in footer
+series: "My Series Name"     # Optional — groups related posts with series navigation
+seriesOrder: 1                # Optional — sort order within a series
+draft: false                  # Optional — hides from feed when true
+readingTime: 5                # Optional — override auto-calculated reading time
 ---
 ```
 
@@ -279,18 +297,21 @@ For more detailed information, check out the [Creating Posts Guide](/blog/creati
 
 | Command | Description |
 | :--- | :--- |
-| `pnpm run dev` | Start dev server (generates RSS + sitemap on startup) |
-| `pnpm run build` | Image variants → RSS → sitemap → type-check → production build |
+| `pnpm run dev` | Start dev server (generates content-index + RSS + sitemap on startup) |
+| `pnpm run dev:watch` | Watch `content/` for changes — auto-regenerates content-index.json, RSS feed, and sitemap on every file save |
+| `pnpm run build` | Content-index → image variants → RSS → sitemap → image variants → type-check → production build |
 | `pnpm run preview` | Serve the production build locally |
 | `pnpm run lint` | Run ESLint on all source files |
+| `pnpm run generate:content-index` | Manually regenerate `public/content-index.json` only |
 
 ### Prebuild Pipeline
 
 The following scripts run automatically before every production build:
 
-1. **`scripts/generate-image-variants.cjs`** — Generates WebP and AVIF variants of all content images using Sharp
-2. **`scripts/generate-rss.cjs`** — Generates `public/rss.xml` from all published blog posts
-3. **`scripts/generate-sitemap.cjs`** — Generates `public/sitemap.xml` and `public/robots.txt`
+1. **`scripts/generate-content-index.cjs`** — Scans all `.md`/`.mdx` files, extracts YAML frontmatter (including `tags`, `featured`, `series`, `seriesOrder`, `cc`), and outputs `public/content-index.json` and `public/content-slug-map.json`
+2. **`scripts/generate-image-variants.cjs`** — Generates WebP and AVIF variants of all content images using Sharp
+3. **`scripts/generate-rss.cjs`** — Generates `public/rss.xml` from all published blog posts
+4. **`scripts/generate-sitemap.cjs`** — Generates `public/sitemap.xml` and `public/robots.txt`
 
 ---
 

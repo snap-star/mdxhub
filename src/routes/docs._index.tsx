@@ -11,7 +11,7 @@ export default function DocsIndex() {
     const map: Record<string, { label: string; firstDoc: string; count: number }> = {}
     docs.forEach((d) => {
       if (!map[d.sectionSlug]) {
-        map[d.sectionSlug] = { label: d.frontmatter.section, firstDoc: d.slug, count: 0 }
+        map[d.sectionSlug] = { label: d.section, firstDoc: d.slug, count: 0 }
       }
       map[d.sectionSlug].count++
     })

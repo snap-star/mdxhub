@@ -164,6 +164,22 @@ body {
   color: var(--color-brand-100);
 }
 
+/* ── PostCard entrance animation + hover (replaces framer-motion) ── */
+@keyframes card-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.post-card {
+  animation: card-entrance 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
 /* ── View transitions ── */
 @view-transition { navigation: auto; }
 
@@ -228,11 +244,19 @@ body {
 .shiki .focused         { opacity: 0.3; }
 .shiki .focused.highlighted { opacity: 1; }
 
+/* ── Word highlight (amber/yellow) ── */
+.shiki .highlighted-word {
+  background: oklch(78% 0.18 72 / 0.3);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
 /* Dark-mode overrides — match the same colors with slightly higher
    opacity for readability on the darker Discord background */
 .dark .shiki .diff.add        { background: oklch(62% 0.18 145 / 0.18) !important; }
 .dark .shiki .diff.remove     { background: oklch(58% 0.22 20 / 0.18) !important; }
 .dark .shiki .highlighted     { background: oklch(57% 0.158 245 / 0.14) !important; }
+.dark .shiki .highlighted-word { background: oklch(78% 0.18 72 / 0.4) !important; }
 .dark .shiki .focused         { opacity: 0.25 !important; }
 .dark .shiki .focused.highlighted { opacity: 1 !important; }
 

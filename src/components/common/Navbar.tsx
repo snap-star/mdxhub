@@ -37,21 +37,22 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const toggleMobileSidebar = useNavigationStore((s) => s.toggleMobileSidebar)
-  const closeMobileSidebar = useNavigationStore((s) => s.closeMobileSidebar)
   const isMobileSidebarOpen = useNavigationStore((s) => s.isMobileSidebarOpen)
   const [scrolled, setScrolled] = React.useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
   const location = useLocation()
 
   React.useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 10)
+    const handler = () => {
+      setScrolled(window.scrollY > 10)
+    }
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
   // Close mobile menu on navigation
   React.useEffect(() => {
-    setMobileMenuOpen(false)
+    setMobileMenuOpen(false) // eslint-disable-line react-hooks/set-state-in-effect
   }, [location.pathname])
 
   const isDocsPage = location.pathname.startsWith('/docs')

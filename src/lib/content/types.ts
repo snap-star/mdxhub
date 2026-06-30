@@ -23,8 +23,6 @@ export interface BlogFrontmatter extends FrontmatterBase {
   seriesOrder?: number
 }
 
-export type SortMode = 'date' | 'order' | 'title' | 'readingTime'
-
 export interface DocFrontmatter extends FrontmatterBase {
   section: string
   order?: number
@@ -62,22 +60,6 @@ export interface Author {
   role?: string
   github?: string
   website?: string
-}
-
-export interface BlogPost {
-  slug: string
-  frontmatter: BlogFrontmatter
-  author: Author | null
-  readingTime: number
-  Component: React.ComponentType
-}
-
-export interface DocPage {
-  slug: string
-  section: string
-  sectionSlug: string
-  frontmatter: DocFrontmatter
-  Component: React.ComponentType
 }
 
 export interface Breadcrumb {

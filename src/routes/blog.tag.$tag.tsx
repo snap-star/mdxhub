@@ -8,8 +8,8 @@ import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
 export default function BlogTag() {
   const { tag } = useParams()
   const allPosts = useContentStore((s) => s.posts)
-  const posts = React.useMemo(() => allPosts.filter((p) => p.frontmatter.tags.includes(tag ?? '')), [allPosts, tag])
-  const tags = React.useMemo(() => [...new Set(allPosts.flatMap((p) => p.frontmatter.tags))], [allPosts])
+  const posts = React.useMemo(() => allPosts.filter((p) => p.tags.includes(tag ?? '')), [allPosts, tag])
+  const tags = React.useMemo(() => [...new Set(allPosts.flatMap((p) => p.tags))], [allPosts])
 
   if (!tag || (!tags.includes(tag) && posts.length === 0)) {
     return <Navigate to="/blog" replace />

@@ -20,6 +20,12 @@ This project now includes several content and routing improvements based on the 
 - **Badge component**: Colorful inline pill component (`<Badge variant="tip" icon="check">Done</Badge>`) with 22+ colors, admonition variants, and 40+ icon names — globally available in MDX.
 - **Tooltip component**: Accessible hover/focus tooltip (`<Tooltip content="...">text</Tooltip>`) using `@base-ui/react` primitives — globally available in MDX.
 - **Image lightbox viewer**: Any image in MDX content is now clickable and opens a full-screen overlay with zoom, rotate, and keyboard navigation.
+- **Featured posts**: Set `featured: true` in frontmatter to highlight posts in a Featured widget on the blog homepage.
+- **Series grouping**: Use `series` and `seriesOrder` frontmatter fields to group related posts into navigable series with prev/next links and progress indicators.
+- **CC License badges**: Set `cc` in frontmatter (e.g., `cc: "CC-BY-4.0"`) to automatically render a Creative Commons license badge in the post footer.
+- **Inline YAML array parsing**: Tags can use inline array syntax (`tags: ["react", "mdx"]`) in addition to the indented list format. Both work correctly.
+- **Dev watch script**: Run `npm run dev:watch` alongside the dev server to auto-regenerate `content-index.json`, RSS, and sitemap on every content file save — no full rebuild needed.
+- **Lazy-loaded Disqus comments**: The Disqus comment section uses a lazy-loading pattern with `IntersectionObserver` — the embed script is only loaded when the user scrolls near the comments, keeping initial page load fast.
 
 ## 🚧 Project Limitations
 
@@ -34,6 +40,9 @@ Because this is a static, file-based content platform, there are some inherent t
 - **Reading time fallback**: When `readingTime` is not provided in frontmatter, the site estimates reading time from the available content metadata. For exact control, set `readingTime` manually.
 - **Author lookup**: If `author` in blog frontmatter does not match any `id` in `content/authors/authors.yaml`, the post still renders but author details are omitted.
 - **Link updates after rename**: Renaming content files or folders changes the resulting slug. Update links in other pages when you move or rename a post or docs page.
+- **Tags parser**: The custom YAML parser in `scripts/generate-content-index.cjs` handles both inline array (`tags: ["a", "b"]`) and indented list (`tags:\n  - a`) syntax. However, the parser runs before the MDX processor — fields that look like arrays but are quoted strings (e.g., `title: "[something]"`) are safely interpreted as strings.
+- **content-index.json regeneration**: After adding or modifying content, the content-index, RSS, and sitemap must be regenerated. Use the `dev:watch` script during development, or run `node scripts/generate-content-index.cjs` manually if you see missing posts, tags, or series data.
+- **Post fields are flat, not nested**: `PostIndexEntry` uses flat fields (`featured`, `series`, `cc`, etc.) rather than a nested `frontmatter` object. All code accessing post properties should use `post.featured`, not `post.frontmatter.featured`.
 
 <Callout type="info">
 If you discover a bug or have a feature request, please open an issue or contribute a pull request to the repository.

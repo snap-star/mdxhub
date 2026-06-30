@@ -1,18 +1,16 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router'
 import { useContentStore } from '@/store/contentStore'
-import { useNavigationStore } from '@/store/navigationStore'
 import { ChevronDown, ChevronRight, BookOpen } from 'lucide-react'
 
 interface SidebarSectionProps {
-  sectionSlug: string
   sectionLabel: string
   items: Array<{ slug: string; title: string; order?: number }>
   isOpen: boolean
   onToggle: () => void
 }
 
-function SidebarSection({ sectionSlug, sectionLabel, items, isOpen, onToggle }: SidebarSectionProps) {
+function SidebarSection({ sectionLabel, items, isOpen, onToggle }: SidebarSectionProps) {
   const location = useLocation()
 
   return (
@@ -57,7 +55,7 @@ export function DocsSidebar() {
       const key = doc.sectionSlug
       if (!map[key]) {
         map[key] = {
-          label: doc.frontmatter.section,
+          label: doc.section,
           items: [],
         }
       }
@@ -75,8 +73,8 @@ export function DocsSidebar() {
         key,
         label: val.label,
         items: val.items
-          .sort((a, b) => (a.frontmatter.order ?? 99) - (b.frontmatter.order ?? 99))
-          .map((d) => ({ slug: d.slug, title: d.frontmatter.title, order: d.frontmatter.order })),
+          .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+          .map((d) => ({ slug: d.slug, title: d.title, order: d.order })),
       }))
       .sort((a, b) => {
         const orderA = sectionOrderMap[a.key] ?? 99
@@ -87,12 +85,13 @@ export function DocsSidebar() {
 
   // Open all sections by default — only run once when sections first populated
   React.useEffect(() => {
-    setOpenSections((prev) => {
+    const init = sections.reduce((acc, s) => ({ ...acc, [s.key]: true }), {} as Record<string, boolean>)
+    setOpenSections((prev) => { // eslint-disable-line react-hooks/set-state-in-effect
       const next = { ...prev }
       let changed = false
-      sections.forEach((s) => {
-        if (!(s.key in next)) {
-          next[s.key] = true
+      Object.entries(init).forEach(([key, val]) => {
+        if (!(key in next)) {
+          next[key] = val
           changed = true
         }
       })
@@ -112,7 +111,6 @@ export function DocsSidebar() {
       {sections.map((section) => (
         <SidebarSection
           key={section.key}
-          sectionSlug={section.key}
           sectionLabel={section.label}
           items={section.items}
           isOpen={openSections[section.key] ?? true}

@@ -1,11 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { BlogPost } from '@/lib/content/types'
+import type { PostIndexEntry } from '@/lib/content/contentIndex'
 
 interface PostPaginationProps {
-  prevPost?: BlogPost
-  nextPost?: BlogPost
+  prevPost?: PostIndexEntry
+  nextPost?: PostIndexEntry
 }
 
 export function PostPagination({ prevPost, nextPost }: PostPaginationProps) {
@@ -22,7 +22,7 @@ export function PostPagination({ prevPost, nextPost }: PostPaginationProps) {
             <ChevronLeft size={14} className="group-hover:-translate-x-2 transition-transform" /> Previous
           </span>
           <span className="font-sans font-semibold text-foreground line-clamp-2 leading-tight">
-            {prevPost.frontmatter.title}
+            {prevPost.title}
           </span>
         </Link>
       ) : <div className="hidden sm:block" />}
@@ -36,7 +36,7 @@ export function PostPagination({ prevPost, nextPost }: PostPaginationProps) {
             Next <ChevronRight size={14} className="group-hover:translate-x-2 transition-transform" />
           </span>
           <span className="font-sans font-semibold text-foreground line-clamp-2 leading-tight text-right">
-            {nextPost.frontmatter.title}
+            {nextPost.title}
           </span>
         </Link>
       ) : <div className="hidden sm:block" />}

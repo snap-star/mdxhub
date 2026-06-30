@@ -2,47 +2,7 @@ import React from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react'
-
-// ─── Lightbox state (simple module-level store, no Zustand needed) ─────
-
-interface LightboxState {
-  open: boolean
-  src: string
-  alt: string
-}
-
-let currentState: LightboxState = { open: false, src: '', alt: '' }
-const listeners = new Set<React.DispatchWithoutAction>()
-
-function subscribe(fn: () => void) {
-  listeners.add(fn)
-  return () => listeners.delete(fn)
-}
-
-function getSnapshot(): LightboxState {
-  return currentState
-}
-
-function emitChange() {
-  listeners.forEach((fn) => fn())
-}
-
-/** Call this from any component to open the lightbox */
-export function openLightbox(src: string, alt: string = '') {
-  currentState = { open: true, src, alt }
-  emitChange()
-}
-
-function closeLightbox() {
-  currentState = { ...currentState, open: false }
-  emitChange()
-}
-
-// ─── React hook ─────────────────────────────────────────────────────────
-
-function useLightboxStore() {
-  return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
-}
+import { useLightboxStore, closeLightbox } from '@/lib/lightboxStore'
 
 // ─── Overlay backdrop animation variants ────────────────────────────────
 
@@ -72,9 +32,12 @@ export function ImageLightbox() {
   const [scale, setScale] = React.useState(1)
   const [rotation, setRotation] = React.useState(0)
   const imageRef = React.useRef<HTMLImageElement>(null)
+  const prevSrcRef = React.useRef(src)
 
   // Reset zoom on new image
   React.useEffect(() => {
+    if (src === prevSrcRef.current) return
+    prevSrcRef.current = src
     setScale(1)
     setRotation(0)
   }, [src])

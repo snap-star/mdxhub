@@ -3,11 +3,11 @@ import { Link } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, BookOpen, ChevronDown, ChevronUp, List } from 'lucide-react'
 import { matchesSlugOrFilename } from '@/lib/utils'
-import type { BlogPost } from '@/lib/content/types'
+import type { PostIndexEntry } from '@/lib/content/contentIndex'
 
 interface SeriesNavProps {
   seriesName: string
-  posts: BlogPost[]
+  posts: PostIndexEntry[]
   currentSlug: string
 }
 
@@ -15,12 +15,11 @@ export function SeriesNav({ seriesName, posts, currentSlug }: SeriesNavProps) {
   const [isListExpanded, setIsListExpanded] = React.useState(false)
 
   const sortedPosts = React.useMemo(
-    () => [...posts].sort((a, b) => (a.frontmatter.seriesOrder ?? 0) - (b.frontmatter.seriesOrder ?? 0)),
+    () => [...posts].sort((a, b) => (a.seriesOrder ?? 0) - (b.seriesOrder ?? 0)),
     [posts],
   )
 
   const currentIndex = sortedPosts.findIndex((p) => matchesSlugOrFilename(p.slug, currentSlug))
-  const currentPost = sortedPosts[currentIndex]
   const totalParts = sortedPosts.length
 
   const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null
@@ -28,7 +27,7 @@ export function SeriesNav({ seriesName, posts, currentSlug }: SeriesNavProps) {
 
   const progressPercent = totalParts > 1 ? ((currentIndex + 1) / totalParts) * 100 : 0
 
-  if (!currentPost || totalParts === 0) return null
+  if (currentIndex < 0 || totalParts === 0) return null
 
   return (
     <div className="mt-12 rounded-2xl border border-border bg-card overflow-hidden">
@@ -83,7 +82,7 @@ export function SeriesNav({ seriesName, posts, currentSlug }: SeriesNavProps) {
             <div className="min-w-0">
               <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">Previous</span>
               <span className="text-sm font-medium text-foreground truncate block leading-tight">
-                {prevPost.frontmatter.title}
+                {prevPost.title}
               </span>
             </div>
           </Link>
@@ -99,7 +98,7 @@ export function SeriesNav({ seriesName, posts, currentSlug }: SeriesNavProps) {
             <div className="min-w-0">
               <span className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground block">Next</span>
               <span className="text-sm font-medium text-foreground truncate block leading-tight">
-                {nextPost.frontmatter.title}
+                {nextPost.title}
               </span>
             </div>
             <ChevronRight size={16} className="shrink-0 text-muted-foreground group-hover:translate-x-1 transition-transform" />
@@ -151,7 +150,7 @@ export function SeriesNav({ seriesName, posts, currentSlug }: SeriesNavProps) {
                         >
                           {idx + 1}
                         </span>
-                        <span className="text-sm truncate">{post.frontmatter.title}</span>
+                        <span className="text-sm truncate">{post.title}</span>
                         {isCurrent && (
                           <span className="ml-auto text-[0.65rem] font-bold uppercase tracking-wider text-primary shrink-0">
                             Current
