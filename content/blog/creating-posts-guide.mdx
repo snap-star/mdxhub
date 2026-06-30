@@ -64,11 +64,12 @@ category: "Tutorial"             # Required — used for category filtering
 tags: ["react", "mdx", "vite"]  # Required — array of strings for tag filtering and search
 description: "A short summary."  # Optional but recommended — shown on cards and SEO meta tags
 coverImage: "https://..."        # Optional — thumbnail shown on the blog homepage card
+featured: true                    # Optional — highlights this post in the Featured widget on the homepage
 cc: "CC-BY-4.0"                  # Optional — shows a Creative Commons license badge
 readingTime: 5                    # Optional — override auto-calculated reading time (minutes)
 draft: true                       # Optional — set to true to hide from the published feed
-series: "My Series"             # Optional — group related posts into a series
-seriesOrder: 1                    # Optional — used to sort series posts
+series: "My Series"             # Optional — group related posts into a navigable series
+seriesOrder: 1                    # Optional — used to sort posts within a series
 ---
 ```
 
@@ -78,6 +79,10 @@ If you omit `title`, `date`, `author`, `category`, or `tags`, the post may not r
 
 <Callout type="tip" title="Cover Images">
 Set `coverImage` to a URL or a static `/public/` path. It appears as the blog card thumbnail and as the hero image inside the post.
+</Callout>
+
+<Callout type="info" title="Series Grouping">
+Use `series` and `seriesOrder` together to group related posts. Posts sharing the same `series` name will appear in a **Series Navigation** widget at the top and bottom of each post, with prev/next links, a progress bar, and a scrollable list. Set `seriesOrder` to control the order (e.g., 1, 2, 3).
 </Callout>
 
 ### Step 3 — Start Writing
@@ -418,10 +423,11 @@ No manual configuration is needed — it works automatically.
 | `date` | string | ✅ | — | ISO date `YYYY-MM-DD` |
 | `author` | string | ✅ | — | Author id from `authors.yaml` |
 | `category` | string | ✅ | — | Single category label |
-| `tags` | string[] | ✅ | — | Array of tag strings |
+| `tags` | string[] | ✅ | — | Array of tag strings (inline `["a", "b"]` or indented list) |
 | `description` | string | ❌ | — | Short excerpt for cards & SEO |
 | `coverImage` | string | ❌ | — | Thumbnail URL for card & OG image |
-| `cc` | string | ❌ | — | CC license code |
+| `featured` | boolean | ❌ | `false` | Highlights in Featured widget on homepage |
+| `cc` | string | ❌ | — | CC license code (e.g., `CC-BY-4.0`) |
 | `series` | string | ❌ | — | Series name for grouping |
 | `seriesOrder` | number | ❌ | — | Sort order within a series |
 | `readingTime` | number | ❌ | auto | Minutes override |
@@ -442,6 +448,26 @@ No manual configuration is needed — it works automatically.
 | `next` | string | ❌ | — | Next page slug |
 
 ---
+
+## Dev Workflow: Content Watch Script
+
+For a smoother development experience, run `npm run dev:watch` in a **separate terminal** alongside `npm run dev`:
+
+```bash
+# Terminal 1 — Vite dev server
+npm run dev
+
+# Terminal 2 — auto-regenerates content-index.json, RSS, and sitemap on every save
+npm run dev:watch
+```
+
+The watcher monitors all `.md`, `.mdx`, `.yaml`, and `.yml` files under `content/`. Any time you save a file, it automatically:
+
+1. Regenerates `public/content-index.json` (posts, tags, featured, series, cc, etc.)
+2. Regenerates `public/rss.xml`
+3. Regenerates `public/sitemap.xml`
+
+This means your **Featured Posts** widget, **Series navigation**, **category/tag filters**, and **CC license badges** all update instantly — no full rebuild needed.
 
 ## Summary
 

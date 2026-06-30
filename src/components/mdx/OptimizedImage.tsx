@@ -3,9 +3,6 @@ import { contentAssetMap } from '@/lib/utils'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
-/** Supported image formats for the <picture> element */
-type ImageFormat = 'avif' | 'webp' | 'png' | 'jpeg'
-
 /** Map from extension to MIME type */
 const MIME_TYPES: Record<string, string> = {
   avif: 'image/avif',

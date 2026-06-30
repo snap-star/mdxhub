@@ -10,8 +10,8 @@ import siteConfig from '../../site.config.json'
 
 export default function BlogIndex() {
   const posts = useContentStore((s) => s.posts)
-  const categories = React.useMemo(() => [...new Set(posts.map((p) => p.frontmatter.category))], [posts])
-  const tags = React.useMemo(() => [...new Set(posts.flatMap((p) => p.frontmatter.tags))], [posts])
+  const categories = React.useMemo(() => [...new Set(posts.map((p) => p.category))], [posts])
+  const tags = React.useMemo(() => [...new Set(posts.flatMap((p) => p.tags))], [posts])
 
   const [visibleCount, setVisibleCount] = React.useState(6)
   const visiblePosts = React.useMemo(() => posts.slice(0, visibleCount), [posts, visibleCount])
@@ -20,7 +20,7 @@ export default function BlogIndex() {
   const categoryCounts = React.useMemo(() => {
     const counts: Record<string, number> = {}
     posts.forEach((p) => {
-      const cat = p.frontmatter.category
+      const cat = p.category
       counts[cat] = (counts[cat] || 0) + 1
     })
     return counts
@@ -30,7 +30,7 @@ export default function BlogIndex() {
   const tagCounts = React.useMemo(() => {
     const counts: Record<string, number> = {}
     posts.forEach((p) => {
-      p.frontmatter.tags.forEach((tag) => {
+      p.tags.forEach((tag) => {
         counts[tag] = (counts[tag] || 0) + 1
       })
     })
@@ -103,7 +103,7 @@ export default function BlogIndex() {
           <div className="sticky top-[100px] flex flex-col gap-2">
             
             {/* Featured Posts Widget */}
-            {posts.filter(p => p.frontmatter.featured).length > 0 && (
+            {posts.filter(p => p.featured).length > 0 && (
               <div className="mb-6 rounded-2xl border border-border bg-card/80 backdrop-blur-md shadow-sm overflow-hidden p-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 m-0 mb-4">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
@@ -112,21 +112,21 @@ export default function BlogIndex() {
                   Featured Posts
                 </h3>
                 <div className="flex flex-col gap-3">
-                  {posts.filter(p => p.frontmatter.featured).slice(0, 3).map(post => (
+                  {posts.filter(p => p.featured).slice(0, 3).map(post => (
                     <div key={post.slug} className="group relative">
-                      <a href={`/blog/${post.slug}`} className="absolute inset-0 z-10" aria-label={`Read ${post.frontmatter.title}`}></a>
+                      <a href={`/blog/${post.slug}`} className="absolute inset-0 z-10" aria-label={`Read ${post.title}`}></a>
                       <div className="flex gap-3 items-center p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors">
-                        {post.frontmatter.coverImage ? (
-                          <img src={post.frontmatter.coverImage} alt="" className="w-12 h-12 rounded-md object-cover flex-shrink-0" loading="lazy" />
+                        {post.coverImage ? (
+                          <img src={post.coverImage} alt="" className="w-12 h-12 rounded-md object-cover flex-shrink-0" loading="lazy" />
                         ) : (
                           <div className="w-12 h-12 rounded-md bg-gradient-to-br from-muted to-muted/50 flex-shrink-0"></div>
                         )}
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-semibold text-foreground leading-tight truncate group-hover:text-primary transition-colors">
-                            {post.frontmatter.title}
+                            {post.title}
                           </h4>
                           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                            {post.frontmatter.category}
+                            {post.category}
                           </span>
                         </div>
                       </div>

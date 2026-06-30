@@ -1,11 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router'
-import type { DocPage } from '@/lib/content/types'
+import type { DocIndexEntry } from '@/lib/content/contentIndex'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface PrevNextNavProps {
-  prev?: DocPage | null
-  next?: DocPage | null
+  prev?: DocIndexEntry | null
+  next?: DocIndexEntry | null
 }
 
 export function PrevNextNav({ prev, next }: PrevNextNavProps) {
@@ -19,7 +19,7 @@ export function PrevNextNav({ prev, next }: PrevNextNavProps) {
             <ChevronLeft size={12} /> Previous
           </span>
           <span className="text-[0.9rem] font-semibold text-foreground">
-            {prev.frontmatter.title}
+            {prev.title}
           </span>
         </Link>
       ) : (
@@ -32,7 +32,7 @@ export function PrevNextNav({ prev, next }: PrevNextNavProps) {
             Next <ChevronRight size={12} />
           </span>
           <span className="text-[0.9rem] font-semibold text-foreground">
-            {next.frontmatter.title}
+            {next.title}
           </span>
         </Link>
       )}

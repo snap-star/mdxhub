@@ -27,29 +27,3 @@ export function TableOfContents({ items, activeId }: TableOfContentsProps) {
     </nav>
   )
 }
-
-// Hook for tracking active heading on scroll
-export function useActiveHeading(ids: string[]): string {
-  const [activeId, setActiveId] = React.useState('')
-
-  React.useEffect(() => {
-    if (ids.length === 0) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id)
-          }
-        })
-      },
-      { rootMargin: '-20% 0% -70% 0%' },
-    )
-    ids.forEach((id) => {
-      const el = document.getElementById(id)
-      if (el) observer.observe(el)
-    })
-    return () => observer.disconnect()
-  }, [ids])
-
-  return activeId
-}

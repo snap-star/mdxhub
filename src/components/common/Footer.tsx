@@ -27,11 +27,11 @@ export function Footer() {
               A modern MDX-powered platform for blogs and documentation.
             </p>
             <div className="flex gap-2 mt-4">
-              {[
-                { type: 'simple', icon: siGithub, href: 'https://github.com/snap-star/mdxhub', label: 'GitHub' },
-                { type: 'simple', icon: siX, href: 'https://x.com/a0ki_san', label: 'Twitter' },
-                { type: 'lucide', icon: Rss, href: '/rss.xml', label: 'RSS Feed' },
-              ].map((item) => (
+              {([
+                { type: 'simple' as const, icon: siGithub, href: 'https://github.com/snap-star/mdxhub', label: 'GitHub' },
+                { type: 'simple' as const, icon: siX, href: 'https://x.com/a0ki_san', label: 'Twitter' },
+                { type: 'lucide' as const, icon: Rss, href: '/rss.xml', label: 'RSS Feed' },
+              ] as const).map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
@@ -41,9 +41,8 @@ export function Footer() {
                   className="w-8 h-8 rounded-md border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all duration-150"
                 >
                   {item.type === 'simple' ? (
-                    <SimpleIconSvg icon={item.icon as SimpleIcon} size={14} />
+                    <SimpleIconSvg icon={item.icon} size={14} />
                   ) : (
-                    // @ts-ignore
                     <item.icon size={14} />
                   )}
                 </a>

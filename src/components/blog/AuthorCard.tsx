@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-router'
 import type { Author } from '@/lib/content/types'
 import { Globe } from 'lucide-react'
 import siteConfig from '../../../site.config.json'

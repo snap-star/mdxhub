@@ -76,14 +76,11 @@ export function TagCloud({ tags, tagCounts = {}, activeTag }: TagCloudProps) {
                   ? 'bg-primary text-primary-foreground border-primary font-bold shadow-md scale-105 z-10'
                   : 'bg-muted/40 text-foreground/80 hover:text-foreground border-border/60 hover:border-border hover:bg-muted hover:shadow-sm'
               }`}
-              style={{ 
+              style={{
                 fontSize: `${fontSize}rem`,
-                ...(isActive ? {} : { 
-                  // Custom CSS variables for hover effects using the tag's hash color
-                  '--hover-bg': `oklch(95% 0.05 ${hue})`,
-                  '--hover-border': `oklch(80% 0.1 ${hue})`,
-                } as any)
-              }}
+                '--hover-bg': isActive ? undefined : `oklch(95% 0.05 ${hue})`,
+                '--hover-border': isActive ? undefined : `oklch(80% 0.1 ${hue})`,
+              } as React.CSSProperties}
             >
               <span className="opacity-70 group-hover:opacity-100 transition-opacity">#</span>
               <span>{tag}</span>

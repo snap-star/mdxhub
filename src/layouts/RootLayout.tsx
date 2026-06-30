@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router'
 import { MDXProvider } from '@mdx-js/react'
 import { AnimatePresence } from 'framer-motion'
@@ -12,6 +12,19 @@ import { PageTransition } from '@/components/transitions/PageTransition'
 import { SEO } from '@/components/common/SEO'
 import { ImageLightbox } from '@/components/mdx/ImageLightbox'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+
+// ─── Loading skeleton for lazy-loaded routes ──────────────────────────
+
+function PageSkeleton() {
+  return (
+    <div className="flex items-center justify-center min-h-[50vh] px-4">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      </div>
+    </div>
+  )
+}
 
 export function RootLayout() {
   const location = useLocation()
@@ -34,7 +47,9 @@ export function RootLayout() {
         <ErrorBoundary>
           <AnimatePresence mode="wait" initial={false}>
             <PageTransition key={location.pathname.split('/')[1] || 'home'}>
-              <Outlet />
+              <Suspense fallback={<PageSkeleton />}>
+                <Outlet />
+              </Suspense>
             </PageTransition>
           </AnimatePresence>
         </ErrorBoundary>

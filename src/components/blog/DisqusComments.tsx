@@ -22,13 +22,53 @@ function getCanonicalUrl(fallback: string) {
   return href && href.length > 0 ? href : fallback
 }
 
-export function DisqusComments({ identifier, title, url }: DisqusCommentsProps) {
-  const location = useLocation()
-  const shortname = (import.meta.env.VITE_DISQUS_SHORTNAME as string | undefined)?.trim()
+/**
+ * Wraps children with IntersectionObserver-based lazy loading.
+ * Only renders the actual content when the element scrolls near the viewport.
+ */
+function LazySection({ children }: { children: React.ReactNode }) {
+  const [visible, setVisible] = React.useState(false)
+  const ref = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
-    if (!shortname) return
+    const el = ref.current
+    if (!el) return
 
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '200px 0px' },
+    )
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div ref={ref}>
+      {visible ? children : (
+        <div className="flex items-center justify-center py-8">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="ml-3 text-sm text-muted-foreground">Loading comments…</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Inner component that handles Disqus embed script loading and reset.
+ * Only mounted when LazySection makes it visible, ensuring the
+ * div#disqus_thread DOM element exists before DISQUS.reset() is called.
+ */
+function DisqusEmbed({ identifier, title, url, shortname }: DisqusCommentsProps & { shortname: string }) {
+  const location = useLocation()
+
+  React.useEffect(() => {
     const fallbackUrl = typeof window !== 'undefined' ? window.location.href : ''
     const pageUrl = url ?? getCanonicalUrl(fallbackUrl)
     const pageIdentifier = identifier
@@ -63,11 +103,21 @@ export function DisqusComments({ identifier, title, url }: DisqusCommentsProps) 
     document.body.appendChild(s)
   }, [identifier, title, url, shortname, location.key])
 
-  if (!shortname) return null
-
   return (
     <div className="disqus-thread-scope rounded-2xl px-4 py-6 text-foreground dark:text-foreground">
       <div id="disqus_thread" />
     </div>
+  )
+}
+
+export function DisqusComments({ identifier, title, url }: DisqusCommentsProps) {
+  const shortname = (import.meta.env.VITE_DISQUS_SHORTNAME as string | undefined)?.trim()
+
+  if (!shortname) return null
+
+  return (
+    <LazySection>
+      <DisqusEmbed identifier={identifier} title={title} url={url} shortname={shortname} />
+    </LazySection>
   )
 }

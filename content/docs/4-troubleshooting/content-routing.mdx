@@ -29,13 +29,22 @@ tags: ["react", "mdx"]   # ✅ array of strings — NOT a plain string
 ---
 ```
 
-<Callout type="danger" title="Tags must be an array">
-A common mistake is writing `tags: "react, mdx"` as a plain string. This will cause a runtime type error. It must be a YAML array: `tags: ["react", "mdx"]` or the block form:
+<Callout type="info" title="Tags syntax">
+Both YAML array syntaxes are supported:
+
+**Inline array** (recommended):
+```yaml
+tags: ["react", "mdx"]
+```
+
+**Indented list**:
 ```yaml
 tags:
   - react
   - mdx
 ```
+
+A common mistake is writing `tags: "react, mdx"` as a plain string — this will silently produce an empty tags array. Always use proper YAML array syntax.
 </Callout>
 
 ---

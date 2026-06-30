@@ -157,7 +157,28 @@ Because this is a Single Page Application (SPA), certain hosting providers need 
 
 | Command | Description |
 | :--- | :--- |
-| `npm run dev` | Start the Vite dev server with HMR |
+| `npm run dev` | Start the Vite dev server with HMR (also generates content-index.json, RSS, and sitemap) |
 | `npm run build` | Type-check and build for production |
 | `npm run preview` | Serve the `dist/` output locally |
 | `npm run lint` | Run ESLint on all source files |
+| `npm run dev:watch` | Watch `content/` for changes and auto-regenerate content-index.json, RSS, and sitemap |
+
+### Dev Watch Script
+
+For a smoother development experience, run `npm run dev:watch` in a **separate terminal** alongside `npm run dev`:
+
+```bash
+# Terminal 1 — Vite dev server with HMR
+npm run dev
+
+# Terminal 2 — content file watcher (auto-regenerates content-index.json on saves)
+npm run dev:watch
+```
+
+The watcher monitors all `.md`, `.mdx`, `.yaml`, and `.yml` files under `content/`. Any time you save a file, the script:
+
+1. Regenerates `public/content-index.json` (with tag parsing, featured/cc/series fields, etc.)
+2. Regenerates `public/rss.xml`
+3. Regenerates `public/sitemap.xml`
+
+This means the Featured Posts widget, Series navigation, category/tag filters, and CC license badges all reflect your latest edits instantly — no full rebuild required.

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useRouteError, isRouteErrorResponse, useLocation } from 'react-router'
 import { motion } from 'framer-motion'
-import { Home, BookOpen, Search, AlertTriangle, ArrowLeft, Bug } from 'lucide-react'
+import { Home, BookOpen, Search, ArrowLeft, Bug } from 'lucide-react'
 import { Logo } from '@/components/common/Logo'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { useThemeStore } from '@/store/themeStore'
@@ -69,6 +69,7 @@ export function NotFound() {
       `_Reported automatically from the error page${is404 ? '' : error instanceof Object && 'status' in error ? ' (' + String((error as {status: unknown}).status) + ')' : ''}._`,
     ].join('\n')
     return `https://github.com/${repoPath}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptedPath])
 
   return (

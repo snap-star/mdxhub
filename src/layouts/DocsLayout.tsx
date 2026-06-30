@@ -1,10 +1,21 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router'
 import { AnimatePresence } from 'framer-motion'
 import { PageTransition } from '@/components/transitions/PageTransition'
 import { DocsSidebar } from '@/components/docs/DocsSidebar'
 import { useNavigationStore } from '@/store/navigationStore'
 import '@/styles/docs.css'
+
+function DocsSkeleton() {
+  return (
+    <div className="docs-content-wrapper flex items-center justify-center min-h-[40vh]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Loading docs…</p>
+      </div>
+    </div>
+  )
+}
 
 export function DocsLayout() {
   const location = useLocation()
@@ -54,7 +65,9 @@ export function DocsLayout() {
         {/* Main content via Outlet */}
         <AnimatePresence mode="wait" initial={false}>
           <PageTransition key={location.pathname} className="docs-content-wrapper">
-            <Outlet />
+            <Suspense fallback={<DocsSkeleton />}>
+              <Outlet />
+            </Suspense>
           </PageTransition>
         </AnimatePresence>
       </div>
