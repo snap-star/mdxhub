@@ -18,10 +18,13 @@ const Index = React.lazy(() => import('@/routes/_index'))
 const BlogIndex = React.lazy(() => import('@/routes/blog._index'))
 const BlogPost = React.lazy(() => import('@/routes/blog.$slug'))
 const BlogCategory = React.lazy(() => import('@/routes/blog.category.$name'))
+const BlogCategoryIndex = React.lazy(() => import('@/routes/blog.category._index'))
 const BlogTag = React.lazy(() => import('@/routes/blog.tag.$tag'))
+const BlogTagsIndex = React.lazy(() => import('@/routes/blog.tags._index'))
 const DocsIndex = React.lazy(() => import('@/routes/docs._index'))
 const DocPage = React.lazy(() => import('@/routes/docs.$section.$slug'))
 const AboutPage = React.lazy(() => import('@/routes/about'))
+const SearchPage = React.lazy(() => import('@/routes/search._index'))
 
 const router = createBrowserRouter([
   {
@@ -31,12 +34,15 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Index /> },
       { path: 'about', element: <AboutPage /> },
+      { path: 'search', element: <SearchPage /> },
       {
         path: 'blog',
         element: <BlogLayout />,
         children: [
           { index: true, element: <BlogIndex /> },
+          { path: 'category', element: <BlogCategoryIndex /> },
           { path: 'category/:name', element: <BlogCategory /> },
+          { path: 'tags', element: <BlogTagsIndex /> },
           { path: 'tag/:tag', element: <BlogTag /> },
           { path: ':slug/*', element: <BlogPost /> },
         ],

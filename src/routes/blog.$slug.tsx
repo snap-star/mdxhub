@@ -13,13 +13,19 @@ import { formatDate, matchesSlugOrFilename } from '@/lib/utils'
 import { Calendar, MessageCircle, Tag } from 'lucide-react'
 import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
+import { articleJsonLd, breadcrumbListJsonLd } from '@/lib/seo/jsonld'
 import { openLightbox } from '@/lib/lightboxStore'
 import { PostPagination } from '@/components/blog/PostPagination'
 import { ShareButtons } from '@/components/blog/ShareButtons'
+import { EditOnGitHub } from '@/components/common/EditOnGitHub'
+import { getGitHubEditUrl } from '@/lib/github'
 import { DisqusComments } from '@/components/blog/DisqusComments'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
 import { SeriesNav } from '@/components/blog/SeriesNav'
 import { BookOpen, ChevronRight } from 'lucide-react'
+import siteConfig from '../../site.config.json'
+
+const config = siteConfig as unknown as { siteUrl: string; defaultImage: string; githubUrl: string }
 import { MobileTocSheet } from '@/components/blog/MobileTocSheet'
 import { setTocData } from '@/lib/tocStore'
 import { useContentHeadings } from '@/hooks/useContentHeadings'
@@ -73,6 +79,12 @@ export default function BlogPost() {
     return () => { cancelled = true }
   }, [post?.author])
 
+  // GitHub edit URL for this post
+  const [githubUrl, setGitHubUrl] = React.useState<string | null>(null)
+  React.useEffect(() => {
+    getGitHubEditUrl(currentSlug, 'blog', config.githubUrl).then(setGitHubUrl)
+  }, [currentSlug])
+
   // Series data for the top-of-post notice
   const seriesPosts = React.useMemo(
     () => allPosts.filter((p) => p.series === post?.series),
@@ -104,6 +116,38 @@ export default function BlogPost() {
     return () => setTocData([], '')
   }, [headings, activeId])
 
+  // JSON-LD: computed unconditionally (before early returns) to preserve hook ordering.
+  // Returns empty array when post data isn't available yet.
+  const siteUrl = React.useMemo(() => config.siteUrl, [])
+  const jsonLd = React.useMemo(() => {
+    if (!post) return []
+    const { title, description, coverImage, date, lastEdited, updatedAt } = post
+    const canonicalUrl = `${siteUrl}/blog/${post.slug}`
+    return [
+      articleJsonLd({
+        title,
+        description,
+        url: canonicalUrl,
+        image: coverImage || undefined,
+        datePublished: date,
+        dateModified: lastEdited || updatedAt || undefined,
+        authorName: post.authorName || post.author || 'Unknown',
+        authorUrl: post.author ? `https://github.com/${post.author}` : undefined,
+        publisherName: 'MDXHub',
+        publisherLogo: `${siteUrl}${config.defaultImage}`,
+      }),
+      breadcrumbListJsonLd({
+        siteUrl,
+        itemListElement: [
+          { label: 'Home', href: '/' },
+          { label: 'Blog', href: '/blog' },
+          { label: post.category, href: `/blog/category/${post.category}` },
+          { label: title },
+        ],
+      }),
+    ]
+  }, [post, siteUrl])
+
   if (status === 'loading' || status === 'idle') {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -128,6 +172,7 @@ export default function BlogPost() {
         description={description}
         image={coverImage}
         type="article"
+        jsonLd={jsonLd}
       />
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8 grid grid-cols-[1fr] lg:grid-cols-[1fr_280px] gap-8 lg:gap-16 blog-post-grid">
       <main className="min-w-0">
@@ -243,6 +288,11 @@ export default function BlogPost() {
           )}
 
           <ShareButtons title={title} slug={post.slug} />
+
+          {/* Edit on GitHub */}
+          <div className="mb-8">
+            <EditOnGitHub url={githubUrl} />
+          </div>
 
           {/* Full author card in footer with bio + social links */}
           {fullAuthor && (

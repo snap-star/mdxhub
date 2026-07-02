@@ -137,6 +137,10 @@ export default defineConfig({
               id.includes('node_modules/class-variance-authority/') || id.includes('node_modules/cmdk/')) {
             return 'vendor-ui'
           }
+          // Sandpack code sandbox (large — includes bundler, editor, preview)
+          if (id.includes('node_modules/@codesandbox/sandpack')) {
+            return 'vendor-sandpack'
+          }
         },
       },
     },

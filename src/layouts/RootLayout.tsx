@@ -10,7 +10,11 @@ import { Footer } from '@/components/common/Footer'
 import { SearchCommand } from '@/components/search/SearchCommand'
 import { PageTransition } from '@/components/transitions/PageTransition'
 import { SEO } from '@/components/common/SEO'
+import { webSiteJsonLd } from '@/lib/seo/jsonld'
+import siteConfig from '../../site.config.json'
 import { ImageLightbox } from '@/components/mdx/ImageLightbox'
+
+const rootConfig = siteConfig as unknown as { siteUrl: string }
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 // ─── Loading skeleton for lazy-loaded routes ──────────────────────────
@@ -36,12 +40,22 @@ export function RootLayout() {
     void loadContent()
   }, [loadContent])
 
+  // Global WebSite structured data (injected once on all pages via SEO)
+  const globalJsonLd = React.useMemo(() => [
+    webSiteJsonLd({
+      siteUrl: rootConfig.siteUrl,
+      siteName: 'MDXHub',
+      description: 'A blazingly fast documentation and blog platform built with React, Vite, and MDX.',
+      searchUrl: `${rootConfig.siteUrl}/search?q={search_term_string}`,
+    }),
+  ], [])
+
   return (
     <MDXProvider components={MDXComponents}>
       {/* The .dark class is applied to <html> by the themeStore, so all CSS vars resolve correctly.
           We keep it on the root wrapper too for Tailwind dark: variant scoping. */}
       <div className={`${resolvedTheme === 'dark' ? 'dark' : ''} min-h-screen bg-background text-foreground transition-colors duration-300`}>
-        <SEO />
+        <SEO jsonLd={globalJsonLd} />
         <Navbar />
         <SearchCommand />
         <ErrorBoundary>

@@ -2,8 +2,8 @@
 title: "MDX Components Reference"
 section: "2. Guides"
 order: 30
-version: "v1.0"
-description: "Complete reference for all globally available MDX components — Tabs, Steps, Mermaid, Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, and the image lightbox."
+version: "v1.1"
+description: "Complete reference for all globally available MDX components — Tabs, Steps, Mermaid, Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, CodeSandbox, Accordion, and the image lightbox."
 next: "docs/guides/installation"
 ---
 
@@ -635,6 +635,208 @@ export function Button() {
 }
 ```
 ````
+
+---
+
+---
+
+## CodeSandbox
+
+The `<CodeSandbox>` component embeds a **live, editable code sandbox** using Sandpack — the same engine that powers the official React documentation. Readers can edit code and see results instantly.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `template` | string | `"react"` | Project template: `react`, `react-ts`, `vanilla`, `vanilla-ts`, `static`, `node` |
+| `files` | object | — | Record of file paths to code content (e.g. `{"/App.js": "..."}`) |
+| `dependencies` | object | — | External npm dependencies (e.g. `{"date-fns": "^4.0.0"}`) |
+| `showConsole` | boolean | `false` | Show the console panel below the preview |
+| `showNavigator` | boolean | `false` | Show the URL navigation bar |
+| `caption` | string | — | Optional caption below the sandbox |
+| `editorHeight` | number | `350` | Height of the code editor in pixels |
+| `previewHeight` | number | `400` | Height of the preview area in pixels |
+| `autorun` | boolean | `true` | Whether to auto-run the code on load |
+| `showLineNumbers` | boolean | `true` | Show line numbers in the editor |
+| `wrapContent` | boolean | `false` | Wrap long lines in the editor |
+
+### Usage
+
+```mdx
+<CodeSandbox
+  template="react"
+  files={{
+    "/App.js": `
+import React from 'react'
+
+export default function App() {
+  const [count, setCount] = React.useState(0)
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => setCount(c => c + 1)}>+</button>
+    </div>
+  )
+}
+    `.trim(),
+  }}
+  caption="A live counter component"
+/>
+```
+
+### Theme Awareness
+
+CodeSandbox automatically switches between GitHub Light (light mode) and Monokai Pro (dark mode) themes to match the current site theme — no configuration needed.
+
+---
+
+## Accordion
+
+The `<Accordion>` component creates expandable/collapsible sections — perfect for FAQs, troubleshooting, or progressive disclosure in long articles.
+
+### Props
+
+#### `<Accordion>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `defaultOpen` | number[] | `[]` | Array of indices to open by default (0-based) |
+| `allowMultiple` | boolean | `false` | Whether multiple items can be open at once |
+| `variant` | string | `"bordered"` | Visual style: `bordered` or `ghost` |
+| `children` | AccordionItem[] | — | One or more `<AccordionItem>` components |
+
+#### `<AccordionItem>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `title` | string | — | Heading shown in the clickable header |
+| `defaultOpen` | boolean | — | Override to start this item open |
+| `children` | ReactNode | — | Content revealed when expanded |
+
+### Usage
+
+```mdx
+<Accordion>
+<AccordionItem title="What is MDX?">
+<div>
+
+MDX is a format that lets you use JSX components directly inside Markdown.
+
+</div>
+</AccordionItem>
+<AccordionItem title="How do I add new components?">
+<div>
+
+Create a component in `src/components/mdx/`, then register it in `MDXComponents.tsx`.
+
+</div>
+</AccordionItem>
+</Accordion>
+```
+
+### Multi-Open Variant
+
+Use `allowMultiple={true}` to allow opening several sections at once:
+
+```mdx
+<Accordion allowMultiple={true}>
+<AccordionItem title="First Section">...</AccordionItem>
+<AccordionItem title="Second Section">...</AccordionItem>
+</Accordion>
+```
+
+### Ghost Variant
+
+Use `variant="ghost"` for a minimal, borderless look — great for compact FAQs:
+
+```mdx
+<Accordion variant="ghost">
+<AccordionItem title="Keyboard shortcuts">...</AccordionItem>
+</Accordion>
+```
+
+### Keyboard Navigation
+
+- **Enter / Space** — toggle the focused item
+- **Arrow Down / Arrow Up** — move between accordion triggers
+- **Home / End** — jump to first/last item
+
+---
+
+## CardGrid
+
+The `<CardGrid>` component renders a responsive grid of cards, perfect for feature comparisons, resource listings, and landing page sections.
+
+### Props
+
+#### `<CardGrid>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `columns` | number | `3` | Number of columns: `1`, `2`, `3`, or `4` |
+| `children` | Card[] | — | One or more `<Card>` components |
+
+#### `<Card>`
+
+| Prop | Type | Description |
+| :--- | :--- | :--- |
+| `title` | string | Card heading |
+| `description` | string | Short description shown below the title |
+| `icon` | string | Optional icon name (see Badge for full icon list) |
+| `href` | string | Optional URL the card links to (internal or external) |
+| `linkText` | string | Text for the call-to-action link (default: "Learn more") |
+| `children` | ReactNode | Optional additional content inside the card |
+
+### Usage
+
+```mdx
+{/* 3-column grid (default) */}
+<CardGrid>
+<Card
+  title="Lightning Fast"
+  description="Built on Vite 8 with instant HMR and sub-second page loads."
+  icon="zap"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX-Powered"
+  description="Write content in Markdown with embedded React components."
+  icon="file"
+>
+<div></div>
+</Card>
+<Card
+  title="Type-Safe"
+  description="Full TypeScript support with strict type checking."
+  icon="shield"
+>
+<div></div>
+</Card>
+</CardGrid>
+
+{/* 2-column grid with links */}
+<CardGrid columns={2}>
+<Card
+  title="Getting Started"
+  description="New to MDXHub? Follow our step-by-step guide."
+  icon="rocket"
+  href="/docs/2-guides/installation"
+  linkText="View Guide"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX Components"
+  description="Explore all built-in MDX components."
+  icon="book"
+  href="/blog/demo-mdx-components"
+  linkText="See Components"
+>
+<div></div>
+</Card>
+</CardGrid>
+```
 
 ---
 

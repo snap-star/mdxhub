@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T19:46:41.048Z",
+  "generatedAt": "2026-07-02T19:12:09.891Z",
   "posts": [
     {
       "slug": "javascript/the-complete-guide-to-javascript",
@@ -1503,7 +1503,7 @@
       "order": 10,
       "draft": false,
       "toc": true,
-      "version": "v1.1"
+      "version": "v1.2"
     },
     {
       "slug": "2-guides/installation",
@@ -1541,13 +1541,13 @@
     {
       "slug": "2-guides/mdx-components",
       "title": "MDX Components Reference",
-      "description": "Complete reference for all globally available MDX components — Tabs, Steps, Mermaid, Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, and the image lightbox.",
+      "description": "Complete reference for all globally available MDX components — Tabs, Steps, Mermaid, Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, CodeSandbox, Accordion, and the image lightbox.",
       "section": "2. Guides",
       "sectionSlug": "2-guides",
       "order": 30,
       "draft": false,
       "toc": true,
-      "version": "v1.0"
+      "version": "v1.1"
     },
     {
       "slug": "3-deployment/hosting",

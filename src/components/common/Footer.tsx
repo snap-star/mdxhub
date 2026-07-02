@@ -56,6 +56,7 @@ export function Footer() {
               title: 'Blog',
               links: [
                 { label: 'All Posts', href: '/blog' },
+                { label: 'Categories', href: '/blog/category' },
                 { label: 'Tutorials', href: '/blog/category/Tutorial' },
                 { label: 'Guides', href: '/blog/category/Guide' },
               ],
@@ -73,7 +74,7 @@ export function Footer() {
               title: 'More',
               links: [
                 { label: 'Search', href: '/search' },
-                { label: 'Tags', href: '/blog' },
+                { label: 'Tags', href: '/blog/tags' },
                 { label: 'Authors', href: '/about' },
               ],
             },

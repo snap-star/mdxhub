@@ -2,15 +2,21 @@ import React from 'react'
 import { useParams } from 'react-router'
 import { useContentStore } from '@/store/contentStore'
 import { SEO } from '@/components/common/SEO'
+import { techArticleJsonLd, breadcrumbListJsonLd } from '@/lib/seo/jsonld'
 import { VersionBadge } from '@/components/docs/VersionBadge'
 import { PrevNextNav } from '@/components/docs/PrevNextNav'
 import { TableOfContents } from '@/components/blog/TableOfContents'
 import { useActiveHeading } from '@/hooks/useActiveHeading'
 
 import { ChevronRight } from 'lucide-react'
+import { EditOnGitHub } from '@/components/common/EditOnGitHub'
+import { getGitHubEditUrl } from '@/lib/github'
 import { MobileTocSheet } from '@/components/blog/MobileTocSheet'
 import { setTocData } from '@/lib/tocStore'
 import { useContentHeadings } from '@/hooks/useContentHeadings'
+import siteConfig from '../../site.config.json'
+
+const config = siteConfig as unknown as { siteUrl: string; githubUrl: string }
 
 export default function DocPage() {
   const params = useParams()
@@ -50,6 +56,14 @@ export default function DocPage() {
   const headingIds = React.useMemo(() => headings.map((h) => h.id), [headings])
   const activeId = useActiveHeading(headingIds)
 
+  // GitHub edit URL for this doc
+  const [githubUrl, setGitHubUrl] = React.useState<string | null>(null)
+  React.useEffect(() => {
+    if (fullSlug) {
+      getGitHubEditUrl(fullSlug, 'docs', config.githubUrl).then(setGitHubUrl)
+    }
+  }, [fullSlug])
+
   // Push heading data to the shared MobileTocSheet store
   // Respect frontmatter.toc — hide when explicitly disabled
   React.useEffect(() => {
@@ -57,6 +71,31 @@ export default function DocPage() {
     setTocData(headings, activeId)
     return () => setTocData([], '')
   }, [headings, activeId, doc?.toc])
+
+  // JSON-LD: computed unconditionally (before early returns) to preserve hook ordering.
+  const siteUrl = React.useMemo(() => config.siteUrl, [])
+  const docJsonLd = React.useMemo(() => {
+    if (!doc) return []
+    return [
+      techArticleJsonLd({
+        title: doc.title,
+        description: doc.description,
+        url: `${siteUrl}/docs/${fullSlug}`,
+        authorName: 'Chigusa Asuha',
+        publisherName: 'MDXHub',
+        proficiencyLevel: 'Beginner',
+      }),
+      breadcrumbListJsonLd({
+        siteUrl,
+        itemListElement: [
+          { label: 'Home', href: '/' },
+          { label: 'Documentation', href: '/docs' },
+          { label: doc.section },
+          { label: doc.title },
+        ],
+      }),
+    ]
+  }, [doc, fullSlug, siteUrl])
 
   if (status === 'loading' || status === 'idle') {
     return (
@@ -85,6 +124,7 @@ export default function DocPage() {
       <SEO 
         title={`${title} | Docs`}
         description={description || `Documentation for ${title}`}
+        jsonLd={docJsonLd}
       />
       <main className="docs-main min-w-0">
         {/* Section breadcrumb */}
@@ -125,6 +165,11 @@ export default function DocPage() {
           <p className="text-muted-foreground italic">Content could not be loaded.</p>
         )}
       </article>
+
+      {/* Edit on GitHub */}
+      <div className="flex justify-end mt-12 mb-4">
+        <EditOnGitHub url={githubUrl} />
+      </div>
 
       {prevDoc || nextDoc ? (
         <PrevNextNav

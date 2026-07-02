@@ -4,6 +4,11 @@ import { useContentStore } from '@/store/contentStore'
 import { PostGrid } from '@/components/blog/PostGrid'
 import { TagCloud } from '@/components/blog/TagCloud'
 import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
+import { SEO } from '@/components/common/SEO'
+import { breadcrumbListJsonLd } from '@/lib/seo/jsonld'
+import siteConfig from '../../site.config.json'
+
+const tagConfig = siteConfig as unknown as { siteUrl: string }
 
 export default function BlogTag() {
   const { tag } = useParams()
@@ -17,6 +22,21 @@ export default function BlogTag() {
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 sm:py-12 grid tag-page-grid gap-8 sm:gap-12">
+      <SEO
+        title={`#${tag}`}
+        description={`Browse all blog posts tagged with ${tag}.`}
+        jsonLd={[
+          breadcrumbListJsonLd({
+            siteUrl: tagConfig.siteUrl,
+            itemListElement: [
+              { label: 'Home', href: '/' },
+              { label: 'Blog', href: '/blog' },
+              { label: 'Tag' },
+              { label: `#${tag}` },
+            ],
+          }),
+        ]}
+      />
       <main>
         <div className="mb-6 sm:mb-8">
           <Breadcrumbs items={[{ label: 'Blog', href: '/blog' }, { label: 'Tag' }, { label: `#${tag}` }]} />
