@@ -2,6 +2,11 @@ import React from 'react'
 import { useContentStore } from '@/store/contentStore'
 import { Link } from 'react-router'
 import { BookOpen, ChevronRight } from 'lucide-react'
+import { SEO } from '@/components/common/SEO'
+import { breadcrumbListJsonLd } from '@/lib/seo/jsonld'
+import siteConfig from '../../site.config.json'
+
+const docsIndexConfig = siteConfig as unknown as { siteUrl: string }
 
 export default function DocsIndex() {
   const docs = useContentStore((s) => s.docs)
@@ -20,6 +25,19 @@ export default function DocsIndex() {
 
   return (
     <main className="docs-main">
+      <SEO
+        title="Documentation"
+        description="Explore our guides and API references to get the most out of the platform."
+        jsonLd={[
+          breadcrumbListJsonLd({
+            siteUrl: docsIndexConfig.siteUrl,
+            itemListElement: [
+              { label: 'Home', href: '/' },
+              { label: 'Documentation' },
+            ],
+          }),
+        ]}
+      />
       <div className="py-4 sm:py-8">
         <h1 className="text-3xl sm:text-[2.5rem] font-bold tracking-tight mb-3 sm:mb-4">
           Documentation

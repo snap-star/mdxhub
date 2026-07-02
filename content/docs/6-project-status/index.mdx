@@ -17,9 +17,17 @@ This project now includes several content and routing improvements based on the 
 - **`.md` + `.mdx` discovery**: Both Markdown and MDX content files are discovered automatically with the Vite glob patterns.
 - **Explicit post sorting**: Blog posts now support an `order` field for manual sorting before default date-based sorting.
 - **Improved author schema**: The author registry supports an extended set of social links and profile fields.
+- **Custom home page** (`/`): A brand-themed landing page with animated gradient hero, stat counters, tech stack badges, features showcase, component demos, latest posts, decorative floating orbs, and parallax scroll effects with bidirectional fade animations.
 - **Badge component**: Colorful inline pill component (`<Badge variant="tip" icon="check">Done</Badge>`) with 22+ colors, admonition variants, and 40+ icon names — globally available in MDX.
 - **Tooltip component**: Accessible hover/focus tooltip (`<Tooltip content="...">text</Tooltip>`) using `@base-ui/react` primitives — globally available in MDX.
 - **Image lightbox viewer**: Any image in MDX content is now clickable and opens a full-screen overlay with zoom, rotate, and keyboard navigation.
+- **CodeSandbox component**: Live, editable code sandboxes using Sandpack — supports React, TypeScript, Vanilla JS, and Static HTML templates with external dependencies and console output.
+- **Accordion component**: Expandable/collapsible sections with `bordered` and `ghost` variants, `allowMultiple` mode, keyboard navigation, and animated height transitions via Framer Motion.
+- **CardGrid component**: Responsive card grid (1–4 columns) with icons, titles, descriptions, optional links, and rich content children — perfect for feature listings and landing pages.
+- **Parallax scroll effects**: Hero section on the home page features multi-layer parallax with different scroll speeds, using `requestAnimationFrame` and passive scroll listeners.
+- **Bidirectional fade animations**: All sections on the home page fade in when scrolling down and fade out when scrolling up, using Framer Motion's `useInView` with `once: false`.
+- **Dedicated search page**: Full-page search at `/search` with grouped results, recent searches in localStorage, and Fuse.js integration.
+- **Logo hover animation**: The navbar logo transitions from a document icon to a home icon on hover with smooth Framer Motion fade/scale transitions.
 - **Featured posts**: Set `featured: true` in frontmatter to highlight posts in a Featured widget on the blog homepage.
 - **Series grouping**: Use `series` and `seriesOrder` frontmatter fields to group related posts into navigable series with prev/next links and progress indicators.
 - **CC License badges**: Set `cc` in frontmatter (e.g., `cc: "CC-BY-4.0"`) to automatically render a Creative Commons license badge in the post footer.

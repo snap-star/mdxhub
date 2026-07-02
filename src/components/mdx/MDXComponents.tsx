@@ -16,6 +16,9 @@ import { Tabs, Tab } from './Tabs'
 import { Steps, Step } from './Steps'
 import { Mermaid } from './Mermaid'
 import { CodeBlock } from './CodeBlock'
+import { CodeSandbox } from './CodeSandbox'
+import { Accordion, AccordionItem } from './Accordion'
+import { CardGrid, Card } from './CardGrid'
 
 // ─── MDX Image Component (separate component so hooks aren't called in a render function) ──
 
@@ -99,4 +102,9 @@ export const MDXComponents = {
   Steps,
   Step,
   Mermaid,
+  CodeSandbox,
+  Accordion,
+  AccordionItem,
+  CardGrid,
+  Card,
 }

@@ -4,6 +4,11 @@ import { useContentStore } from '@/store/contentStore'
 import { PostGrid } from '@/components/blog/PostGrid'
 import { CategoryFilter } from '@/components/blog/CategoryFilter'
 import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
+import { SEO } from '@/components/common/SEO'
+import { breadcrumbListJsonLd } from '@/lib/seo/jsonld'
+import siteConfig from '../../site.config.json'
+
+const catConfig = siteConfig as unknown as { siteUrl: string }
 
 export default function BlogCategory() {
   const { name } = useParams()
@@ -17,6 +22,21 @@ export default function BlogCategory() {
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <SEO
+        title={`${name} Posts`}
+        description={`Browse all blog posts in the ${name} category.`}
+        jsonLd={[
+          breadcrumbListJsonLd({
+            siteUrl: catConfig.siteUrl,
+            itemListElement: [
+              { label: 'Home', href: '/' },
+              { label: 'Blog', href: '/blog' },
+              { label: 'Category' },
+              { label: name },
+            ],
+          }),
+        ]}
+      />
       <div className="mb-6 sm:mb-8">
         <Breadcrumbs items={[{ label: 'Blog', href: '/blog' }, { label: 'Category' }, { label: name }]} />
       </div>

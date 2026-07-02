@@ -6,7 +6,10 @@ import { TagCloud } from '@/components/blog/TagCloud'
 import { SidebarCategories } from '@/components/blog/SidebarCategories'
 import { SponsorCard } from '@/components/blog/SponsorCard'
 import { SEO } from '@/components/common/SEO'
+import { breadcrumbListJsonLd } from '@/lib/seo/jsonld'
 import siteConfig from '../../site.config.json'
+
+const blogConfig = siteConfig as unknown as { siteUrl: string }
 
 export default function BlogIndex() {
   const posts = useContentStore((s) => s.posts)
@@ -42,6 +45,15 @@ export default function BlogIndex() {
       <SEO
         title="Blog"
         description="Read the latest articles, tutorials, and updates."
+        jsonLd={[
+          breadcrumbListJsonLd({
+            siteUrl: blogConfig.siteUrl,
+            itemListElement: [
+              { label: 'Home', href: '/' },
+              { label: 'Blog' },
+            ],
+          }),
+        ]}
       />
       {/* Hero Image Section*/}
       <section

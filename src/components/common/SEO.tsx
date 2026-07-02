@@ -3,13 +3,6 @@ import { Helmet } from 'react-helmet-async'
 import { useLocation } from 'react-router'
 import siteConfig from '../../../site.config.json'
 
-interface SEOProps {
-  title?: string
-  description?: string
-  image?: string
-  type?: string
-}
-
 interface SiteConfig {
   title: string
   titleTemplate: string
@@ -17,11 +10,28 @@ interface SiteConfig {
   siteUrl: string
   defaultImage: string
   twitterUsername: string
+  language?: string
 }
 
 const config = siteConfig as unknown as SiteConfig
 
-export function SEO({ title, description, image, type = 'website' }: SEOProps) {
+interface SEOProps {
+  title?: string
+  description?: string
+  image?: string
+  type?: string
+  /**
+   * Optional JSON-LD structured data objects.
+   * Each object will be serialized and injected as:
+   *   <script type="application/ld+json">{...}</script>
+   *
+   * Pass the raw objects returned by the builder functions in
+   * @/lib/seo/jsonld — they already include '@context' and '@type'.
+   */
+  jsonLd?: Record<string, unknown>[]
+}
+
+export function SEO({ title, description, image, type = 'website', jsonLd }: SEOProps) {
   const location = useLocation()
   
   const seoTitle = title ? config.titleTemplate.replace('%s', title) : config.title
@@ -55,6 +65,13 @@ export function SEO({ title, description, image, type = 'website' }: SEOProps) {
       <meta name="twitter:title" content={seoTitle} />
       <meta name="twitter:description" content={seoDescription} />
       <meta name="twitter:image" content={seoImage} />
+
+      {/* JSON-LD Structured Data */}
+      {jsonLd?.map((schema, i) => (
+        <script key={i} type="application/ld+json">
+          {JSON.stringify(schema)}
+        </script>
+      ))}
     </Helmet>
   )
 }

@@ -698,6 +698,657 @@ Here's a realistic example combining multiple components — a complete getting-
 | | `caption` | string | Optional caption below diagram |
 | **Image** | *(all)* | — | Click any image → opens lightbox |
 
+## 9. CodeSandbox Component (Interactive)
+
+The `<CodeSandbox>` component embeds a **live, editable code sandbox** using Sandpack — the same engine that powers the official React documentation. Readers can edit code and see results instantly.
+
+### React Template (Default)
+
+<CodeSandbox
+  template="react"
+  files={{
+    "/App.js": `
+import React from 'react'
+
+export default function App() {
+  const [count, setCount] = React.useState(0)
+
+  return (
+    <div style={{ textAlign: 'center', padding: '2rem' }}>
+      <h1>Interactive Counter</h1>
+      <p style={{ fontSize: '3rem', fontWeight: 'bold', margin: '1rem 0' }}>
+        {count}
+      </p>
+      <button onClick={() => setCount(c => c + 1)}>
+        Increment
+      </button>
+      {' '}
+      <button onClick={() => setCount(c => c - 1)}>
+        Decrement
+      </button>
+      {' '}
+      <button onClick={() => setCount(0)}>
+        Reset
+      </button>
+    </div>
+  )
+}
+    `.trim(),
+    "/styles.css": `
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f8fafc;
+}
+
+button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0 0.25rem;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: #2563eb;
+}
+
+button:last-child {
+  background: #64748b;
+}
+
+button:last-child:hover {
+  background: #475569;
+}
+    `.trim()
+  }}
+  caption="A live interactive counter built with React — try clicking the buttons!"
+/>
+
+````mdx
+<CodeSandbox
+  template="react"
+  files={{
+    "/App.js": `
+import React from 'react'
+export default function App() {
+  const [count, setCount] = React.useState(0)
+  return (
+    <div>
+      <h1>Interactive Counter</h1>
+      <p>{count}</p>
+      <button onClick={() => setCount(c => c + 1)}>+</button>
+      <button onClick={() => setCount(c => c - 1)}>-</button>
+    </div>
+  )
+}
+    `.trim()
+  }}
+  caption="A live interactive counter"
+/>
+````
+
+### With Console & TypeScript
+
+<CodeSandbox
+  template="react-ts"
+  files={{
+    "/App.tsx": `
+interface User {
+  name: string
+  role: string
+}
+
+const users: User[] = [
+  { name: "Alice", role: "Developer" },
+  { name: "Bob", role: "Designer" },
+  { name: "Charlie", role: "PM" },
+]
+
+export default function App() {
+  console.log("Rendering user list...", users)
+  return (
+    <div>
+      <h2>Team Members</h2>
+      <ul>
+        {users.map((user) => (
+          <li key={user.name}>
+            <strong>{user.name}</strong> — {user.role}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+    `.trim(),
+  }}
+  showConsole={true}
+  caption="TypeScript example with console output"
+/>
+
+````mdx
+<CodeSandbox
+  template="react-ts"
+  files={{
+    "/App.tsx": `...`
+  }}
+  showConsole={true}
+  caption="TypeScript with console output"
+/>
+````
+
+### Vanilla HTML/CSS/JS
+
+<CodeSandbox
+  template="static"
+  files={{
+    "/index.html": `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vanilla Sandbox</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <h1>Hello from Vanilla JS!</h1>
+    <p>The current time is: <span id="time"></span></p>
+  </div>
+  <script src="/index.js"></script>
+</body>
+</html>
+    `.trim(),
+    "/index.js": `
+function updateTime() {
+  const now = new Date()
+  document.getElementById('time').textContent = now.toLocaleTimeString()
+}
+
+updateTime()
+setInterval(updateTime, 1000)
+console.log('Clock is running!')
+    `.trim(),
+    "/styles.css": `
+body {
+  font-family: system-ui, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+p { font-size: 1.25rem; opacity: 0.9; }
+    `.trim()
+  }}
+  showConsole={true}
+  showNavigator={true}
+  caption="A live clock built with vanilla HTML, CSS, and JavaScript"
+/>
+
+````mdx
+<CodeSandbox
+  template="static"
+  files={{
+    "/index.html": `<!DOCTYPE html>...`,
+    "/index.js": `function updateTime() { ... }`,
+    "/styles.css": `body { ... }`
+  }}
+  showConsole={true}
+/>
+````
+
+### External Dependencies
+
+You can add npm dependencies by passing a `dependencies` object. The sandbox will install them automatically:
+
+<CodeSandbox
+  template="react"
+  files={{
+    "/App.js": `
+import { format, formatDistanceToNow } from 'date-fns'
+
+const events = [
+  { title: "Project Kickoff", date: new Date(2026, 0, 15) },
+  { title: "Alpha Release", date: new Date(2026, 3, 1) },
+  { title: "Beta Release", date: new Date(2026, 5, 15) },
+  { title: "Launch Day!", date: new Date(2026, 8, 1) },
+]
+
+export default function App() {
+  return (
+    <div>
+      <h2>Timeline</h2>
+      <ul>
+        {events.map((event, i) => (
+          <li key={i}>
+            <strong>{event.title}</strong><br />
+            {format(event.date, 'MMM d, yyyy')} — {""}
+            <em>{formatDistanceToNow(event.date, { addSuffix: true })}</em>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+    `.trim()
+  }}
+  dependencies={{ "date-fns": "^4.0.0" }}
+  caption="Using the date-fns library as an external dependency"
+/>
+
+````mdx
+<CodeSandbox
+  template="react"
+  files={{ "/App.js": `import { format } from 'date-fns' ...` }}
+  dependencies={{ "date-fns": "^4.0.0" }}
+  caption="Using date-fns as an external dependency"
+/>
+````
+
+<Callout type="tip" title="Pro Tip">
+The CodeSandbox component is **theme-aware** — it automatically switches between GitHub Light and Monokai Pro themes to match the current site theme. Try toggling dark mode in the navbar!
+</Callout>
+
+---
+
+## 9. Accordion Component
+
+The `<Accordion>` component creates expandable/collapsible sections — perfect for FAQs, troubleshooting, or progressive disclosure in long articles.
+
+### Basic Accordion (Single Open)
+
+By default, only one item can be open at a time (accordion mode). Clicking an open item closes it.
+
+<Accordion>
+<AccordionItem title="What is MDX?">
+<div>
+
+MDX is a format that lets you use **JSX components** directly inside Markdown. This means you can embed interactive React components — like charts, tabs, and live code sandboxes — alongside your prose.
+
+```mdx
+Here's a React component in Markdown:
+<Badge variant="info">Hello from MDX!</Badge>
+```
+
+</div>
+</AccordionItem>
+<AccordionItem title="How do I add new MDX components?">
+<div>
+
+Create a new component in `src/components/mdx/`, then register it in `MDXComponents.tsx`:
+
+1. Import your component at the top of the file
+2. Add it to the `MDXComponents` object
+3. It's now available globally in all `.mdx` files — no imports needed!
+
+</div>
+</AccordionItem>
+<AccordionItem title="Can I use Accordion inside other components?">
+<div>
+
+Yes! Accordion works inside Callout, Tabs, Steps, and any other component. Here it is inside a Callout:
+
+<Callout type="info" title="Nested Accordion">
+
+<Accordion variant="ghost">
+<AccordionItem title="How deep can I nest?">
+<div>As deep as you need — but keep it readable for your users!</div>
+</AccordionItem>
+</Accordion>
+
+</Callout>
+
+</div>
+</AccordionItem>
+</Accordion>
+
+````mdx
+<Accordion>
+<AccordionItem title="What is MDX?">
+<div>
+
+MDX is a format that lets you use **JSX components** directly inside Markdown.
+
+</div>
+</AccordionItem>
+<AccordionItem title="How do I add new components?">
+<div>
+
+Create a component in `src/components/mdx/`, register it in `MDXComponents.tsx`.
+
+</div>
+</AccordionItem>
+</Accordion>
+````
+
+### Multi-Open Accordion
+
+Use `allowMultiple={true}` to let readers open several sections at once:
+
+<Accordion allowMultiple={true}>
+<AccordionItem title="Project Structure" defaultOpen={true}>
+<div>
+
+```text
+mdxhub/
+├── content/        # MDX files (blog, docs, authors)
+├── src/            # React app source
+│   ├── components/ # Reusable components
+│   ├── routes/     # Page route components
+│   └── store/      # Zustand state management
+├── public/         # Static assets
+└── scripts/        # Build-time generators
+```
+
+</div>
+</AccordionItem>
+<AccordionItem title="Available Commands">
+<div>
+
+| Command | Description |
+| :--- | :--- |
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build for production |
+| `pnpm preview` | Preview production build |
+| `pnpm generate` | Rebuild content index |
+
+</div>
+</AccordionItem>
+<AccordionItem title="Tech Stack">
+<div>
+
+<Badge variant="blue">React 19</Badge>
+<Badge variant="sky">Vite 8</Badge>
+<Badge variant="emerald">MDX 3</Badge>
+<Badge variant="violet">TypeScript 6</Badge>
+<Badge variant="orange">Tailwind CSS 4</Badge>
+<Badge variant="pink">Framer Motion 12</Badge>
+
+</div>
+</AccordionItem>
+</Accordion>
+
+````mdx
+<Accordion allowMultiple={true}>
+<AccordionItem title="Project Structure" defaultOpen={true}>
+<div>
+
+```text
+tree structure here...
+```
+
+</div>
+</AccordionItem>
+<AccordionItem title="Available Commands">
+<div>
+
+| Command | Description |
+| :--- | :--- |
+| `pnpm dev` | Start dev server |
+
+</div>
+</AccordionItem>
+</Accordion>
+````
+
+### Ghost Variant
+
+Use `variant="ghost"` for a minimal, borderless look — great for compact FAQs where you don't want the card appearance:
+
+<Accordion variant="ghost">
+<AccordionItem title="Keyboard shortcuts">
+<div>
+
+- `⌘K` or `Ctrl+K` — Open search palette
+- `Escape` — Close search / lightbox
+- `Tab` / `Shift+Tab` — Navigate through accordion items
+- `ArrowUp` / `ArrowDown` — Move between accordion triggers
+
+</div>
+</AccordionItem>
+<AccordionItem title="Browser support">
+<div>
+
+Works in all modern browsers: Chrome, Firefox, Safari, and Edge. Internet Explorer is not supported.
+
+</div>
+</AccordionItem>
+<AccordionItem title="Need help?">
+<div>
+
+Open a [GitHub issue](https://github.com/snap-star/mdxhub/issues) or join the discussion.
+
+</div>
+</AccordionItem>
+</Accordion>
+
+````mdx
+<Accordion variant="ghost">
+<AccordionItem title="Keyboard shortcuts">
+<div>
+
+- `⌘K` / `Ctrl+K` — Open search
+- `Escape` — Close modals
+
+</div>
+</AccordionItem>
+</Accordion>
+````
+
+---
+
+## 11. CardGrid Component
+
+The `<CardGrid>` component renders a responsive grid of cards, perfect for feature comparisons, resource listings, and landing page sections. Each `<Card>` has a title, description, optional icon, and optional link.
+
+### Feature Comparison (3 columns, default)
+
+<CardGrid>
+<Card
+  title="Lightning Fast"
+  description="Built on Vite 8 with instant HMR and sub-second page loads. Your development experience will never be the same."
+  icon="zap"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX-Powered"
+  description="Write content in Markdown with embedded React components. No build step between your editor and the browser."
+  icon="file"
+>
+<div></div>
+</Card>
+<Card
+  title="Type-Safe"
+  description="Full TypeScript support with strict type checking. Catch errors at compile time, not runtime."
+  icon="shield"
+>
+<div></div>
+</Card>
+</CardGrid>
+
+````mdx
+<CardGrid>
+<Card
+  title="Lightning Fast"
+  description="Built on Vite 8 with instant HMR..."
+  icon="zap"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX-Powered"
+  description="Write content in Markdown..."
+  icon="file"
+>
+<div></div>
+</Card>
+<Card
+  title="Type-Safe"
+  description="Full TypeScript support..."
+  icon="shield"
+>
+<div></div>
+</Card>
+</CardGrid>
+````
+
+### With Links (2 columns)
+
+<CardGrid columns={2}>
+<Card
+  title="Getting Started Guide"
+  description="New to MDXHub? Follow our step-by-step guide to set up your first blog or documentation site in minutes."
+  icon="rocket"
+  href="/docs/2-guides/installation"
+  linkText="View Guide"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX Components API"
+  description="Explore the full collection of built-in MDX components — from badges and tooltips to live code sandboxes."
+  icon="book"
+  href="/blog/demo-mdx-components"
+  linkText="See Components"
+>
+<div></div>
+</Card>
+<Card
+  title="Deployment Options"
+  description="Deploy your site to Vercel, Netlify, or any static hosting provider with zero configuration."
+  icon="cloud"
+  href="/docs/3-deployment/hosting"
+  linkText="Deploy Now"
+>
+<div></div>
+</Card>
+<Card
+  title="API Reference"
+  description="Comprehensive documentation covering all configuration options, build scripts, and content APIs."
+  icon="search"
+  href="/docs"
+  linkText="Browse Docs"
+>
+<div></div>
+</Card>
+</CardGrid>
+
+````mdx
+<CardGrid columns={2}>
+<Card
+  title="Getting Started"
+  description="New to MDXHub?..."
+  icon="rocket"
+  href="/docs/2-guides/installation"
+  linkText="View Guide"
+>
+<div></div>
+</Card>
+<Card
+  title="Components API"
+  description="Explore all built-in components..."
+  icon="book"
+  href="/blog/demo-mdx-components"
+  linkText="See Components"
+>
+<div></div>
+</Card>
+</CardGrid>
+````
+
+### With Mixed Content & External Links
+
+<CardGrid columns={3}>
+<Card
+  title="React 19"
+  description="The latest version of React with improved server components, actions, and streaming SSR."
+  icon="sparkles"
+  href="https://react.dev"
+  linkText="React Docs"
+>
+<div></div>
+</Card>
+<Card
+  title="Vite 8"
+  description="Next-generation build tool with native ES module support and lightning-fast cold starts."
+  icon="zap"
+  href="https://vitejs.dev"
+  linkText="Vite Guide"
+>
+<div></div>
+</Card>
+<Card
+  title="Tailwind CSS v4"
+  description="Utility-first CSS framework with a new CSS-first configuration engine and improved performance."
+  icon="sparkles"
+>
+<div>
+
+Uses the new **CSS-first configuration**, `@theme` directives, and `@variant` for dark mode.
+
+</div>
+</Card>
+</CardGrid>
+
+````mdx
+<CardGrid columns={3}>
+<Card
+  title="React 19"
+  description="The latest React..."
+  icon="sparkles"
+  href="https://react.dev"
+  linkText="React Docs"
+>
+<div></div>
+</Card>
+<Card
+  title="Vite 8"
+  description="Next-gen build tool..."
+  icon="zap"
+  href="https://vitejs.dev"
+  linkText="Vite Guide"
+>
+<div></div>
+</Card>
+</CardGrid>
+````
+
+---
+
+## 12. Quick Reference
+
+| Component | Key Prop | Values | Description |
+| :--- | :--- | :---: | :--- |
+| **Badge** | `variant` | `tip`, `warning`, `blue`, `emerald`, etc. | Colorful pill for labels and status |
+| | `icon` | `check`, `zap`, `star`, `rocket`, etc. | Optional icon from 40+ icon map |
+| **Tooltip** | `content` | string | Floating label on hover/focus |
+| | `side` | `top`, `bottom`, `left`, `right` | Placement control |
+| **Tabs** | `variant` | `underline`, `pills` | Tabbed content panels |
+| | `defaultIndex` | number (0-based) | Initial active tab |
+| **Steps** | `children` | Step[] | Numbered step-by-step container |
+| **Step** | `title` | string | Step heading text |
+| | `icon` | string | Optional icon name |
+| **Mermaid** | `chart` | string | Diagram definition text |
+| | `caption` | string | Optional caption below diagram |
+| **CodeSandbox** | `template` | `react`, `react-ts`, `vanilla`, `static`, `node` | Live code sandbox template |
+| | `files` | Record of path → code | Custom files for the sandbox |
+| | `showConsole` | `true`, `false` | Toggle console panel |
+| | `dependencies` | Record of name → version | External npm dependencies |
+| | `caption` | string | Optional caption below sandbox |
+| **Image** | *(all)* | — | Click any image → opens lightbox |
+
 ---
 
 <Callout type="tip" title="Write Your Own Demo">

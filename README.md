@@ -54,6 +54,9 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 | `<Tabs />` | Tabbed content panels — `underline` and `pills` variants, keyboard navigable |
 | `<Steps />` + `<Step />` | Numbered step-by-step guides with connecting lines and optional icons |
 | `<Mermaid />` | Diagram renderer — flowcharts, sequence diagrams, pie charts, class diagrams, and more |
+| `<CodeSandbox />` | Live, editable code sandboxes using Sandpack (React, TypeScript, Vanilla, Static) |
+| `<Accordion />` + `<AccordionItem />` | Expandable/collapsible sections with `bordered` / `ghost` variants |
+| `<CardGrid />` + `<Card />` | Responsive card grid (1–4 columns) with icons, links, and rich content |
 | `<ProfileBadge />` | Author profile card for About pages |
 | `<CCLicense />` | One-line Creative Commons badge for any post |
 | `<AuthorCard />` | Full author card with avatar, bio, and social links |
@@ -90,7 +93,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 
 ### ⚡ Performance
 - **Image Optimization**: Build-time WebP/AVIF generation, lazy loading, and responsive `<picture>` elements
-- **Code Splitting**: Manual chunk splitting for React, Framer Motion, Shiki, KaTeX, icons, and utilities
+- **Code Splitting**: Manual chunk splitting via `rollupOptions.output.manualChunks` in `vite.config.ts` — see the [Chunk Splitting Reference](#chunk-splitting-reference) below
 - **CSS View Transitions**: Native `@view-transition` API for smooth page navigations
 - **Lazy Loading**: Images and videos are lazy-loaded by default. The Disqus comment section uses a lazy-loading pattern with `IntersectionObserver` — the embed script is only loaded when the user scrolls near the comments.
 
@@ -234,7 +237,7 @@ pnpm run preview
 
 | Path | Source |
 | :--- | :--- |
-| `/` | Redirects to `/blog` |
+| `/` | Home page (hero, features, component showcase, latest posts) |
 | `/about` | `content/about.mdx` |
 | `/blog` | Blog index (all posts) |
 | `/blog/:slug` | Individual blog post |
@@ -242,6 +245,7 @@ pnpm run preview
 | `/blog/tag/:tag` | Filtered by tag |
 | `/docs` | Docs landing page |
 | `/docs/:section/:slug` | Individual doc page |
+| `/search` | Full-text search page with grouped results |
 
 ### Invalid Routes
 
@@ -290,6 +294,40 @@ toc: true                     # Enable table of contents (default: true)
 Blog slugs are derived from the file path. Files under `content/blog/**` map to `/blog/...`, and `index.mdx` inside a folder maps to the folder slug.
 
 For more detailed information, check out the [Creating Posts Guide](/blog/creating-posts-guide) once the dev server is running.
+
+---
+
+## 🧩 Chunk Splitting Reference
+
+The Vite build configuration in `vite.config.ts` uses `manualChunks` to split large third-party dependencies into dedicated vendor bundles. This improves caching — if one dependency changes, the others keep their browser cache — and reduces the initial load size by deferring less-frequently-used code.
+
+The following vendor chunks are created at build time:
+
+| Chunk Name | Contents | Rationale |
+| :--- | :--- | :--- |
+| `vendor-react` | `react`, `react-dom`, `react-router`, `react-helmet-async`, `scheduler` | Core framework — always loaded, always cached |
+| `vendor-framer` | `framer-motion` | ~150KB+ animation library, loaded only on pages with animations |
+| `vendor-mdx` | `@mdx-js/react` | MDX runtime — loaded when rendering MDX content |
+| `vendor-shiki` | `shiki`, `@shikijs/*` | Syntax highlighting grammars and themes (large) — only when showing code blocks |
+| `vendor-katex` | `katex` | Math rendering engine (includes CSS + fonts) — only on posts with LaTeX |
+| `vendor-icons` | `lucide-react` | Icon library — accumulates size across many icon imports |
+| `vendor-state` | `zustand`, `fuse.js` | State management + full-text search — loaded for search functionality |
+| `vendor-date` | `date-fns` | Date formatting utilities — imported across many components |
+| `vendor-ui` | `clsx`, `tailwind-merge`, `class-variance-authority`, `cmdk` | UI utility libraries used by search palette and components |
+| `vendor-sandpack` | `@codesandbox/sandpack-react`, `@codesandbox/sandpack-client` | In-browser code sandbox (bundler, editor, preview) — only on pages that embed live code examples |
+
+### How to add a new chunk
+
+In `vite.config.ts`, add an `if` clause inside the `manualChunks` function before the implicit fall-through:
+
+```ts
+// Example: add a vendor chunk for a charting library
+if (id.includes('node_modules/recharts')) {
+  return 'vendor-charts'
+}
+```
+
+The order matters — the first matching `if` wins. Place more-specific matches before less-specific ones.
 
 ---
 
