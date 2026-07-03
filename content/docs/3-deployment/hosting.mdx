@@ -41,6 +41,63 @@ Vercel is the creator of Next.js and provides first-class support for Vite appli
 Vercel automatically configures a reverse proxy to handle client-side routing. You do not need a `vercel.json` file for React Router to work correctly!
 </Callout>
 
+### Static File Overrides for SEO
+
+This project includes a `vercel.json` with explicit static file overrides and Content-Type headers to ensure Google Search Console and other crawlers can read your SEO assets:
+
+```json
+{
+  "headers": [
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/rss.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/rss+xml; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/content-index.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/content-slug-map.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/rss.xml", "destination": "/rss.xml" },
+    { "source": "/content-index.json", "destination": "/content-index.json" },
+    { "source": "/content-slug-map.json", "destination": "/content-slug-map.json" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+The explicit 1:1 pass-through rewrites before the catch-all guarantee that `sitemap.xml`, `robots.txt`, and `rss.xml` are served as individual static files instead of being intercepted by the SPA routing rule. The `headers` block then enforces the correct `Content-Type` MIME types (`application/xml`, `text/plain`, `application/rss+xml`, `application/json`) so that Google Search Console, RSS readers, and other consumers parse the content correctly. This is a common SEO best practice for SPAs deployed on Vercel.
+
+These files are all auto-generated during the build pipeline:
+
+- `sitemap.xml` — Lists all static routes and dynamic content pages with `lastmod` dates from file modification times
+- `robots.txt` — Allows all crawlers and points to the sitemap URL
+- `rss.xml` — Full RSS 2.0 feed with all published blog posts
+
 ---
 
 ## Netlify
