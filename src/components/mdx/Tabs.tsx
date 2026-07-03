@@ -1,34 +1,5 @@
 import React from 'react'
-
-// ─── Icon name → component map (subset of lucide-react, no import needed in MDX) ─
-
-import {
-  Check, Copy, Info, AlertTriangle, XCircle,
-  Star, Heart, Zap, Shield, Clock, Calendar,
-  BookOpen, FileText, Tag, Hash, Mail, Link2,
-  Sun, Moon, Cloud, Download, Upload, RefreshCw,
-  Plus, Minus, Search, Settings, User,
-  Home, ArrowRight, ExternalLink, Globe,
-  Lightbulb, Rocket, Sparkles, Target, Flag, Terminal,
-  type LucideIcon,
-} from 'lucide-react'
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  check: Check, copy: Copy, info: Info,
-  warning: AlertTriangle, danger: XCircle,
-  star: Star, heart: Heart, zap: Zap,
-  shield: Shield, clock: Clock, calendar: Calendar,
-  book: BookOpen, file: FileText, tag: Tag,
-  hash: Hash, mail: Mail, link: Link2,
-  sun: Sun, moon: Moon, cloud: Cloud,
-  download: Download, upload: Upload, refresh: RefreshCw,
-  plus: Plus, minus: Minus,
-  search: Search, settings: Settings, user: User,
-  home: Home, arrow: ArrowRight, external: ExternalLink,
-  globe: Globe, bulb: Lightbulb, rocket: Rocket,
-  sparkles: Sparkles, target: Target, flag: Flag,
-  terminal: Terminal,
-}
+import { ICON_MAP } from '@/lib/icon-map'
 
 // ─── Tab Item ──────────────────────────────────────────────────────────────
 

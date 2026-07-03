@@ -840,6 +840,106 @@ The `<CardGrid>` component renders a responsive grid of cards, perfect for featu
 
 ---
 
+## CodeGroup
+
+The `<CodeGroup>` component displays **the same code snippet in multiple languages** using a tabbed interface. Each tab shows a statically-highlighted code block (via Shiki), unlike `<CodeSandbox>` which is for live editing.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `children` | pre[] | — | Two or more fenced code blocks from MDX |
+
+### Usage
+
+Simply wrap multiple fenced code blocks with `<CodeGroup>`. The language label is automatically detected from each block's opening fence:
+
+````mdx
+<CodeGroup>
+
+```javascript
+function greet(name) {
+  return `Hello, ${name}!`;
+}
+```
+
+```typescript
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+```python
+def greet(name):
+    return f"Hello, {name}!"
+```
+
+</CodeGroup>
+````
+
+### Live Example
+
+<CodeGroup>
+
+```javascript
+function fibonacci(n) {
+  if (n <= 1) return n
+  return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+console.log(fibonacci(10)) // 55
+```
+
+```typescript
+function fibonacci(n: number): number {
+  if (n <= 1) return n
+  return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+console.log(fibonacci(10)) // 55
+```
+
+```python
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+print(fibonacci(10))  # 55
+```
+
+```rust
+fn fibonacci(n: u32) -> u32 {
+    match n {
+        0 => 0,
+        1 => 1,
+        _ => fibonacci(n - 1) + fibonacci(n - 2),
+    }
+}
+
+fn main() {
+    println!("{}", fibonacci(10)); // 55
+}
+```
+
+</CodeGroup>
+
+### Features
+
+- **Shared header** — Traffic light dots, language tab bar, and a single copy button (copies the active tab's code)
+- **Line numbers** — Automatically shown for blocks with 3+ lines
+- **Keyboard navigation** — `ArrowLeft` / `ArrowRight` to switch tabs
+- **Fallback** — A `<CodeGroup>` with a single child renders as a normal `<CodeBlock>` (no tab bar shown)
+- **Syntax highlighting** — Shiki dual-theme highlighting just like standalone code blocks (light and dark mode)
+
+### Notes
+
+- The content inside `<CodeGroup>` must be **fenced code blocks** (the ` ``` ` syntax). Regular text or JSX elements between the code blocks will be ignored.
+- Each code block's language is detected from the opening fence — use explicit language identifiers: ` ```javascript `, ` ```tsx `, ` ```python `, etc.
+- For **live, editable** code examples, use [`<CodeSandbox>`](#codesandbox) instead.
+
+---
+
 ## Related
 
 - See [Creating Posts](/blog/creating-posts-guide) for the complete authoring guide

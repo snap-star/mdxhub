@@ -34,7 +34,7 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/blog/demo-mdx-components</loc>
-    <lastmod>2026-07-02</lastmod>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -58,193 +58,187 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/blog/javascript/the-complete-guide-to-javascript</loc>
-    <lastmod>2026-06-30</lastmod>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-introduction</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/advanced-custom-hook</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-1</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/advanced-jsx</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-10</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/api-deep-dive</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-11</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/complex-state-with-usereducer</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-12</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/component-and-props</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-13</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/concurrent-features-suspense</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-14</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/conditional-rendering</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-15</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/core-web-vitals-optimization</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-16</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/custom-hook</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-17</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/data-fetching</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-18</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/effect-with-use-effect</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-19</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/error-boundaries</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-2</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/event-handling</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-20</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/form-and-controlled-components</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-21</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/introduction</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-22</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/jsx-deep-dive</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-23</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/lists-and-keys</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-24</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/micro-frontends</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-25</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/performance-optimization</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-26</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/production-deployments</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-27</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/react-compiler-and-automatic-memoization</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-28</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/react-internal-reconsiliation</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-29</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/react-routerv7</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-3</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/ref-and-dom</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-30</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/server-actions-mutations</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-4</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/server-components-architecture</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-5</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/ssr-streaming-partial-prerendering</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-6</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/state-management</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-7</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/styling-in-react</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-8</loc>
-    <lastmod>2026-06-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://mdxhub.vercel.app/blog/react-19-complete-section-9</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/react/testing-component</loc>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -376,7 +370,7 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/1-introduction</loc>
-    <lastmod>2026-07-02</lastmod>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -394,7 +388,7 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components</loc>
-    <lastmod>2026-07-02</lastmod>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -448,7 +442,7 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/6-project-status</loc>
-    <lastmod>2026-07-02</lastmod>
+    <lastmod>2026-07-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -1,15 +1,6 @@
 import React from 'react'
-import {
-  Check, Copy, Info, AlertTriangle, XCircle,
-  Star, Heart, Zap, Shield, Clock, Calendar,
-  BookOpen, FileText, Tag, Hash, Mail, Link2,
-  Sun, Moon, Cloud, Download, Upload, RefreshCw,
-  Plus, Minus, X, Search, Settings, User,
-  Home, ArrowRight, ExternalLink, Globe,
-  Lightbulb, Rocket, Sparkles, Target, Flag,
-  type LucideIcon,
-} from 'lucide-react'
 import { SiGithub } from '@icons-pack/react-simple-icons'
+import { ICON_MAP } from '@/lib/icon-map'
 
 interface BadgeProps {
   /** Variant: Tailwind color name or admonition name (note, tip, info, success, warning, danger, destructive) */
@@ -20,48 +11,8 @@ interface BadgeProps {
   className?: string
 }
 
-// ─── Icon name → lucide component map ──────────────────────────────────────
-const ICON_MAP: Record<string, LucideIcon> = {
-  check: Check,
-  copy: Copy,
-  info: Info,
-  warning: AlertTriangle,
-  danger: XCircle,
-  star: Star,
-  heart: Heart,
-  zap: Zap,
-  shield: Shield,
-  clock: Clock,
-  calendar: Calendar,
-  book: BookOpen,
-  file: FileText,
-  tag: Tag,
-  hash: Hash,
-  mail: Mail,
-  link: Link2,
-  sun: Sun,
-  moon: Moon,
-  cloud: Cloud,
-  download: Download,
-  upload: Upload,
-  refresh: RefreshCw,
-  plus: Plus,
-  minus: Minus,
-  close: X,
-  search: Search,
-  settings: Settings,
-  user: User,
-  home: Home,
-  arrow: ArrowRight,
-  external: ExternalLink,
-  github: SiGithub,
-  globe: Globe,
-  bulb: Lightbulb,
-  rocket: Rocket,
-  sparkles: Sparkles,
-  target: Target,
-  flag: Flag,
-}
+// Extend the shared ICON_MAP with Badge-specific icons (simple-icons)
+const BADGE_ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = { ...ICON_MAP, github: SiGithub }
 
 // ─── Static color styles (fully spelled out for Tailwind JIT detection) ────
 const COLOR_STYLES: Record<string, string> = {
@@ -116,7 +67,7 @@ export function Badge({ variant = 'slate', icon, children, className }: BadgePro
   const variantClasses = COLOR_STYLES[color] ?? FALLBACK_STYLE
 
   // Resolve icon string → lucide component
-  const IconComponent = icon ? ICON_MAP[icon] : null
+  const IconComponent = icon ? BADGE_ICON_MAP[icon] : null
 
   const baseClasses =
     'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap transition-colors duration-150'
