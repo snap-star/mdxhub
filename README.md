@@ -390,10 +390,42 @@ This project is a fully static SPA. Deploy to any static host:
 
 ### Vercel (Recommended)
 
-The included `vercel.json` handles SPA routing with explicit static file overrides to ensure `sitemap.xml`, `robots.txt`, `rss.xml`, and other static assets are served directly:
+The included `vercel.json` handles SPA routing with explicit static file overrides and Content-Type headers to ensure `sitemap.xml`, `robots.txt`, `rss.xml`, and other static assets are served directly and with the correct MIME types:
 
 ```json
 {
+  "headers": [
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/rss.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/rss+xml; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/content-index.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/content-slug-map.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
