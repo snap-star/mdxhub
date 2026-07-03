@@ -13,6 +13,7 @@ import {
   ArrowRight, BookOpen, FileText, Search, Star,
 } from 'lucide-react'
 import siteConfig from '../../site.config.json'
+import { version as pkgVersion } from '../../package.json'
 import type { PostIndexEntry } from '@/lib/content/contentIndex';
 
 const config = siteConfig as unknown as { siteUrl: string; description: string; githubUrl: string }
@@ -266,7 +267,7 @@ export default function HomePage() {
             transition={{ duration: 0.4 }}
             className="mb-6"
           >
-            <Badge variant="indigo" icon="sparkles">MDXHub v1.5.0</Badge>
+            <Badge variant="indigo" icon="sparkles" className="text-[0.875rem] leading-[1.2rem]">{siteConfig.title} v{pkgVersion}</Badge>
           </motion.div>
 
           {/* Headline */}

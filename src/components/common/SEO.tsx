@@ -52,6 +52,9 @@ export function SEO({ title, description, image, type = 'website', jsonLd }: SEO
       <meta name="description" content={seoDescription} />
       <link rel="canonical" href={seoUrl} />
 
+      {/* Google Site Verification Tag */}
+      <meta name="google-site-verification" content="QoAd40PR75smu3_H0yQsQkO4mKqKgVWbBmKpN5pR4ec" />
+      
       {/* OpenGraph Tags */}
       <meta property="og:url" content={seoUrl} />
       <meta property="og:type" content={type} />

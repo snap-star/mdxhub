@@ -8,6 +8,7 @@ import { SponsorCard } from '@/components/blog/SponsorCard'
 import { SEO } from '@/components/common/SEO'
 import { breadcrumbListJsonLd } from '@/lib/seo/jsonld'
 import siteConfig from '../../site.config.json'
+import { Info } from 'lucide-react'
 
 const blogConfig = siteConfig as unknown as { siteUrl: string }
 
@@ -62,8 +63,8 @@ export default function BlogIndex() {
       >
         {/* Background Image */}
         <img
-          src="/hero.png"
-          alt="Chigusa Asuha"
+          src={siteConfig.hero.image || '/hero.png'}
+          alt={siteConfig.hero.alt || 'Chigusa Asuha'}
           className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
         />
 
@@ -79,9 +80,10 @@ export default function BlogIndex() {
         </div>
 
         {/* Credit Badge - Bottom Right */}
-        <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4 z-10 bg-black/60 backdrop-blur-sm px-2.5 md:px-3 py-1 md:py-1.5 rounded-md">
+        <div className="absolute justify-center align-center bottom-3 md:bottom-4 right-3 md:right-4 z-10 bg-black/60 backdrop-blur-sm hover:bg-brand-600 transition-colors px-2.5 md:px-3 py-1 md:py-1.5 rounded-md">
           <span className="text-[10px] md:text-xs text-white font-medium">
-            Image by:
+            <Info className="inline-block mr-2 size-[16px]" />
+            <a href={siteConfig.hero?.imageCredit?.url || ''} target="_blank" rel="noopener noreferrer" className="hover:text-brand-foreground hover:bg-brand-600 rounded-md transition-colors">{siteConfig.hero?.imageCredit?.text || ''}</a>
           </span>
         </div>
 
