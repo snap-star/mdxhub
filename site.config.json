@@ -22,7 +22,12 @@
   "hero": {
     "title": "MDX Hub",
     "subtitle": "Thoughts, tutorials, and insights on modern web development, React, and MDX.",
-    "image": "/hero.png"
+    "image": "https://lh3.googleusercontent.com/u/0/d/1carcgfO9FDYU3RD5Bg4zoZBoPuaSOr4c",
+    "alt": "Chigusa Asuha",
+    "imageCredit": {
+      "text": "Photo by Chigusa Asuha",
+      "url": "https://lh3.googleusercontent.com/u/0/d/1carcgfO9FDYU3RD5Bg4zoZBoPuaSOr4c"
+    }
   },
   "share": {
     "tagline": "Enjoyed this article?",
