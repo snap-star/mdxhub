@@ -1,8 +1,10 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/rss.xml", "destination": "/rss.xml" },
+    { "source": "/content-index.json", "destination": "/content-index.json" },
+    { "source": "/content-slug-map.json", "destination": "/content-slug-map.json" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

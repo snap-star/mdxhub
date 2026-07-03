@@ -85,7 +85,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 
 ### 🔗 SEO & Discovery
 - **Automatic SEO**: Per-page `og:image`, `twitter:card`, canonical URLs, and meta tags via `react-helmet-async`
-- **Sitemap**: Auto-generated `sitemap.xml` (74+ URLs) with `lastmod` dates from file modification times
+- **Sitemap**: Auto-generated `sitemap.xml` with `lastmod` dates from file modification times — served via explicit Vercel rewrite to ensure Google Search Console can read it
 - **Robots.txt**: Auto-generated with `Allow: /` and `Sitemap:` directive
 - **RSS Feed**: Auto-generated `/rss.xml` with all published blog posts, categories, tags, and author metadata
 - **Disqus Comments**: Per-post commenting with comment count badges on cards
@@ -160,9 +160,9 @@ pnpm run build
 
 The build pipeline:
 1. Generates the content index (`public/content-index.json`) — extracting frontmatter fields including `tags`, `featured`, `series`, `seriesOrder`, `cc` — covering 59+ posts and 13+ docs pages
-2. Generates WebP/AVIF image variants from source images via Sharp
-3. Generates the RSS feed (`public/rss.xml`)
-4. Generates the sitemap (`public/sitemap.xml`) and `robots.txt`
+2. Generates the RSS feed (`public/rss.xml`)
+3. Generates the sitemap (`public/sitemap.xml`) and `robots.txt`
+4. Generates WebP/AVIF image variants from source images via Sharp
 5. Type-checks the project with TypeScript
 6. Bundles everything with Vite into `dist/`
 
@@ -195,9 +195,9 @@ pnpm run preview
 │   │   └── authors.yaml      # Author profiles registry
 │   └── about.mdx              # Rendered at /about
 ├── public/                    # Static assets served at root
-│   ├── rss.xml               # Auto-generated RSS feed (via prebuild)
-│   ├── sitemap.xml            # Auto-generated sitemap (via prebuild)
-│   ├── robots.txt             # Auto-generated robots.txt (via prebuild)
+│   ├── rss.xml               # Auto-generated RSS feed (generated at build time)
+│   ├── sitemap.xml            # Auto-generated sitemap (generated at build time)
+│   ├── robots.txt             # Auto-generated robots.txt (generated at build time)
 │   └── ...                    # Images, icons, etc.
 ├── scripts/
 │   ├── generate-content-index.cjs    # Builds content-index.json from frontmatter
@@ -219,7 +219,7 @@ pnpm run preview
 │   ├── store/                # Zustand stores (content, navigation, theme)
 │   └── styles/               # Blog and docs theme overrides
 ├── site.config.json          # GitHub URL configuration
-├── vercel.json               # Vercel SPA rewrites config
+├── vercel.json               # Vercel SPA rewrites + static file overrides
 └── package.json              # Project dependencies and scripts
 ```
 
@@ -337,19 +337,19 @@ The order matters — the first matching `if` wins. Place more-specific matches 
 | :--- | :--- |
 | `pnpm run dev` | Start dev server (generates content-index + RSS + sitemap on startup) |
 | `pnpm run dev:watch` | Watch `content/` for changes — auto-regenerates content-index.json, RSS feed, and sitemap on every file save |
-| `pnpm run build` | Content-index → image variants → RSS → sitemap → image variants → type-check → production build |
+| `pnpm run build` | Content-index → RSS → sitemap → image variants → type-check → production build |
 | `pnpm run preview` | Serve the production build locally |
 | `pnpm run lint` | Run ESLint on all source files |
 | `pnpm run generate:content-index` | Manually regenerate `public/content-index.json` only |
 
-### Prebuild Pipeline
+### Build Pipeline
 
-The following scripts run automatically before every production build:
+The following scripts run as part of `npm run build`, before type-checking and Vite bundling:
 
 1. **`scripts/generate-content-index.cjs`** — Scans all `.md`/`.mdx` files, extracts YAML frontmatter (including `tags`, `featured`, `series`, `seriesOrder`, `cc`), and outputs `public/content-index.json` and `public/content-slug-map.json`
-2. **`scripts/generate-image-variants.cjs`** — Generates WebP and AVIF variants of all content images using Sharp
-3. **`scripts/generate-rss.cjs`** — Generates `public/rss.xml` from all published blog posts
-4. **`scripts/generate-sitemap.cjs`** — Generates `public/sitemap.xml` and `public/robots.txt`
+2. **`scripts/generate-rss.cjs`** — Generates `public/rss.xml` from all published blog posts
+3. **`scripts/generate-sitemap.cjs`** — Generates `public/sitemap.xml` and `public/robots.txt`
+4. **`scripts/generate-image-variants.cjs`** — Generates WebP and AVIF variants of all content images using Sharp
 
 ---
 
@@ -390,11 +390,16 @@ This project is a fully static SPA. Deploy to any static host:
 
 ### Vercel (Recommended)
 
-The included `vercel.json` handles SPA routing automatically:
+The included `vercel.json` handles SPA routing with explicit static file overrides to ensure `sitemap.xml`, `robots.txt`, `rss.xml`, and other static assets are served directly:
 
 ```json
 {
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/rss.xml", "destination": "/rss.xml" },
+    { "source": "/content-index.json", "destination": "/content-index.json" },
+    { "source": "/content-slug-map.json", "destination": "/content-slug-map.json" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
