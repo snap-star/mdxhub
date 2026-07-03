@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-03T16:23:07.556Z",
+  "generatedAt": "2026-07-03T16:26:57.212Z",
   "posts": [
     {
       "slug": "javascript/the-complete-guide-to-javascript",
@@ -11,7 +11,7 @@
       "authorAvatar": "/snap-star.png",
       "category": "Javascript",
       "tags": [
-        "JS",
+        "JavaScript",
         "Guide"
       ],
       "draft": false,

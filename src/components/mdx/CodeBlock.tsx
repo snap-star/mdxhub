@@ -1,16 +1,8 @@
 import React from 'react'
 import { Check, Copy } from 'lucide-react'
+import { extractTextContent } from '@/lib/react-utils'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
-
-/** Extract plain text from React node tree (for counting code lines) */
-function extractTextContent(node: React.ReactNode): string {
-  if (typeof node === 'string' || typeof node === 'number' || typeof node === 'boolean') return String(node)
-  if (node == null) return ''
-  if (Array.isArray(node)) return node.map(extractTextContent).join('')
-  if (React.isValidElement<{ children?: React.ReactNode }>(node)) return extractTextContent(node.props.children)
-  return ''
-}
 
 type LineDiffType = 'add' | 'remove' | null
 
@@ -41,7 +33,10 @@ function getLineDiffTypes(children: React.ReactNode): LineDiffType[] {
 
 // ─── CodeBlock Component ──────────────────────────────────────────────────
 
-export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { className?: string; children?: React.ReactElement; style?: React.CSSProperties }) {
+export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { className?: string; children?: React.ReactElement; style?: React.CSSProperties; variant?: 'default' | 'tab' }) {
+  // Destructure variant out so it doesn't leak to the DOM via {...props}
+  const { variant, ...rest } = props
+
   const [copied, setCopied] = React.useState(false)
   const codeRef = React.useRef<HTMLPreElement>(null)
 
@@ -85,6 +80,72 @@ export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { classN
     [linesCount],
   )
 
+  const isTab = variant === 'tab'
+
+  const codeContent = (
+    <div className="relative flex w-full">
+      {/* Line number gutter */}
+      {showLineNumbers && (
+        <div
+          className="code-line-gutter select-none flex-shrink-0 text-right border-r border-border bg-muted/20"
+          style={{
+            padding: '1.25rem 0.75rem 1.25rem 1rem',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.8rem',
+            lineHeight: 1.7,
+            color: 'var(--color-base-muted)',
+            minWidth: hasDiffs ? '4ch' : '3.2ch',
+          }}
+          aria-hidden="true"
+        >
+          {lineNumbers.map((n, i) => {
+            const diffType = i < lineDiffTypes.length ? lineDiffTypes[i] : null
+            const isAdd = diffType === 'add'
+            const isRemove = diffType === 'remove'
+
+            return (
+              <div
+                key={n}
+                className="code-line-number"
+                style={{
+                  ...(isAdd && {
+                    color: 'oklch(62% 0.18 145)',
+                    background: 'oklch(62% 0.18 145 / 0.12)',
+                  }),
+                  ...(isRemove && {
+                    color: 'oklch(58% 0.22 20)',
+                    background: 'oklch(58% 0.22 20 / 0.12)',
+                  }),
+                  margin: isAdd || isRemove ? '0 -0.75rem 0 -1rem' : undefined,
+                  padding: isAdd || isRemove ? '0 0.75rem 0 1rem' : undefined,
+                }}
+              >
+                {isAdd ? '+' : isRemove ? '-' : n}
+              </div>
+            )
+          })}
+        </div>
+      )}
+      {/* Code */}
+      <pre
+        {...rest}
+        ref={codeRef}
+        className={`${preClassName} m-0 overflow-x-auto text-[0.875rem] leading-[1.7] flex-1 min-w-0`}
+        style={{
+          ...rest.style,
+          margin: 0,
+          padding: '1.25rem 1.5rem',
+          borderRadius: 0,
+          border: 'none',
+        }}
+      />
+    </div>
+  )
+
+  // Tab mode: render the code content directly, no outer wrapper
+  if (isTab) return codeContent
+
+  // Default mode: full wrapper with terminal header
   return (
     <div className="my-6 rounded-xl overflow-hidden border border-border shadow-sm bg-card code-block-wrapper flex flex-col">
       <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-b border-border">
@@ -104,63 +165,7 @@ export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { classN
           {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
         </button>
       </div>
-      <div className="relative flex w-full">
-        {/* Line number gutter */}
-        {showLineNumbers && (
-          <div
-            className="code-line-gutter select-none flex-shrink-0 text-right border-r border-border bg-muted/20"
-            style={{
-              padding: '1.25rem 0.75rem 1.25rem 1rem',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.8rem',
-              lineHeight: 1.7,
-              color: 'var(--color-base-muted)',
-              minWidth: hasDiffs ? '4ch' : '3.2ch',
-            }}
-            aria-hidden="true"
-          >
-            {lineNumbers.map((n, i) => {
-              const diffType = i < lineDiffTypes.length ? lineDiffTypes[i] : null
-              const isAdd = diffType === 'add'
-              const isRemove = diffType === 'remove'
-
-              return (
-                <div
-                  key={n}
-                  className="code-line-number"
-                  style={{
-                    ...(isAdd && {
-                      color: 'oklch(62% 0.18 145)',
-                      background: 'oklch(62% 0.18 145 / 0.12)',
-                    }),
-                    ...(isRemove && {
-                      color: 'oklch(58% 0.22 20)',
-                      background: 'oklch(58% 0.22 20 / 0.12)',
-                    }),
-                    margin: isAdd || isRemove ? '0 -0.75rem 0 -1rem' : undefined,
-                    padding: isAdd || isRemove ? '0 0.75rem 0 1rem' : undefined,
-                  }}
-                >
-                  {isAdd ? '+' : isRemove ? '-' : n}
-                </div>
-              )
-            })}
-          </div>
-        )}
-        {/* Code */}
-        <pre
-          {...props}
-          ref={codeRef}
-          className={`${preClassName} m-0 overflow-x-auto text-[0.875rem] leading-[1.7] flex-1 min-w-0`}
-          style={{
-            ...props.style,
-            margin: 0,
-            padding: '1.25rem 1.5rem',
-            borderRadius: 0,
-            border: 'none',
-          }}
-        />
-      </div>
+      {codeContent}
     </div>
   )
 }
