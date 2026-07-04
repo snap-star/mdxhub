@@ -45,6 +45,30 @@ const LIGHT_THEME: MermaidThemeVars = {
   edgeLabelBackground: '#f8fafc',
   nodeTextColor: '#1e293b',
   titleColor: '#1e293b',
+  // General text fallback
+  textColor: '#1e293b',
+  // Edge / sticky label text
+  labelTextColor: '#1e293b',
+  // Sequence diagram — actors
+  actorTextColor: '#1e293b',
+  actorLineColor: '#5a7dc9',
+  // Sequence diagram — signals
+  signalColor: '#5a7dc9',
+  signalTextColor: '#1e293b',
+  // Sequence diagram — notes
+  noteBkgColor: '#f8fafc',
+  noteTextColor: '#1e293b',
+  noteBorderColor: '#e2e8f0',
+  // Sequence diagram — loop / activation
+  loopTextColor: '#374151',
+  activationBkgColor: '#e2e8f0',
+  activationBorderColor: '#93a9e0',
+  // Class diagram
+  classText: '#1e293b',
+  // Pie chart
+  pieTitleTextColor: '#1e293b',
+  pieSectionTextColor: '#1e293b',
+  pieLegendTextColor: '#1e293b',
 }
 
 const DARK_THEME: MermaidThemeVars = {
@@ -61,6 +85,30 @@ const DARK_THEME: MermaidThemeVars = {
   edgeLabelBackground: '#2b2d31',
   nodeTextColor: '#dce0e8',
   titleColor: '#dce0e8',
+  // General text fallback
+  textColor: '#dce0e8',
+  // Edge / sticky label text
+  labelTextColor: '#dce0e8',
+  // Sequence diagram — actors
+  actorTextColor: '#dce0e8',
+  actorLineColor: '#6a8fc8',
+  // Sequence diagram — signals
+  signalColor: '#6a8fc8',
+  signalTextColor: '#dce0e8',
+  // Sequence diagram — notes
+  noteBkgColor: '#383a40',
+  noteTextColor: '#dce0e8',
+  noteBorderColor: '#404249',
+  // Sequence diagram — loop / activation
+  loopTextColor: '#b5bac1',
+  activationBkgColor: '#404249',
+  activationBorderColor: '#4a6a9c',
+  // Class diagram
+  classText: '#dce0e8',
+  // Pie chart
+  pieTitleTextColor: '#dce0e8',
+  pieSectionTextColor: '#dce0e8',
+  pieLegendTextColor: '#dce0e8',
 }
 
 // ─── Module-level Mermaid instance ─────────────────────────────────────────

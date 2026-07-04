@@ -20,6 +20,7 @@ interface TooltipProps {
  */
 export function Tooltip({ content, side = 'top', children }: TooltipProps) {
   return (
+    <BaseTooltip.Provider delay={200} closeDelay={300}>
     <BaseTooltip.Root>
       <BaseTooltip.Trigger className="underline decoration-dotted underline-offset-2 decoration-brand-400/60 hover:decoration-brand-400 cursor-help transition-colors">
         {children}
@@ -34,10 +35,10 @@ export function Tooltip({ content, side = 'top', children }: TooltipProps) {
             [--transform-origin:var(--tooltip-transform-origin)]
           ">
             {content}
-            <BaseTooltip.Arrow className="fill-slate-800 dark:fill-slate-100" />
-          </BaseTooltip.Popup>
-        </BaseTooltip.Positioner>
-      </BaseTooltip.Portal>
-    </BaseTooltip.Root>
+            <BaseTooltip.Arrow className="fill-slate-800 dark:fill-slate-100" />        </BaseTooltip.Popup>
+          </BaseTooltip.Positioner>
+        </BaseTooltip.Portal>
+      </BaseTooltip.Root>
+    </BaseTooltip.Provider>
   )
 }
