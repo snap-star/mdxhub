@@ -2,6 +2,7 @@ import React from 'react'
 import { useContentStore } from '@/store/contentStore'
 import { CardGrid, Card } from '@/components/mdx/CardGrid'
 import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
+import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
 import { breadcrumbListJsonLd } from '@/lib/seo/jsonld'
 import siteConfig from '../../site.config.json'
@@ -90,11 +91,10 @@ export default function BlogTagsIndex() {
           {/* Tag groups */}
           {groupedTags.map(([letter, letterTags]) => (
             <section key={letter} id={`tag-group-${letter}`} className="mb-12 scroll-mt-24">
-              <h2 className="text-2xl font-bold text-foreground mb-6 tracking-tight flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-foreground mb-6 tracking-tight">
                 <span className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary/10 text-primary text-lg font-bold">
                   {letter}
                 </span>
-                <span>{letter}</span>
               </h2>
               <CardGrid columns={4}>
                 {letterTags.map(({ name, count }) => (
@@ -112,6 +112,7 @@ export default function BlogTagsIndex() {
           ))}
         </>
       )}
+      <BackToTop />
     </div>
   )
 }

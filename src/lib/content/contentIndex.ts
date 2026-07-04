@@ -41,6 +41,7 @@ export interface DocIndexEntry {
   draft: boolean
   toc: boolean
   version: string
+  readingTime: number
 }
 
 export interface ContentIndex {

@@ -31,15 +31,21 @@ export function ImageLightbox() {
   const { open, src, alt } = useLightboxStore()
   const [scale, setScale] = React.useState(1)
   const [rotation, setRotation] = React.useState(0)
+  const [position, setPosition] = React.useState({ x: 0, y: 0 })
+  const [dragging, setDragging] = React.useState(false)
+  const dragStart = React.useRef({ x: 0, y: 0, posX: 0, posY: 0 })
+  const pinchRef = React.useRef<{ dist: number; scale: number } | null>(null)
+  const activePointers = React.useRef<Map<number, { x: number; y: number }>>(new Map())
   const imageRef = React.useRef<HTMLImageElement>(null)
   const prevSrcRef = React.useRef(src)
 
-  // Reset zoom on new image
+  // Reset zoom and position on new image
   React.useEffect(() => {
     if (src === prevSrcRef.current) return
     prevSrcRef.current = src
     setScale(1)
     setRotation(0)
+    setPosition({ x: 0, y: 0 })
   }, [src])
 
   React.useEffect(() => {
@@ -70,6 +76,66 @@ export function ImageLightbox() {
   const zoomIn = () => setScale((s) => Math.min(s + 0.5, 4))
   const zoomOut = () => setScale((s) => Math.max(s - 0.5, 0.25))
   const rotate = () => setRotation((r) => r + 90)
+
+  // ─── Drag to pan ───────────────────────────────────────────────────
+
+  const isZoomed = scale > 1
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+    // If second finger touches → start pinch
+    if (activePointers.current.size === 2) {
+      e.preventDefault()
+      const ptrs = Array.from(activePointers.current.values())
+      const dist = Math.hypot(ptrs[0].x - ptrs[1].x, ptrs[0].y - ptrs[1].y)
+      pinchRef.current = { dist, scale }
+      setDragging(false)
+      return
+    }
+
+    if (!isZoomed) return
+    e.preventDefault()
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    dragStart.current = { x: e.clientX, y: e.clientY, posX: position.x, posY: position.y }
+    setDragging(true)
+  }
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const ptr = activePointers.current.get(e.pointerId)
+    if (ptr) {
+      ptr.x = e.clientX
+      ptr.y = e.clientY
+    }
+
+    // Pinch zoom with two fingers
+    if (activePointers.current.size === 2 && pinchRef.current) {
+      e.preventDefault()
+      const ptrs = Array.from(activePointers.current.values())
+      const dist = Math.hypot(ptrs[0].x - ptrs[1].x, ptrs[0].y - ptrs[1].y)
+      const newScale = Math.min(4, Math.max(0.25, (dist / pinchRef.current.dist) * pinchRef.current.scale))
+      setScale(newScale)
+      return
+    }
+
+    if (!dragging) return
+    const dx = e.clientX - dragStart.current.x
+    const dy = e.clientY - dragStart.current.y
+    setPosition({ x: dragStart.current.posX + dx, y: dragStart.current.posY + dy })
+  }
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    activePointers.current.delete(e.pointerId)
+
+    // End pinch
+    if (activePointers.current.size < 2) {
+      pinchRef.current = null
+    }
+
+    if (!dragging) return
+    ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+    setDragging(false)
+  }
 
   return createPortal(
     <AnimatePresence>
@@ -136,17 +202,21 @@ export function ImageLightbox() {
             animate="visible"
             exit="exit"
             style={{
-              transform: `scale(${scale}) rotate(${rotation}deg)`,
+              transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
               maxWidth: '90vw',
               maxHeight: '85vh',
               objectFit: 'contain',
-              cursor: scale > 1 ? 'grab' : 'zoom-out',
+              cursor: isZoomed ? (dragging ? 'grabbing' : 'grab') : 'zoom-out',
               borderRadius: '8px',
               boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+              touchAction: 'none',
             }}
             className="select-none"
             draggable={false}
-            onClick={handleBackdropClick}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onClick={() => { if (!isZoomed) closeLightbox() }}
           />
 
           {/* ── Caption ── */}

@@ -79,6 +79,48 @@ function parseFrontmatter(content) {
   return { frontmatter, body: content.slice(match[0].length) }
 }
 
+// ─── Reading time calculation (mirrors remark-reading-time.ts) ────────────
+
+function computeReadingTime(content) {
+  // Strip frontmatter
+  const body = content
+    .replace(/^---[\s\S]*?---\n*/, '')
+    .replace(/^import\s+.*$/gm, '')
+
+  // Code blocks (read slower)
+  const codeBlocks = body.match(/```[\s\S]*?```/g) ?? []
+  const codeWords = codeBlocks
+    .join(' ')
+    .replace(/```\w*/g, '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length
+
+  // Prose outside code blocks
+  const prose = body.replace(/```[\s\S]*?```/g, '')
+
+  // CJK characters
+  const cjkChars = (prose.match(
+    /[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g,
+  ) ?? []).length
+
+  // Latin words
+  const latinWords = prose
+    .replace(/[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g, '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length
+
+  // Images: each adds ~12s (0.2 min)
+  const images = (prose.match(/\!\[.*?\]\(.*?\)|<img[^>]+/g) ?? []).length
+
+  const textMinutes = latinWords / 238 + cjkChars / 500 + (codeWords * 0.4) / 238
+  const imageMinutes = images * 0.2
+  const minutes = textMinutes + imageMinutes
+
+  return Math.max(1, Math.round(minutes * 2) / 2)
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function pathToSlug(filePath, base) {
@@ -170,7 +212,8 @@ async function main() {
   // Build index: only store metadata, NOT the full MDX content or React components
   const index = {
     generatedAt: new Date().toISOString(),
-    posts: blogPosts.map(({ slug, frontmatter }) => {
+    posts: blogPosts.map(({ slug, frontmatter, filePath }) => {
+      const content = fs.readFileSync(filePath, 'utf-8')
       const authorId = frontmatter.author ?? ''
       const resolved = authorMap[authorId]
       return {
@@ -186,7 +229,7 @@ async function main() {
         draft: frontmatter.draft === true,
         featured: frontmatter.featured === true,
         coverImage: frontmatter.coverImage ?? '',
-        readingTime: frontmatter.readingTime ?? 1,
+        readingTime: frontmatter.readingTime ?? computeReadingTime(content),
         comments: frontmatter.comments !== false,
         series: frontmatter.series ?? '',
         seriesOrder: frontmatter.seriesOrder ?? 0,
@@ -196,17 +239,21 @@ async function main() {
         order: frontmatter.order ?? undefined,
       }
     }),
-    docs: docs.map(({ slug, frontmatter }) => ({
-      slug,
-      title: frontmatter.title ?? slug,
-      description: frontmatter.description ?? '',
-      section: frontmatter.section ?? 'General',
-      sectionSlug: slug.split('/')[0] ?? 'general',
-      order: frontmatter.order ?? 99,
-      draft: frontmatter.draft === true,
-      toc: frontmatter.toc !== false,
-      version: frontmatter.version ?? '',
-    })),
+    docs: docs.map(({ slug, frontmatter, filePath }) => {
+      const content = fs.readFileSync(filePath, 'utf-8')
+      return {
+        slug,
+        title: frontmatter.title ?? slug,
+        description: frontmatter.description ?? '',
+        section: frontmatter.section ?? 'General',
+        sectionSlug: slug.split('/')[0] ?? 'general',
+        order: frontmatter.order ?? 99,
+        draft: frontmatter.draft === true,
+        toc: frontmatter.toc !== false,
+        version: frontmatter.version ?? '',
+        readingTime: frontmatter.readingTime ?? computeReadingTime(content),
+      }
+    }),
   }
 
   // Write index

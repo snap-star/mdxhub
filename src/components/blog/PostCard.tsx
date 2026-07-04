@@ -124,7 +124,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
             </span>
             <span className="reading-time flex items-center gap-1 text-[0.75rem] text-muted-foreground">
               <Clock size={12} />
-              {readingTime} min
+              {readingTime < 1 ? '< 1 min' : `${Math.round(readingTime)} min`}
             </span>
             {comments !== false && (
               <span className="reading-time flex items-center gap-1 text-[0.75rem] text-muted-foreground">

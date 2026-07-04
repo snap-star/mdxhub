@@ -54,8 +54,14 @@ export function remarkReadingTime() {
       .split(/\s+/)
       .filter(Boolean).length
 
+    // Count images: each adds ~12s (0.2 min) — industry standard
+    const images = (prose.match(/!\[.*?\]\(.*?\)|<img[^>]+|<Image[^>]+|<OptimizedImage[^>]+/g) ?? []).length
+
     // Approximate reading speeds
-    const minutes = latinWords / 238 + cjkChars / 500 + (codeWords * 0.4) / 238
+    //   238 wpm Latin, 500 cpm CJK, code ~40% speed, +12s per image
+    const textMinutes = latinWords / 238 + cjkChars / 500 + (codeWords * 0.4) / 238
+    const imageMinutes = images * 0.2
+    const minutes = textMinutes + imageMinutes
     const readingTime = Math.max(1, Math.round(minutes * 2) / 2) // round to 0.5
 
     // Inject into the YAML node so remarkMdxFrontmatter picks it up
