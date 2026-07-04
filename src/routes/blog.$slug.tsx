@@ -349,9 +349,9 @@ export default function BlogPost() {
           background: var(--color-brand-400);
         }
       `}</style>
-      
-      <BackToTop />
     </div>
+    
+    <BackToTop />
     </>
   )
 }

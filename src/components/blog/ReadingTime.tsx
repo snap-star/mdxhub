@@ -6,13 +6,17 @@ interface ReadingTimeProps {
 }
 
 export function ReadingTime({ minutes }: ReadingTimeProps) {
-  // Format to 1 decimal place if it has a half minute, otherwise whole number
-  const displayTime = minutes % 1 !== 0 ? minutes.toFixed(1) : minutes
+  let display: string
+  if (minutes < 1) {
+    display = '< 1 min read'
+  } else {
+    display = `${minutes % 1 !== 0 ? minutes.toFixed(1) : Math.round(minutes)} min read`
+  }
 
   return (
     <span className="reading-time flex items-center gap-1.5" title="Estimated Reading Time">
       <Clock size={14} className="opacity-70" />
-      <span className="font-medium">{displayTime} min read</span>
+      <span className="font-medium">{display}</span>
     </span>
   )
 }

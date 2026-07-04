@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-03T18:40:45.663Z",
+  "generatedAt": "2026-07-04T13:35:56.853Z",
   "posts": [
     {
       "slug": "javascript/the-complete-guide-to-javascript",
@@ -17,7 +17,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 32.5,
       "comments": true,
       "series": "Mastering JavaScript",
       "seriesOrder": 1,
@@ -48,7 +48,7 @@
       "draft": false,
       "featured": true,
       "coverImage": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop",
-      "readingTime": 1,
+      "readingTime": 15,
       "comments": true,
       "series": "",
       "seriesOrder": 0,
@@ -72,7 +72,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 2.5,
       "comments": true,
       "series": "Tailwind CSS v4 & React 19",
       "seriesOrder": 8,
@@ -120,7 +120,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 1.5,
       "comments": true,
       "series": "Tailwind CSS v4 & React 19",
       "seriesOrder": 2,
@@ -144,7 +144,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 5.5,
       "comments": true,
       "series": "Tailwind CSS v4 & React 19",
       "seriesOrder": 3,
@@ -168,7 +168,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 4.5,
       "comments": true,
       "series": "Tailwind CSS v4 & React 19",
       "seriesOrder": 4,
@@ -192,7 +192,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 4,
       "comments": true,
       "series": "Tailwind CSS v4 & React 19",
       "seriesOrder": 5,
@@ -241,7 +241,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 2,
       "comments": true,
       "series": "Tailwind CSS v4 & React 19",
       "seriesOrder": 1,
@@ -267,7 +267,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 2,
       "comments": true,
       "series": "tRPC, Zod & React 19 Guide",
       "seriesOrder": 7,
@@ -319,7 +319,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 4,
       "comments": true,
       "series": "tRPC, Zod & React 19 Guide",
       "seriesOrder": 2,
@@ -345,7 +345,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 4.5,
       "comments": true,
       "series": "tRPC, Zod & React 19 Guide",
       "seriesOrder": 3,
@@ -371,7 +371,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 6,
       "comments": true,
       "series": "tRPC, Zod & React 19 Guide",
       "seriesOrder": 4,
@@ -423,7 +423,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 2.5,
       "comments": true,
       "series": "tRPC, Zod & React 19 Guide",
       "seriesOrder": 1,
@@ -448,7 +448,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 5.5,
       "comments": true,
       "series": "Zustand Guide",
       "seriesOrder": 2,
@@ -473,7 +473,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 10.5,
       "comments": true,
       "series": "Zustand Guide",
       "seriesOrder": 3,
@@ -498,7 +498,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 10,
       "comments": true,
       "series": "Zustand Guide",
       "seriesOrder": 4,
@@ -523,7 +523,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 3.5,
       "comments": true,
       "series": "Zustand Guide",
       "seriesOrder": 5,
@@ -548,7 +548,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 1,
+      "readingTime": 2,
       "comments": true,
       "series": "Zustand Guide",
       "seriesOrder": 1,
@@ -1354,7 +1354,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2670&auto=format&fit=crop",
-      "readingTime": 1,
+      "readingTime": 3,
       "comments": true,
       "series": "",
       "seriesOrder": 0,
@@ -1382,7 +1382,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=2673&auto=format&fit=crop",
-      "readingTime": 1,
+      "readingTime": 8,
       "comments": true,
       "series": "",
       "seriesOrder": 0,
@@ -1408,7 +1408,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=2670&auto=format&fit=crop",
-      "readingTime": 1,
+      "readingTime": 1.5,
       "comments": true,
       "series": "",
       "seriesOrder": 0,
@@ -1435,7 +1435,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=2688&auto=format&fit=crop",
-      "readingTime": 1,
+      "readingTime": 3,
       "comments": true,
       "series": "",
       "seriesOrder": 0,
@@ -1463,7 +1463,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=2938&auto=format&fit=crop",
-      "readingTime": 1,
+      "readingTime": 5.5,
       "comments": true,
       "series": "",
       "seriesOrder": 0,
@@ -1507,7 +1507,8 @@
       "order": 10,
       "draft": false,
       "toc": true,
-      "version": "v1.2"
+      "version": "v1.2",
+      "readingTime": 2.5
     },
     {
       "slug": "2-guides/installation",
@@ -1518,7 +1519,8 @@
       "order": 20,
       "draft": false,
       "toc": true,
-      "version": "v1.0"
+      "version": "v1.0",
+      "readingTime": 3
     },
     {
       "slug": "2-guides/setting-up-disqus-comments",
@@ -1529,7 +1531,8 @@
       "order": 21,
       "draft": false,
       "toc": true,
-      "version": "v1.0"
+      "version": "v1.0",
+      "readingTime": 6
     },
     {
       "slug": "2-guides/code-blocks",
@@ -1540,7 +1543,8 @@
       "order": 25,
       "draft": false,
       "toc": true,
-      "version": "v1.0"
+      "version": "v1.0",
+      "readingTime": 4
     },
     {
       "slug": "2-guides/mdx-components",
@@ -1551,7 +1555,8 @@
       "order": 30,
       "draft": false,
       "toc": true,
-      "version": "v1.1"
+      "version": "v1.1",
+      "readingTime": 13.5
     },
     {
       "slug": "3-deployment/hosting",
@@ -1562,7 +1567,8 @@
       "order": 30,
       "draft": false,
       "toc": true,
-      "version": "v1.0"
+      "version": "v1.0",
+      "readingTime": 3.5
     },
     {
       "slug": "4-troubleshooting",
@@ -1573,7 +1579,8 @@
       "order": 40,
       "draft": false,
       "toc": true,
-      "version": ""
+      "version": "",
+      "readingTime": 1
     },
     {
       "slug": "4-troubleshooting/build-errors",
@@ -1584,7 +1591,8 @@
       "order": 41,
       "draft": false,
       "toc": true,
-      "version": ""
+      "version": "",
+      "readingTime": 2
     },
     {
       "slug": "4-troubleshooting/content-routing",
@@ -1595,7 +1603,8 @@
       "order": 42,
       "draft": false,
       "toc": true,
-      "version": ""
+      "version": "",
+      "readingTime": 3
     },
     {
       "slug": "4-troubleshooting/styling-dark-mode",
@@ -1606,7 +1615,8 @@
       "order": 44,
       "draft": false,
       "toc": true,
-      "version": ""
+      "version": "",
+      "readingTime": 3
     },
     {
       "slug": "4-troubleshooting/performance",
@@ -1617,7 +1627,8 @@
       "order": 45,
       "draft": false,
       "toc": true,
-      "version": ""
+      "version": "",
+      "readingTime": 2.5
     },
     {
       "slug": "5-author/author-schema",
@@ -1628,7 +1639,8 @@
       "order": 50,
       "draft": false,
       "toc": true,
-      "version": "v1.0"
+      "version": "v1.0",
+      "readingTime": 1
     },
     {
       "slug": "6-project-status",
@@ -1639,7 +1651,8 @@
       "order": 60,
       "draft": false,
       "toc": true,
-      "version": ""
+      "version": "",
+      "readingTime": 4
     }
   ]
 }

@@ -30,9 +30,9 @@ function openSearch() {
 }
 
 const NAV_LINKS = [
-  { href: '/blog', label: 'Blog' },
-  { href: '/docs', label: 'Docs' },
-  { href: '/about', label: 'About' },
+  { href: '/blog', label: 'Blog', icon: Rss },
+  { href: '/docs', label: 'Docs', icon: BookOpen },
+  { href: '/about', label: 'About', icon: Info },
 ]
 
 export function Navbar() {
@@ -71,15 +71,34 @@ export function Navbar() {
 
           {/* Desktop nav links */}
           <nav className="hidden md:flex ml-4 flex-1 gap-1">
-            {NAV_LINKS.map(({ href, label }) => (
-              <Link
-                key={href}
-                to={href}
-                className="px-3.5 py-1.5 rounded-md text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                {label}
-              </Link>
-            ))}
+            {NAV_LINKS.map(({ href, label, icon: Icon }) => {
+              const isActive = location.pathname === href ||
+                (href !== '/' && location.pathname.startsWith(href))
+              return (
+                <Link
+                  key={href}
+                  to={href}
+                  className={`group relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'text-brand-600 dark:text-brand-400'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  }`}
+                >
+                  {isActive && (
+                    <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-brand-500" />
+                  )}
+                  <Icon
+                    size={16}
+                    className={`transition-all duration-200 ${
+                      isActive
+                        ? 'text-brand-500'
+                        : 'group-hover:scale-110 group-hover:text-brand-500'
+                    }`}
+                  />
+                  {label}
+                </Link>
+              )
+            })}
           </nav>
 
           {/* Right side: github + search + theme toggle + hamburger */}
@@ -159,20 +178,25 @@ export function Navbar() {
           style={{ maxHeight: mobileMenuOpen ? '400px' : '0', opacity: mobileMenuOpen ? 1 : 0 }}
         >
           <nav className="flex flex-col p-4 gap-1">
-            {NAV_LINKS.map(({ href, label }) => (
+            {NAV_LINKS.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 to={href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[0.95rem] font-medium transition-colors ${
+                className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-[0.95rem] font-medium transition-colors ${
                   location.pathname.startsWith(href)
                     ? 'bg-primary/10 text-primary'
                     : 'text-foreground hover:bg-accent'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {label === 'Blog' && <Rss size={18} />}
-                {label === 'Docs' && <BookOpen size={18} />}
-                {label === 'About' && <Info size={18} />}
+                <Icon
+                  size={18}
+                  className={`transition-all duration-200 ${
+                    location.pathname.startsWith(href)
+                      ? 'text-primary'
+                      : 'group-hover:scale-110 group-hover:text-brand-500'
+                  }`}
+                />
                 {label}
               </Link>
             ))}

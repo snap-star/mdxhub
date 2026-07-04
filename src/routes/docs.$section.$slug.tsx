@@ -8,7 +8,7 @@ import { PrevNextNav } from '@/components/docs/PrevNextNav'
 import { TableOfContents } from '@/components/blog/TableOfContents'
 import { useActiveHeading } from '@/hooks/useActiveHeading'
 
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Clock } from 'lucide-react'
 import { EditOnGitHub } from '@/components/common/EditOnGitHub'
 import { getGitHubEditUrl } from '@/lib/github'
 import { MobileTocSheet } from '@/components/blog/MobileTocSheet'
@@ -112,7 +112,7 @@ export default function DocPage() {
     throw new Response("Not Found", { status: 404, statusText: "The requested documentation page could not be found." })
   }
 
-  const { title, description, section, version, toc } = doc
+  const { title, description, section, version, toc, readingTime } = doc
 
   // Find prev/next docs within the same section or globally based on order
   const currentIndex = docs.findIndex(d => d.slug === fullSlug)
@@ -139,11 +139,17 @@ export default function DocPage() {
           <h1 className="text-4xl font-bold tracking-tight leading-tight m-0">
             {title}
           </h1>
-          {version && (
-            <div className="mt-2">
+          <div className="flex items-center gap-3 mt-2 shrink-0">
+            {readingTime && (
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground" title="Estimated Reading Time">
+                <Clock size={14} className="opacity-70" />
+                <span>{readingTime < 1 ? '< 1 min' : `${Math.round(readingTime)} min read`}</span>
+              </span>
+            )}
+            {version && (
               <VersionBadge version={version} />
-            </div>
-          )}
+            )}
+          </div>
         </div>
         {description && (
           <p className="text-lg text-muted-foreground mt-4 leading-relaxed">

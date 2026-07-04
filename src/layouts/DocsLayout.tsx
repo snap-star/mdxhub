@@ -22,6 +22,18 @@ export function DocsLayout() {
   const isMobileSidebarOpen = useNavigationStore((s) => s.isMobileSidebarOpen)
   const closeMobileSidebar = useNavigationStore((s) => s.closeMobileSidebar)
 
+  // Lock background scroll when the mobile sidebar is open
+  React.useEffect(() => {
+    if (isMobileSidebarOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileSidebarOpen])
+
   return (
     <div className="docs-theme" style={{ minHeight: 'calc(100vh - 64px)' }}>
       <div className="docs-layout">
@@ -43,13 +55,16 @@ export function DocsLayout() {
         <aside
           className="docs-sidebar-mobile"
           style={{
-            position: 'fixed',
+            position: 'absolute',
             top: 0,
             left: 0,
             width: '280px',
-            height: '100%',
+            height: '100dvh',
             zIndex: 50,
             overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-y',
+            overscrollBehavior: 'contain',
             transform: isMobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
             transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
           }}

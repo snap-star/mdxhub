@@ -12,9 +12,24 @@ const catConfig = siteConfig as unknown as { siteUrl: string }
 
 export default function BlogCategory() {
   const { name } = useParams()
+  const status = useContentStore((s) => s.status)
   const allPosts = useContentStore((s) => s.posts)
   const posts = React.useMemo(() => allPosts.filter((p) => p.category === name), [allPosts, name])
   const categories = React.useMemo(() => [...new Set(allPosts.map((p) => p.category))], [allPosts])
+
+  // Wait for the content store to finish loading before deciding whether to redirect.
+  // Without this check, an empty `posts` array (initial state) triggers an early redirect
+  // to /blog, causing "Transition was skipped" errors in production.
+  if (status === 'idle' || status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading content…</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!name || (!categories.includes(name) && posts.length === 0)) {
     return <Navigate to="/blog" replace />
@@ -38,7 +53,7 @@ export default function BlogCategory() {
         ]}
       />
       <div className="mb-6 sm:mb-8">
-        <Breadcrumbs items={[{ label: 'Blog', href: '/blog' }, { label: 'Category' }, { label: name }]} />
+        <Breadcrumbs items={[{ label: 'Blog', href: '/blog' }, { label: 'Category', href: '/blog/category' }, { label: name }]} />
       </div>
 
       <header className="mb-8 sm:mb-12">

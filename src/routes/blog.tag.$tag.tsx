@@ -12,9 +12,22 @@ const tagConfig = siteConfig as unknown as { siteUrl: string }
 
 export default function BlogTag() {
   const { tag } = useParams()
+  const status = useContentStore((s) => s.status)
   const allPosts = useContentStore((s) => s.posts)
   const posts = React.useMemo(() => allPosts.filter((p) => p.tags.includes(tag ?? '')), [allPosts, tag])
   const tags = React.useMemo(() => [...new Set(allPosts.flatMap((p) => p.tags))], [allPosts])
+
+  // Wait for the content store to finish loading before deciding whether to redirect.
+  if (status === 'idle' || status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading content…</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!tag || (!tags.includes(tag) && posts.length === 0)) {
     return <Navigate to="/blog" replace />
@@ -39,7 +52,7 @@ export default function BlogTag() {
       />
       <main>
         <div className="mb-6 sm:mb-8">
-          <Breadcrumbs items={[{ label: 'Blog', href: '/blog' }, { label: 'Tag' }, { label: `#${tag}` }]} />
+          <Breadcrumbs items={[{ label: 'Blog', href: '/blog' }, { label: 'Tags', href: '/blog/tags' }, { label: `#${tag}` }]} />
         </div>
 
         <header className="mb-8 sm:mb-12">

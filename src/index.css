@@ -320,9 +320,12 @@ body {
   padding: 1rem 0;
 }
 
-/* Anchor links */
-.anchor-link { color: inherit; text-decoration: none; }
-.anchor-link:hover::after {
+/* Anchor links inside headings — must override .prose a with higher specificity */
+.prose .anchor-link {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+.prose .anchor-link:hover::after {
   content: ' #';
   color: var(--color-brand-400);
   font-weight: 400;

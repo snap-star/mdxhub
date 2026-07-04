@@ -2,6 +2,7 @@ import React from 'react'
 import { useContentStore } from '@/store/contentStore'
 import { CardGrid, Card } from '@/components/mdx/CardGrid'
 import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
+import { BackToTop } from '@/components/blog/BackToTop'
 import { SEO } from '@/components/common/SEO'
 import { breadcrumbListJsonLd } from '@/lib/seo/jsonld'
 import siteConfig from '../../site.config.json'
@@ -87,6 +88,7 @@ export default function BlogCategoryIndex() {
           ))}
         </CardGrid>
       )}
+      <BackToTop />
     </div>
   )
 }
