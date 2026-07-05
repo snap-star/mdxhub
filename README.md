@@ -1,6 +1,6 @@
 # MDX Hub ✍️
 
-![MDXHub](./public/mdxhub.png)
+![MDXHub](./public/mdxhubv1.5.4-blog.png)
 
 <p align="center">
   <a href="CONTRIBUTING.md">
@@ -12,6 +12,8 @@
   <a href="SECURITY.md">
     <img src="https://img.shields.io/badge/security-policy-1f73b7?style=flat&logo=security" alt="Security policy" />
   </a>
+  <a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub?ref=badge_shield&issueType=license" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub.svg?type=shield&issueType=license"/></a>
+  <a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub?ref=badge_shield&issueType=security" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub.svg?type=shield&issueType=security"/></a>
 </p>
 
 <p align="center">
@@ -454,3 +456,4 @@ Add a `public/_redirects` file or `netlify.toml` with:
 ## 📜 License
 
 MIT License. Created with ❤️ by [snap-star](https://github.com/snap-star).
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub.svg?type=large&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub?ref=badge_large&issueType=license)

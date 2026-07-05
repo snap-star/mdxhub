@@ -76,7 +76,7 @@
 
 /* Sidebar nav items */
 .sidebar-section-title {
-  font-size: 0.7rem;
+  font-size: var(--text-xs); /* Upgraded from 0.7rem static */
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -84,11 +84,12 @@
   padding: 0.75rem 0.5rem 0.25rem;
   margin-top: 0.5rem;
 }
+/* Document links formatting */
 .sidebar-link {
   display: block;
   padding: 0.4rem 0.75rem;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: var(--text-sm); /* Upgraded from 0.875rem static */
   color: var(--color-slate-600);
   text-decoration: none;
   transition: background 0.12s, color 0.12s;
@@ -141,7 +142,7 @@
   font-size: 0.8rem;
 }
 .toc-title {
-  font-size: 0.7rem;
+  font-size: var(--text-xs); /* Upgraded from 0.7rem static */
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -157,6 +158,7 @@
   transition: color 0.12s, border-color 0.12s;
   line-height: 1.4;
   margin-bottom: 2px;
+  font-size: var(--text-sm); /* Unified table of content link scale bases */
 }
 .toc-link:hover { color: var(--color-brand-600); border-color: var(--color-brand-300); }
 .toc-link.active {
@@ -234,7 +236,7 @@
   border-radius: var(--radius-lg);
   border-left: 4px solid;
   margin: 1.5rem 0;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 .callout-note    { background: oklch(93% 0.030 245 / 0.6); border-color: var(--color-brand-400); color: var(--color-brand-800); }
 .callout-tip     { background: oklch(93% 0.12 145 / 0.4);  border-color: var(--color-success);   color: oklch(38% 0.15 145); }
