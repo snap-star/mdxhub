@@ -7,8 +7,11 @@ import { loadContentIndex, loadSlugMap } from '@/lib/content/contentIndex'
 import { matchesSlugOrFilename } from '@/lib/utils'
 
 // ─── Glob imports (kept for lazy per-route loading) ────────────────────────
-const blogModules = import.meta.glob<MDXBlogModule>('/content/blog/**/*.{md,mdx}')
-const docModules = import.meta.glob<MDXDocModule>('/content/docs/**/*.{md,mdx}')
+const blogModules = import.meta.glob<MDXBlogModule>('/content/blog/**/*.{md,mdx}', { 
+  eager: false, })
+const docModules = import.meta.glob<MDXDocModule>('/content/docs/**/*.{md,mdx}', { 
+  eager: false, })
+// add eager to prevent vite from tree shaking the modules, we want to lazy load them on demand
 
 // ─── Store State ──────────────────────────────────────────────────────────
 

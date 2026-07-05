@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router'
 import { ArrowRight, ExternalLink } from 'lucide-react'
 import { ICON_MAP } from '@/lib/icon-map'
 
@@ -75,28 +76,18 @@ export function CardGrid({ columns = 3, children }: CardGridProps) {
       {cards.map((card, index) => {
         const IconComponent = card.icon ? ICON_MAP[card.icon] : null
         const isLink = !!card.href
-        const Wrapper = isLink ? 'a' : 'div'
-        const wrapperProps = isLink
-          ? {
-              href: card.href,
-              target: (card.href?.startsWith('http') ? '_blank' : undefined) as React.HTMLAttributeAnchorTarget | undefined,
-              rel: card.href?.startsWith('http') ? 'noopener noreferrer' : undefined,
-            }
-          : {}
+        const isExternalLink = card.href?.startsWith('http') ?? false
+        const cardClassName = `
+          group relative flex flex-col rounded-xl border border-border bg-card p-5 sm:p-6
+          transition-all duration-200 no-underline
+          ${isLink
+            ? 'cursor-pointer hover:border-brand-400/50 hover:shadow-md hover:shadow-brand-500/5 hover:-translate-y-0.5'
+            : ''
+          }
+        `
 
-        return (
-          <Wrapper
-            key={index}
-            {...wrapperProps}
-            className={`
-              group relative flex flex-col rounded-xl border border-border bg-card p-5 sm:p-6
-              transition-all duration-200
-              ${isLink
-                ? 'cursor-pointer hover:border-brand-400/50 hover:shadow-md hover:shadow-brand-500/5 hover:-translate-y-0.5'
-                : ''
-              }
-            `}
-          >
+        const cardContent = (
+          <>
             {/* Icon */}
             {IconComponent && (
               <div className="mb-3.5 flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary shrink-0 transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
@@ -116,7 +107,7 @@ export function CardGrid({ columns = 3, children }: CardGridProps) {
 
             {/* Optional children (additional content) */}
             {card.content && (
-              <div className="mt-3 text-sm text-foreground/70 leading-relaxed [&>:first-child]:mt-0 [&>p]:mb-2 [&>p:last-child]:mb-0">
+              <div className="mt-3 text-sm text-foreground/70 leading-relaxed *:first:mt-0 [&>p]:mb-2 [&>p:last-child]:mb-0">
                 {card.content}
               </div>
             )}
@@ -125,14 +116,43 @@ export function CardGrid({ columns = 3, children }: CardGridProps) {
             {isLink && (
               <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-primary transition-all duration-200 group-hover:gap-2.5">
                 <span>{card.linkText || 'Learn more'}</span>
-                {card.href?.startsWith('http') ? (
+                {isExternalLink ? (
                   <ExternalLink size={14} className="shrink-0" />
                 ) : (
                   <ArrowRight size={14} className="shrink-0" />
                 )}
               </div>
             )}
-          </Wrapper>
+          </>
+        )
+
+        if (isLink && !isExternalLink) {
+          return (
+            <Link key={index} to={card.href!} className={cardClassName} style={{ textDecoration: 'none' }}>
+              {cardContent}
+            </Link>
+          )
+        }
+
+        if (isLink) {
+          return (
+            <a
+              key={index}
+              href={card.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cardClassName}
+              style={{ textDecoration: 'none' }}
+            >
+              {cardContent}
+            </a>
+          )
+        }
+
+        return (
+          <div key={index} className={cardClassName}>
+            {cardContent}
+          </div>
         )
       })}
     </div>

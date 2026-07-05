@@ -31,10 +31,11 @@ export function getSlugFilename(slug: string): string {
 export function matchesSlugOrFilename(slug: string, currentSlug: string): boolean {
   return slug === currentSlug || getSlugFilename(slug) === currentSlug
 }
-
+// ─── Content asset utilities ────────────────────────────────────────────────────────────
 const contentAssetModules = import.meta.glob('../../content/**/*.{png,jpg,jpeg,gif,svg,webp,avif}', {
-  as: 'url',
-  eager: true,
+  eager: true, // Eagerly import to get the URLs at build time
+  query: '?url',
+  import: 'default',
 }) as Record<string, string>
 
 export const contentAssetMap: Record<string, string> = Object.fromEntries(
