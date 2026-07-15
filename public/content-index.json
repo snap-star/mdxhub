@@ -1,6 +1,33 @@
 {
-  "generatedAt": "2026-07-05T14:37:12.971Z",
+  "generatedAt": "2026-07-15T18:15:14.526Z",
   "posts": [
+    {
+      "slug": "demo-timeline-component",
+      "title": "Timeline Component — Full Showcase & Documentation",
+      "description": "A complete guide to the new Timeline MDX component — covering all variants, icons, colors, nested content, and real-world examples.",
+      "date": "2026-07-15",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Showcase",
+      "tags": [
+        "timeline",
+        "components",
+        "mdx",
+        "documentation",
+        "demo"
+      ],
+      "draft": false,
+      "featured": true,
+      "coverImage": "",
+      "readingTime": 6,
+      "comments": true,
+      "series": "",
+      "seriesOrder": 0,
+      "cc": "",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
     {
       "slug": "javascript/the-complete-guide-to-javascript",
       "title": "The Complete Guide to JavaScript",
@@ -1508,7 +1535,7 @@
       "draft": false,
       "toc": true,
       "version": "v1.2",
-      "readingTime": 2.5
+      "readingTime": 3
     },
     {
       "slug": "2-guides/installation",
@@ -1535,6 +1562,18 @@
       "readingTime": 6
     },
     {
+      "slug": "2-guides/setting-up-newsletter",
+      "title": "Setting Up EmailOctopus Newsletter: A Complete Guide",
+      "description": "How to set up and configure the EmailOctopus newsletter subscription system in this MDX-powered blog platform — from signup to live subscription form, success feedback, and per-post visibility.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 22,
+      "draft": false,
+      "toc": true,
+      "version": "v1.1",
+      "readingTime": 9
+    },
+    {
       "slug": "2-guides/code-blocks",
       "title": "Code Blocks Guide",
       "description": "Comprehensive guide to using fenced code blocks with Shiki syntax highlighting, line numbers, diff annotations, highlights, and focus mode.",
@@ -1549,14 +1588,14 @@
     {
       "slug": "2-guides/mdx-components",
       "title": "MDX Components Reference",
-      "description": "Complete reference for all globally available MDX components — Tabs, Steps, Mermaid, Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, CodeSandbox, Accordion, and the image lightbox.",
+      "description": "Complete reference for all globally available MDX components — Tabs, Steps, Mermaid, Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, CodeSandbox, Accordion, CardGrid, CodeGroup, Timeline, and NewsletterSubscribe.",
       "section": "2. Guides",
       "sectionSlug": "2-guides",
       "order": 30,
       "draft": false,
       "toc": true,
-      "version": "v1.1",
-      "readingTime": 13.5
+      "version": "v1.2",
+      "readingTime": 17.5
     },
     {
       "slug": "3-deployment/hosting",
@@ -1652,7 +1691,7 @@
       "draft": false,
       "toc": true,
       "version": "",
-      "readingTime": 4
+      "readingTime": 5.5
     }
   ]
 }

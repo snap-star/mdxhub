@@ -186,7 +186,7 @@ export default function DocPage() {
       </main>
 
       {toc !== false && (
-        <div className="docs-toc sticky top-[100px] self-start hidden xl:block pr-2 max-h-[calc(100vh-140px)] overflow-y-auto">
+        <div className="docs-toc sticky top-[100px] self-start hidden lg:block pr-2 max-h-[calc(100vh-140px)] overflow-y-auto">
           <TableOfContents items={headings} activeId={activeId} />
         </div>
       )}

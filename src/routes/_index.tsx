@@ -15,6 +15,7 @@ import {
 import siteConfig from '../../site.config.json'
 import { version as pkgVersion } from '../../package.json'
 import type { PostIndexEntry } from '@/lib/content/contentIndex';
+import { SectionBackground } from '@/components/common/SectionBackground'
 
 const config = siteConfig as unknown as { siteUrl: string; description: string; githubUrl: string }
 
@@ -62,9 +63,9 @@ function Section({ children, className = '' }: { children: React.ReactNode; clas
       ref={ref}
       animate={{
         opacity: isInView ? 1 : 0,
-        y: isInView ? 0 : 24,
+        y: isInView ? 0 : 20,
       }}
-      transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
       className={className}
     >
       {children}
@@ -72,7 +73,7 @@ function Section({ children, className = '' }: { children: React.ReactNode; clas
   )
 }
 
-// ─── Decorative floating orbs ──────────────────────────────────────────
+// ─── Decorative floating orbs (enhanced) ───────────────────────────────
 
 const ORB_GRADIENTS = [
   'oklch(0.65 0.18 260 / 0.15), oklch(0.55 0.12 270 / 0.05), transparent',
@@ -92,9 +93,12 @@ function FloatingOrbs({ count = 3 }: { count?: number }) {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
       {positions.slice(0, count).map((pos, i) => (
-        <div
+        <motion.div
           key={i}
           className="absolute rounded-full will-change-transform"
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, delay: i * 0.15, ease: [0.4, 0, 0.2, 1] }}
           style={{
             top: pos.top,
             left: pos.left,
@@ -109,13 +113,89 @@ function FloatingOrbs({ count = 3 }: { count?: number }) {
       ))}
       <style>{`
         @keyframes float-orb {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -20px) scale(1.05); }
-          66% { transform: translate(-15px, 15px) scale(0.95); }
-          100% { transform: translate(20px, -10px) scale(1.02); }
+          0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+          33% { transform: translate(35px, -20px) scale(1.04) rotate(4deg); }
+          66% { transform: translate(-15px, 18px) scale(0.96) rotate(-2deg); }
+          100% { transform: translate(25px, -10px) scale(1.02) rotate(2deg); }
         }
       `}</style>
     </div>
+  )
+}
+
+// ─── Floating code symbols for hero ────────────────────────────────────
+
+const CODE_SYMBOLS = ['{ }', '</>', '#', '//', '=>', '...', '()', '[]']
+
+function FloatingSymbols() {
+  const positions = [
+    { top: '12%', left: '8%', delay: 0 },
+    { top: '20%', right: '12%', delay: 1 },
+    { bottom: '25%', left: '15%', delay: 2 },
+    { top: '55%', right: '8%', delay: 0.5 },
+    { bottom: '15%', right: '20%', delay: 1.5 },
+    { top: '40%', left: '5%', delay: 2.5 },
+    { top: '70%', left: '25%', delay: 3 },
+    { bottom: '40%', right: '5%', delay: 0.8 },
+  ]
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+      {positions.slice(0, 6).map((pos, i) => (
+        <motion.span
+          key={i}
+          className="absolute font-mono text-xs sm:text-sm font-bold select-none"
+          style={{
+            top: pos.top,
+            left: pos.left,
+            right: (pos as { right?: string }).right,
+            bottom: (pos as { bottom?: string }).bottom,
+            color: `oklch(0.7 0.12 ${240 + i * 15} / 0.15)`,
+          }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{
+            opacity: [0, 0.15, 0.1, 0.2, 0.08],
+            y: [0, -8, 4, -4, 0],
+          }}
+          transition={{
+            duration: 10,
+            delay: pos.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          {CODE_SYMBOLS[i % CODE_SYMBOLS.length]}
+        </motion.span>
+      ))}
+    </div>
+  )
+}
+
+// ─── Scroll indicator ──────────────────────────────────────────────────
+
+function ScrollIndicator() {
+  return (
+    <motion.div
+      className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 1.2, duration: 0.35 }}
+    >
+      <span className="text-[0.55rem] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
+        Scroll
+      </span>
+      <motion.div
+        className="w-4 h-6 rounded-full border border-muted-foreground/20 flex items-start justify-center pt-1"
+        animate={{ opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      >
+        <motion.div
+          className="w-1 h-1.5 rounded-full bg-brand-500"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -128,7 +208,7 @@ function SectionDivider() {
     <motion.div
       ref={ref}
       animate={{ opacity: isInView ? 0.8 : 0 }}
-      transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       className="relative h-24 sm:h-32 overflow-hidden"
       aria-hidden="true"
     >
@@ -162,12 +242,12 @@ function useAnimatedCounter(end: number, duration = 1500) {
 function StatCard({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   const animatedValue = useAnimatedCounter(value)
   return (
-    <div className="flex flex-col items-center gap-2 p-6 rounded-2xl bg-card/50 border border-border/60 backdrop-blur-sm">
-      <div className="text-primary/70">{icon}</div>
+    <div className="group flex flex-col items-center gap-2 p-6 rounded-2xl bg-card/50 border border-border/60 backdrop-blur-sm hover:bg-card/80 hover:border-brand-400/30 hover:shadow-lg hover:shadow-brand-500/5 transition-all duration-300">
+      <div className="text-primary/70 group-hover:text-primary group-hover:scale-110 transition-all duration-300">{icon}</div>
       <span className="text-3xl sm:text-4xl font-bold text-foreground tabular-nums">
         {animatedValue}
       </span>
-      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">{label}</span>
     </div>
   )
 }
@@ -194,7 +274,7 @@ function AnimatedCard({ post, index }: { post: PostIndexEntry; index: number }) 
     <motion.div
       ref={ref}
       animate={{ opacity: inView ? 1 : 0, y: inView ? 0 : 20 }}
-      transition={{ duration: 0.5, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.35, delay: index * 0.08, ease: [0.4, 0, 0.2, 1] }}
     >
       <PostCard post={post} index={index} />
     </motion.div>
@@ -230,25 +310,58 @@ export default function HomePage() {
 
   return (
     <div className="overflow-hidden">
+      <style>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }          .animate-gradient {
+          animation: gradient 5s ease infinite;
+        }
+      `}</style>
       <SEO
         title="Home"
         description={config.description || 'A blazingly fast documentation and blog platform built with React, Vite, and MDX.'}
       />
 
       {/* ──────── HERO ──────── */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-        {/* Decorative background blobs — parallax at different speeds for depth */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+        {/* Animated gradient mesh background */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <ParallaxLayer speed={0.25} className="absolute inset-0">
-            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-brand-400/20 via-brand-500/10 to-transparent blur-3xl" />
+            <motion.div
+              className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full blur-3xl"
+              style={{ background: 'oklch(0.65 0.18 260 / 0.15), oklch(0.55 0.12 270 / 0.05)' }}
+              animate={{
+                x: [0, 40, -20, 30, 0],
+                y: [0, -30, 20, -10, 0],
+              }}
+              transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut' }}
+            />
           </ParallaxLayer>
           <ParallaxLayer speed={0.12} className="absolute inset-0">
-            <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-tl from-blue-500/15 via-purple-500/10 to-transparent blur-3xl" />
+            <motion.div
+              className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full blur-3xl"
+              style={{ background: 'oklch(0.6 0.15 230 / 0.12), oklch(0.55 0.1 280 / 0.06)' }}
+              animate={{
+                x: [0, -25, 15, -30, 0],
+                y: [0, 15, -25, 8, 0],
+              }}
+              transition={{ duration: 35, repeat: Infinity, ease: 'easeInOut' }}
+            />
           </ParallaxLayer>
           <ParallaxLayer speed={0.05} className="absolute inset-0">
-            <div className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-gradient-to-br from-amber-400/10 to-transparent blur-3xl" />
+            <motion.div
+              className="absolute top-[35%] right-[20%] w-[35%] h-[35%] rounded-full blur-3xl"
+              style={{ background: 'oklch(0.7 0.15 80 / 0.1), oklch(0.65 0.12 10 / 0.04)' }}
+              animate={{
+                x: [0, 15, -8, 20, 0],
+                y: [0, -12, 20, -5, 0],
+              }}
+              transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+            />
           </ParallaxLayer>
-          {/* Grid pattern overlay — moves with page */}
+          {/* Dot grid pattern */}
           <div
             className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
             style={{
@@ -256,92 +369,138 @@ export default function HomePage() {
               backgroundSize: '40px 40px',
             }}
           />
+          {/* Floating code symbols */}
+          <FloatingSymbols />
         </div>
 
         <ParallaxLayer speed={-0.03} className="relative z-10 w-full">
         <div className="max-w-[900px] mx-auto px-4 sm:px-6 text-center py-20">
-          {/* Brand badge */}
+          {/* Version badge with enhanced styling */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-            className="mb-6"
+            initial={{ opacity: 0, y: -10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            className="mb-8"
           >
-            <Badge variant="indigo" icon="sparkles" className="text-[0.875rem] leading-[1.2rem]">{siteConfig.title} v{pkgVersion}</Badge>
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 dark:bg-brand-500/15 border border-brand-500/20 dark:border-brand-500/25 text-brand-700 dark:text-brand-300 text-sm font-medium shadow-sm">
+              <span className="flex h-2 w-2 relative">
+                <span className="absolute inset-0 rounded-full bg-brand-500 animate-ping opacity-30" />
+                <span className="relative rounded-full bg-brand-500 h-2 w-2" />
+              </span>
+              {siteConfig.title} v{pkgVersion}
+            </span>
           </motion.div>
 
-          {/* Headline */}
+          {/* Headline — enhanced gradient animation */}
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-6"
+            transition={{ duration: 0.45, delay: 0.12, ease: [0.4, 0, 0.2, 1] }}
+            className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.08] tracking-tight mb-6"
           >
             Write content in{' '}
-            <span className="bg-gradient-to-r from-brand-400 via-brand-500 to-blue-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-400 via-brand-500 via-purple-500 to-blue-500 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
               Markdown
             </span>
             ,<br />
-            ship with React.
+            <span className="relative">
+              ship with React.
+              <motion.span
+                className="absolute -bottom-1 left-0 right-0 h-[3px] rounded-full bg-gradient-to-r from-brand-400/40 via-brand-500/40 to-blue-500/40"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.55, duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
+              />
+            </span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: 0.35, delay: 0.18, ease: [0.4, 0, 0.2, 1] }}
             className="text-lg sm:text-xl text-muted-foreground max-w-[650px] mx-auto mb-10 leading-relaxed"
           >
             MDXHub is a blazingly fast blog and documentation platform.
             Write in Markdown, embed React components, and deploy anywhere.
           </motion.p>
 
-          {/* CTA buttons */}
+          {/* CTA buttons — enhanced with glow effects */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.35, delay: 0.26, ease: [0.4, 0, 0.2, 1] }}
             className="flex flex-wrap items-center justify-center gap-4"
           >
             <Link
               to="/blog"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-200"
+              className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
             >
-              Explore Blog <ArrowRight size={18} />
+              <span className="relative z-10 flex items-center gap-2">
+                Explore Blog <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+              <motion.span
+                className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary via-brand-600 to-primary"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '0%' }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              />
             </Link>
             <Link
               to="/docs"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-foreground font-semibold hover:bg-accent hover:border-brand-400/50 transition-all duration-200"
+              className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl border-2 border-border bg-card text-foreground font-semibold hover:bg-accent hover:border-brand-400/60 hover:shadow-lg hover:shadow-brand-500/10 transition-all duration-300"
             >
-              Read Docs <BookOpen size={18} />
+              Read Docs <BookOpen size={18} className="transition-transform duration-300 group-hover:translate-x-0.5" />
             </Link>
             <a
               href={config.githubUrl || 'https://github.com/snap-star/mdxhub'}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-muted-foreground hover:text-foreground transition-colors duration-200"
+              className="group inline-flex items-center gap-2 px-5 py-3 rounded-xl text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-card/50"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
               </svg>
-              <span>Star on GitHub</span>
+              <span>Star</span>
             </a>
           </motion.div>
 
-          {/* Stats row */}
+          {/* Stats row — staggered entrance */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-[700px] mx-auto"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.06, delayChildren: 0.38 },
+              },
+            }}
+            className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-[700px] mx-auto"
           >
-            <StatCard label="Posts" value={loaded ? posts.length : 0} icon={<FileText size={18} />} />
-            <StatCard label="Docs" value={loaded ? docs.length : 0} icon={<BookOpen size={18} />} />
-            <StatCard label="Categories" value={loaded ? categories.length : 0} icon={<Search size={18} />} />
-            <StatCard label="Tags" value={loaded ? tags.length : 0} icon={<Star size={18} />} />
+            {[
+              { label: 'Posts', value: loaded ? posts.length : 0, icon: <FileText size={18} /> },
+              { label: 'Docs', value: loaded ? docs.length : 0, icon: <BookOpen size={18} /> },
+              { label: 'Categories', value: loaded ? categories.length : 0, icon: <Search size={18} /> },
+              { label: 'Tags', value: loaded ? tags.length : 0, icon: <Star size={18} /> },
+            ].map((stat) => (
+              <motion.div
+                key={stat.label}
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.95 },
+                  visible: { opacity: 1, y: 0, scale: 1 },
+                }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <StatCard label={stat.label} value={stat.value} icon={stat.icon} />
+              </motion.div>
+            ))}
           </motion.div>
         </div>
         </ParallaxLayer>
+
+        {/* Scroll indicator */}
+        <ScrollIndicator />
       </section>
 
       {/* Subtle section divider */}
@@ -349,33 +508,94 @@ export default function HomePage() {
 
       {/* ──────── TECH STACK ──────── */}
       <Section className="py-20 sm:py-28 relative overflow-hidden">
+        <SectionBackground variant="tech" />
         <FloatingOrbs count={2} />
         <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
+          <motion.h2
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3 }}
+            className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground mb-6"
+          >
             Built With
-          </h2>
-          <div className="flex flex-wrap justify-center gap-3">
+          </motion.h2>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.04 },
+              },
+            }}
+            className="flex flex-wrap justify-center gap-3"
+          >
             {TECH_STACK.map(({ name, color }) => (
-              <Badge key={name} variant={color}>{name}</Badge>
+              <motion.div
+                key={name}
+                variants={{
+                  hidden: { opacity: 0, y: 12, scale: 0.9 },
+                  visible: { opacity: 1, y: 0, scale: 1 },
+                }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+              >
+                <Badge variant={color}>{name}</Badge>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </Section>
 
       {/* ──────── FEATURES ──────── */}
-      <Section className="py-20 sm:py-28 bg-gradient-to-b from-transparent via-brand-50/30 dark:via-[oklch(22%_0.04_245/0.3)] to-transparent">
+      <Section className="py-20 sm:py-28 relative overflow-hidden">
+        <SectionBackground variant="features" />
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
           <div className="text-center mb-14">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+            transition={{ duration: 0.3 }}
+          >
             <Badge variant="info" icon="zap">Features</Badge>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold mt-6 mb-4 tracking-tight">
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.08, ease: [0.4, 0, 0.2, 1] }}
+              className="font-serif text-3xl sm:text-4xl font-bold mt-6 mb-4 tracking-tight"
+            >
               Everything you need to ship content
-            </h2>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-[600px] mx-auto">
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: 0.14 }}
+              className="text-muted-foreground text-base sm:text-lg max-w-[600px] mx-auto"
+            >
               MDXHub combines the simplicity of Markdown with the power of React — no compromises.
-            </p>
+            </motion.p>
+            {/* Decorative divider */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              className="h-px max-w-[200px] mx-auto mt-8 bg-gradient-to-r from-transparent via-brand-400/50 to-transparent"
+            />
           </div>
 
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.4, delay: 0.12 }}
+          >
             <CardGrid columns={3}>
               <Card
                 title="Lightning Fast"
@@ -408,7 +628,7 @@ export default function HomePage() {
                 icon="heart"
               />
             </CardGrid>
-          </div>
+          </motion.div>
         </div>
       </Section>
 
@@ -417,50 +637,126 @@ export default function HomePage() {
 
       {/* ──────── COMPONENT SHOWCASE ──────── */}
       <Section className="py-20 sm:py-28 relative overflow-hidden">
+        <SectionBackground variant="showcase" />
         <FloatingOrbs count={3} />
         <div className="relative z-10 max-w-[900px] mx-auto px-4 sm:px-6">
           <div className="text-center mb-14">
-            <Badge variant="success" icon="sparkles">Live Component Demo</Badge>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold mt-6 mb-4 tracking-tight">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4 }}
+            >
+              <Badge variant="success" icon="sparkles">Live Component Demo</Badge>
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.08, ease: [0.4, 0, 0.2, 1] }}
+              className="font-serif text-3xl sm:text-4xl font-bold mt-6 mb-4 tracking-tight"
+            >
               See our MDX components in action
-            </h2>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-[600px] mx-auto">
-              Every component below is available globally in any `.mdx` file — no imports needed.
-            </p>
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: 0.14 }}
+              className="text-muted-foreground text-base sm:text-lg max-w-[600px] mx-auto"
+            >
+              Every component below is available globally in any <code className="text-sm bg-muted px-1.5 py-0.5 rounded">.mdx</code> file — no imports needed.
+            </motion.p>
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              className="h-px max-w-[200px] mx-auto mt-8 bg-gradient-to-r from-transparent via-brand-400/50 to-transparent"
+            />
           </div>
 
           {/* Callout demo */}
-          <div className="mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.35, delay: 0.08 }}
+            className="mb-12"
+          >
             <Callout type="info" title="What is MDXHub?">
               MDXHub is an open-source blog and documentation platform that lets you write content in Markdown
               and use React components inline. It's built with <strong>React 19</strong>, <strong>Vite 8</strong>,
               and <strong>Tailwind CSS 4</strong>, and features interactive components like live code sandboxes,
               diagrams, tabs, and accordions — all usable directly in your Markdown files.
             </Callout>
-          </div>
+          </motion.div>
 
           {/* Badge wall */}
-          <div className="mb-12 p-6 rounded-xl border border-border bg-card">
-            <h3 className="text-sm font-semibold text-foreground mb-4">40+ Icon Options</h3>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="success" icon="check">Check</Badge>
-              <Badge variant="info" icon="info">Info</Badge>
-              <Badge variant="warning" icon="warning">Warning</Badge>
-              <Badge variant="danger" icon="danger">Danger</Badge>
-              <Badge variant="purple" icon="star">Star</Badge>
-              <Badge variant="rose" icon="heart">Heart</Badge>
-              <Badge variant="amber" icon="bulb">Idea</Badge>
-              <Badge variant="emerald" icon="rocket">Rocket</Badge>
-              <Badge variant="indigo" icon="sparkles">New</Badge>
-              <Badge variant="blue" icon="target">Goal</Badge>
-              <Badge variant="orange" icon="flag">Flag</Badge>
-              <Badge variant="sky" icon="cloud">Cloud</Badge>
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.35, delay: 0.12 }}
+            className="mb-12 p-6 rounded-xl border border-border bg-card hover:shadow-md hover:border-brand-400/30 transition-all duration-300"
+          >
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="w-1 h-4 rounded-full bg-brand-500" />
+              40+ Icon Options
+            </h3>
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.03 },
+                },
+              }}
+              className="flex flex-wrap gap-2"
+            >
+              {[
+                { variant: 'success' as const, icon: 'check' as const, label: 'Check' },
+                { variant: 'info' as const, icon: 'info' as const, label: 'Info' },
+                { variant: 'warning' as const, icon: 'warning' as const, label: 'Warning' },
+                { variant: 'danger' as const, icon: 'danger' as const, label: 'Danger' },
+                { variant: 'purple' as const, icon: 'star' as const, label: 'Star' },
+                { variant: 'rose' as const, icon: 'heart' as const, label: 'Heart' },
+                { variant: 'amber' as const, icon: 'bulb' as const, label: 'Idea' },
+                { variant: 'emerald' as const, icon: 'rocket' as const, label: 'Rocket' },
+                { variant: 'indigo' as const, icon: 'sparkles' as const, label: 'New' },
+                { variant: 'blue' as const, icon: 'target' as const, label: 'Goal' },
+                { variant: 'orange' as const, icon: 'flag' as const, label: 'Flag' },
+                { variant: 'sky' as const, icon: 'cloud' as const, label: 'Cloud' },
+              ].map((item) => (
+                <motion.div
+                  key={item.label}
+                  variants={{
+                    hidden: { opacity: 0, y: 8, scale: 0.95 },
+                    visible: { opacity: 1, y: 0, scale: 1 },
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Badge variant={item.variant} icon={item.icon}>{item.label}</Badge>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
 
           {/* Tabs demo */}
-          <div className="mb-12">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Tabbed Content</h3>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.35, delay: 0.16 }}
+            className="mb-12 p-6 rounded-xl border border-border bg-card hover:shadow-md hover:border-brand-400/30 transition-all duration-300"
+          >
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="w-1 h-4 rounded-full bg-brand-500" />
+              Tabbed Content
+            </h3>
             <Tabs>
               <Tab label="Markdown" icon="file">
                 <div>
@@ -487,11 +783,20 @@ export default function HomePage() {
                 </div>
               </Tab>
             </Tabs>
-          </div>
+          </motion.div>
 
           {/* Accordion FAQ */}
-          <div className="mb-8">
-            <h3 className="text-sm font-semibold text-foreground mb-4">FAQ</h3>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.35, delay: 0.2 }}
+            className="mb-8"
+          >
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="w-1 h-4 rounded-full bg-brand-500" />
+              FAQ
+            </h3>
             <Accordion>
               <AccordionItem title="Is MDXHub ready for production?">
                 <div>
@@ -528,74 +833,146 @@ export default function HomePage() {
                 </div>
               </AccordionItem>
             </Accordion>
-          </div>
+          </motion.div>
         </div>
       </Section>
 
       {/* ──────── LATEST POSTS ──────── */}
       {loaded && (featuredPosts.length > 0 || latestPosts.length > 0) && (
-        <Section className="py-20 sm:py-28 bg-gradient-to-b from-transparent via-brand-50/30 dark:via-[oklch(22%_0.04_245/0.3)] to-transparent">
+        <Section className="py-20 sm:py-28 relative overflow-hidden">
+        <SectionBackground variant="posts" />
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
             <div className="text-center mb-14">
-              <Badge variant="violet" icon="sparkles">Latest Content</Badge>
-              <h2 className="font-serif text-3xl sm:text-4xl font-bold mt-6 mb-4 tracking-tight">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}              transition={{ duration: 0.3 }}
+          >
+            <Badge variant="violet" icon="sparkles">Latest Content</Badge>
+              </motion.div>
+              <motion.h2
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.08, ease: [0.4, 0, 0.2, 1] }}
+                className="font-serif text-3xl sm:text-4xl font-bold mt-6 mb-4 tracking-tight"
+              >
                 Recent posts
-              </h2>
-              <p className="text-muted-foreground text-base sm:text-lg">
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 0.14 }}
+                className="text-muted-foreground text-base sm:text-lg"
+              >
                 Stay up to date with the latest articles, tutorials, and guides.
-              </p>
+              </motion.p>
+              <motion.div
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                className="h-px max-w-[200px] mx-auto mt-8 bg-gradient-to-r from-transparent via-brand-400/50 to-transparent"
+              />
             </div>
 
             {/* Featured posts */}
             {featuredPosts.length > 0 && (
               <div className="mb-12">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {featuredPosts.map((post, i) => (
-                    <AnimatedCard key={post.slug} post={post} index={i} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 rounded-xl">
+                  {featuredPosts.map((post, _i) => (
+                    <AnimatedCard key={post.slug} post={post} index={_i} />
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="text-center mt-10">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.35, delay: 0.18 }}
+              className="text-center mt-10"
+            >
               <Link
                 to="/blog"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-foreground font-medium hover:bg-accent hover:border-brand-400/50 transition-all duration-200"
+                className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-border bg-card text-foreground font-medium hover:bg-accent hover:border-brand-400/50 hover:shadow-lg hover:shadow-brand-500/10 transition-all duration-300"
               >
-                View All Posts <ArrowRight size={16} />
+                View All Posts <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
-            </div>
+            </motion.div>
           </div>
         </Section>
       )}
 
       {/* ──────── FINAL CTA ──────── */}
-      <Section className="py-20 sm:py-28 relative overflow-hidden">
+      <Section className="py-24 sm:py-32 relative overflow-hidden">
+        <SectionBackground variant="cta" />
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute top-[-30%] left-[-20%] w-[80%] h-[80%] rounded-full bg-gradient-to-br from-brand-400/15 via-brand-500/5 to-transparent blur-3xl" />
+          <div
+            className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
+              backgroundSize: '40px 40px',
+            }}
+          />
         </div>
         <div className="relative z-10 max-w-[700px] mx-auto px-4 sm:px-6 text-center">
-          <Badge variant="indigo" icon="rocket">Get Started</Badge>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold mt-6 mb-4 tracking-tight">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3 }}
+          >
+            <Badge variant="indigo" icon="rocket">Get Started</Badge>
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.08, ease: [0.4, 0, 0.2, 1] }}
+            className="font-serif text-3xl sm:text-4xl font-bold mt-6 mb-4 tracking-tight"
+          >
             Ready to ship your content?
-          </h2>
-          <p className="text-muted-foreground text-base sm:text-lg mb-10 max-w-[500px] mx-auto">
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3, delay: 0.14 }}
+            className="text-muted-foreground text-base sm:text-lg mb-10 max-w-[500px] mx-auto"
+          >
             Start writing in Markdown, embed React components, and deploy anywhere. No database required.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.35, delay: 0.18 }}
+            className="flex flex-wrap items-center justify-center gap-4"
+          >
             <Link
               to="/docs"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-200"
+              className="group relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
             >
-              Read the Docs <BookOpen size={18} />
+              <span className="relative z-10 flex items-center gap-2">
+                Read the Docs <BookOpen size={18} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+              </span>
+              <motion.span
+                className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary via-brand-600 to-primary"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '0%' }}
+                transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              />
             </Link>
             <Link
               to="/blog"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-foreground font-medium hover:bg-accent hover:border-brand-400/50 transition-all duration-200"
+              className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-xl border-2 border-border bg-card text-foreground font-medium hover:bg-accent hover:border-brand-400/60 hover:shadow-lg hover:shadow-brand-500/10 transition-all duration-300"
             >
-              Browse Blog <ArrowRight size={18} />
+              Browse Blog <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
-          </div>
+          </motion.div>
         </div>
       </Section>
     </div>

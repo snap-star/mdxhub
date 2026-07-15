@@ -20,12 +20,18 @@ import { ShareButtons } from '@/components/blog/ShareButtons'
 import { EditOnGitHub } from '@/components/common/EditOnGitHub'
 import { getGitHubEditUrl } from '@/lib/github'
 import { DisqusComments } from '@/components/blog/DisqusComments'
+import { NewsletterSubscribe } from '@/components/blog/NewsletterSubscribe'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
 import { SeriesNav } from '@/components/blog/SeriesNav'
 import { BookOpen, ChevronRight } from 'lucide-react'
 import siteConfig from '../../site.config.json'
 
-const config = siteConfig as unknown as { siteUrl: string; defaultImage: string; githubUrl: string }
+const config = siteConfig as unknown as {
+  siteUrl: string
+  defaultImage: string
+  githubUrl: string
+  newsletter?: { actionUrl: string }
+}
 import { MobileTocSheet } from '@/components/blog/MobileTocSheet'
 import { setTocData } from '@/lib/tocStore'
 import { useContentHeadings } from '@/hooks/useContentHeadings'
@@ -313,6 +319,9 @@ export default function BlogPost() {
               />
             </div>
           )}
+
+          {/* Newsletter subscribe card */}
+          <NewsletterSubscribe actionUrl={config.newsletter?.actionUrl} />
 
           <PostPagination
             prevPost={prevPost ?? undefined}

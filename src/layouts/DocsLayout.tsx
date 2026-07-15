@@ -1,9 +1,11 @@
 import React, { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router'
-import { AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createPortal } from 'react-dom'
 import { PageTransition } from '@/components/transitions/PageTransition'
 import { DocsSidebar } from '@/components/docs/DocsSidebar'
 import { useNavigationStore } from '@/store/navigationStore'
+import { X } from 'lucide-react'
 import '@/styles/docs.css'
 
 function DocsSkeleton() {
@@ -34,44 +36,19 @@ export function DocsLayout() {
     }
   }, [isMobileSidebarOpen])
 
+  // Close on Escape key
+  React.useEffect(() => {
+    if (!isMobileSidebarOpen) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMobileSidebar()
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [isMobileSidebarOpen, closeMobileSidebar])
+
   return (
     <div className="docs-theme" style={{ minHeight: 'calc(100vh - 64px)' }}>
       <div className="docs-layout">
-        {/* Mobile sidebar overlay backdrop */}
-        {isMobileSidebarOpen && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'oklch(0% 0 0 / 0.5)',
-              zIndex: 40,
-              backdropFilter: 'blur(4px)',
-            }}
-            onClick={closeMobileSidebar}
-          />
-        )}
-
-        {/* Mobile slide-in drawer */}
-        <aside
-          className="docs-sidebar-mobile"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '280px',
-            height: '100dvh',
-            zIndex: 50,
-            overflowY: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            touchAction: 'pan-y',
-            overscrollBehavior: 'contain',
-            transform: isMobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.3s cubic-bezier(0.4,0,0.2,1)',
-          }}
-        >
-          <DocsSidebar />
-        </aside>
-
         {/* Desktop sidebar — hidden on mobile via CSS */}
         <aside className="docs-sidebar" style={{ zIndex: 30 }}>
           <DocsSidebar />
@@ -86,6 +63,62 @@ export function DocsLayout() {
           </PageTransition>
         </AnimatePresence>
       </div>
+
+      {/* Mobile sidebar backdrop + drawer — portaled to document.body for reliable fixed positioning */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {isMobileSidebarOpen && (
+              <>
+                {/* Backdrop overlay */}
+                <motion.div
+                  key="backdrop"
+                  className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={closeMobileSidebar}
+                />
+
+                {/* Mobile slide-in drawer */}
+                <motion.aside
+                  key="drawer"
+                  className="docs-sidebar-mobile fixed top-0 left-0 z-50 w-[280px] h-dvh flex flex-col"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '-100%' }}
+                  transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                  style={{
+                    WebkitOverflowScrolling: 'touch',
+                    touchAction: 'pan-y',
+                    overscrollBehavior: 'contain',
+                  }}
+                >
+                  {/* Close button (floating top-right) */}
+                  <div className="flex justify-end px-3 pt-3 shrink-0">
+                    <button
+                      onClick={closeMobileSidebar}
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      aria-label="Close sidebar"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  {/* Sidebar content — DocsSidebar owns its own header */}
+                  <div className="flex-1 overflow-y-auto px-3 pb-6">
+                    <DocsSidebar />
+                  </div>
+
+                  {/* Bottom safe-area spacer */}
+                  <div className="h-4 shrink-0" />
+                </motion.aside>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </div>
   )
 }

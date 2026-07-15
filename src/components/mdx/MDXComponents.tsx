@@ -20,6 +20,7 @@ import { CodeSandbox } from './CodeSandbox'
 import { Accordion, AccordionItem } from './Accordion'
 import { CardGrid, Card } from './CardGrid'
 import { CodeGroup } from './CodeGroup'
+import { Timeline, TimelineItem } from './Timeline'
 
 // ─── MDX Image Component (separate component so hooks aren't called in a render function) ──
 
@@ -109,4 +110,6 @@ export const MDXComponents = {
   CardGrid,
   Card,
   CodeGroup,
+  Timeline,
+  TimelineItem,
 }

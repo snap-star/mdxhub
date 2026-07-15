@@ -34,6 +34,16 @@ This project now includes several content and routing improvements based on the 
 - **Inline YAML array parsing**: Tags can use inline array syntax (`tags: ["react", "mdx"]`) in addition to the indented list format. Both work correctly.
 - **Dev watch script**: Run `npm run dev:watch` alongside the dev server to auto-regenerate `content-index.json`, RSS, and sitemap on every content file save — no full rebuild needed.
 - **Lazy-loaded Disqus comments**: The Disqus comment section uses a lazy-loading pattern with `IntersectionObserver` — the embed script is only loaded when the user scrolls near the comments, keeping initial page load fast.
+- **Blog Sort & View Controls**: Blog posts can now be sorted by Recent or Date Posted with Ascending/Descending toggle, and displayed as Cards or a new horizontal List view. Controls are synced across the main blog index, category pages, and tag pages.
+- **Blog List View**: A new horizontal list layout for blog posts with a 70/30 text-to-thumbnail split, segmented pill metadata badges (category, tags, date, reading time, comments), an active hover indicator, and a dedicated chevron block for posts without cover images.
+- **Persisted Blog Preferences**: Sort mode, sort order, and view mode preferences are saved to `localStorage` via Zustand's `persist` middleware. Settings survive page reloads and browser restarts under the `mdx-blog-prefs` storage key.
+- **Timeline Component**: New `<Timeline>` and `<TimelineItem>` MDX components for creating chronological timelines with date labels, icons, and color variants (brand, success, warning, danger, info).
+- **Shared `useBlogPosts` Hook**: Extracted duplicate sort/view/pagination logic from three blog route files into a single `useBlogPosts(posts)` hook in `src/hooks/`. Reduces code duplication and centralizes sorting, slicing, and reset behavior.
+- **Featured Badge Redesign**: The featured post badge now uses a frosted glass style with a red flame icon. On hover, the background fills with solid red and text turns white — replacing the previous gradient and glow effects.
+- **Soft Hover Fill on List Items**: The post list view's hover effect changed from a blue gradient vertical bar to a soft primary-tinted background fill that scales in from the left — matching the sidebar category hover pattern.
+- **Newsletter Subscribe Card**: A premium subscription card (`<NewsletterSubscribe />`) rendered automatically in blog post footers with gradient design, email input, and animated success feedback.
+- **Newsletter Configuration via site.config.json**: The newsletter endpoint is configured centrally in `site.config.json` under the `newsletter.actionUrl` field — no code changes needed.
+- **Animated Subscription Success**: After submitting the newsletter form, a Framer Motion animated success state replaces the form with a green checkmark and the subscribed email address, plus a "Change email" reset option.
 
 ## 🚧 Project Limitations
 
