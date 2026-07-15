@@ -1,7 +1,9 @@
 import React from 'react'
 import { useParams, Navigate } from 'react-router'
 import { useContentStore } from '@/store/contentStore'
+import { useBlogPosts } from '@/hooks/useBlogPosts'
 import { PostGrid } from '@/components/blog/PostGrid'
+import { CategoryFilter } from '@/components/blog/CategoryFilter'
 import { TagCloud } from '@/components/blog/TagCloud'
 import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
 import { SEO } from '@/components/common/SEO'
@@ -15,7 +17,23 @@ export default function BlogTag() {
   const status = useContentStore((s) => s.status)
   const allPosts = useContentStore((s) => s.posts)
   const posts = React.useMemo(() => allPosts.filter((p) => p.tags.includes(tag ?? '')), [allPosts, tag])
+  const categories = React.useMemo(() => [...new Set(allPosts.map((p) => p.category))], [allPosts])
   const tags = React.useMemo(() => [...new Set(allPosts.flatMap((p) => p.tags))], [allPosts])
+
+  // ── Sort, View, Pagination (shared hook) ───────────────────────
+  const {
+    sortedPosts,
+    visiblePosts,
+    visibleCount,
+    setVisibleCount,
+    sortMode,
+    sortOrder,
+    viewMode,
+    setSortMode,
+    setSortOrder,
+    setViewMode,
+    handleReset,
+  } = useBlogPosts(posts)
 
   // Wait for the content store to finish loading before deciding whether to redirect.
   if (status === 'idle' || status === 'loading') {
@@ -60,11 +78,35 @@ export default function BlogTag() {
             #{tag}
           </h1>
           <p className="text-muted-foreground text-base sm:text-lg">
-            {posts.length} post{posts.length === 1 ? '' : 's'} tagged with &ldquo;{tag}&rdquo;.
+            {sortedPosts.length} post{sortedPosts.length === 1 ? '' : 's'} tagged with &ldquo;{tag}&rdquo;.
           </p>
         </header>
 
-        <PostGrid posts={posts} />
+        <div className="mb-8 sm:mb-12">
+          <CategoryFilter
+            categories={categories}
+            sortMode={sortMode}
+            sortOrder={sortOrder}
+            viewMode={viewMode}
+            onSortChange={setSortMode}
+            onOrderChange={setSortOrder}
+            onViewChange={setViewMode}
+            onReset={handleReset}
+          />
+        </div>
+
+        <PostGrid posts={visiblePosts} viewMode={viewMode} />
+
+        {visibleCount < sortedPosts.length && (
+          <div className="mt-12 flex justify-center">
+            <button
+              onClick={() => setVisibleCount((v) => v + 6)}
+              className="px-6 py-2.5 rounded-full border border-border bg-card text-foreground font-medium shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-brand-300 transition-all active:scale-95"
+            >
+              Load More Posts
+            </button>
+          </div>
+        )}
       </main>
 
       <aside className="tag-page-aside sticky top-[100px] self-start">

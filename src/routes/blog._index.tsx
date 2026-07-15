@@ -1,45 +1,59 @@
 import React from 'react'
 import { useContentStore } from '@/store/contentStore'
+import { useBlogPosts } from '@/hooks/useBlogPosts'
 import { PostGrid } from '@/components/blog/PostGrid'
 import { CategoryFilter } from '@/components/blog/CategoryFilter'
 import { TagCloud } from '@/components/blog/TagCloud'
 import { SidebarCategories } from '@/components/blog/SidebarCategories'
 import { SponsorCard } from '@/components/blog/SponsorCard'
+import { NewsletterSubscribe } from '@/components/blog/NewsletterSubscribe'
 import { SEO } from '@/components/common/SEO'
 import { breadcrumbListJsonLd } from '@/lib/seo/jsonld'
 import siteConfig from '../../site.config.json'
 import { Info } from 'lucide-react'
 
-const blogConfig = siteConfig as unknown as { siteUrl: string }
+const blogConfig = siteConfig as unknown as { siteUrl: string; newsletter?: { actionUrl: string } }
 
 export default function BlogIndex() {
-  const posts = useContentStore((s) => s.posts)
-  const categories = React.useMemo(() => [...new Set(posts.map((p) => p.category))], [posts])
-  const tags = React.useMemo(() => [...new Set(posts.flatMap((p) => p.tags))], [posts])
+  const allPosts = useContentStore((s) => s.posts)
+  const categories = React.useMemo(() => [...new Set(allPosts.map((p) => p.category))], [allPosts])
+  const tags = React.useMemo(() => [...new Set(allPosts.flatMap((p) => p.tags))], [allPosts])
 
-  const [visibleCount, setVisibleCount] = React.useState(6)
-  const visiblePosts = React.useMemo(() => posts.slice(0, visibleCount), [posts, visibleCount])
+  // ── Sort, View, Pagination (shared hook) ───────────────────────
+  const {
+    sortedPosts,
+    visiblePosts,
+    visibleCount,
+    setVisibleCount,
+    sortMode,
+    sortOrder,
+    viewMode,
+    setSortMode,
+    setSortOrder,
+    setViewMode,
+    handleReset,
+  } = useBlogPosts(allPosts)
 
   // Calculate category frequencies
   const categoryCounts = React.useMemo(() => {
     const counts: Record<string, number> = {}
-    posts.forEach((p) => {
+    allPosts.forEach((p) => {
       const cat = p.category
       counts[cat] = (counts[cat] || 0) + 1
     })
     return counts
-  }, [posts])
+  }, [allPosts])
 
   // Calculate tag frequencies
   const tagCounts = React.useMemo(() => {
     const counts: Record<string, number> = {}
-    posts.forEach((p) => {
+    allPosts.forEach((p) => {
       p.tags.forEach((tag) => {
         counts[tag] = (counts[tag] || 0) + 1
       })
     })
     return counts
-  }, [posts])
+  }, [allPosts])
 
   return (
     <div>
@@ -86,22 +100,26 @@ export default function BlogIndex() {
             <a href={siteConfig.hero?.imageCredit?.url || ''} target="_blank" rel="noopener noreferrer" className="hover:text-brand-foreground hover:bg-brand-600 rounded-md transition-colors">{siteConfig.hero?.imageCredit?.text || ''}</a>
           </span>
         </div>
-
-        {/* Click indicator */}
-        {/* <div className="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <span className="text-xs text-white">Click to view fullscreen</span>
-        </div> */}
       </section>
 
       {/* Main Content */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 sm:py-12 grid blog-index-grid gap-8 sm:gap-12">
         <main className="min-w-0">
           <div className="mb-6 sm:mb-8">
-            <CategoryFilter categories={categories} />
+            <CategoryFilter
+              categories={categories}
+              sortMode={sortMode}
+              sortOrder={sortOrder}
+              viewMode={viewMode}
+              onSortChange={setSortMode}
+              onOrderChange={setSortOrder}
+              onViewChange={setViewMode}
+              onReset={handleReset}
+            />
           </div>
-          <PostGrid posts={visiblePosts} />
+          <PostGrid posts={visiblePosts} viewMode={viewMode} />
 
-          {visibleCount < posts.length && (
+          {visibleCount < sortedPosts.length && (
             <div className="mt-12 flex justify-center">
               <button
                 onClick={() => setVisibleCount((v) => v + 6)}
@@ -117,7 +135,7 @@ export default function BlogIndex() {
           <div className="sticky top-[100px] flex flex-col gap-2">
             
             {/* Featured Posts Widget */}
-            {posts.filter(p => p.featured).length > 0 && (
+            {allPosts.filter(p => p.featured).length > 0 && (
               <div className="mb-6 rounded-2xl border border-border bg-card/80 backdrop-blur-md shadow-sm overflow-hidden p-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2 m-0 mb-4">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
@@ -126,7 +144,7 @@ export default function BlogIndex() {
                   Featured Posts
                 </h3>
                 <div className="flex flex-col gap-3">
-                  {posts.filter(p => p.featured).slice(0, 3).map(post => (
+                  {allPosts.filter(p => p.featured).slice(0, 3).map(post => (
                     <div key={post.slug} className="group relative">
                       <a href={`/blog/${post.slug}`} className="absolute inset-0 z-10" aria-label={`Read ${post.title}`}></a>
                       <div className="flex gap-3 items-center p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors">
@@ -152,6 +170,7 @@ export default function BlogIndex() {
 
             <SidebarCategories categoryCounts={categoryCounts} />
             <TagCloud tags={tags} tagCounts={tagCounts} />
+            <NewsletterSubscribe actionUrl={blogConfig.newsletter?.actionUrl} compact />
             <SponsorCard />
           </div>
         </aside>

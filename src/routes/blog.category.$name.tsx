@@ -1,6 +1,7 @@
 import React from 'react'
 import { useParams, Navigate } from 'react-router'
 import { useContentStore } from '@/store/contentStore'
+import { useBlogPosts } from '@/hooks/useBlogPosts'
 import { PostGrid } from '@/components/blog/PostGrid'
 import { CategoryFilter } from '@/components/blog/CategoryFilter'
 import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
@@ -16,6 +17,21 @@ export default function BlogCategory() {
   const allPosts = useContentStore((s) => s.posts)
   const posts = React.useMemo(() => allPosts.filter((p) => p.category === name), [allPosts, name])
   const categories = React.useMemo(() => [...new Set(allPosts.map((p) => p.category))], [allPosts])
+
+  // ── Sort, View, Pagination (shared hook) ───────────────────────
+  const {
+    sortedPosts,
+    visiblePosts,
+    visibleCount,
+    setVisibleCount,
+    sortMode,
+    sortOrder,
+    viewMode,
+    setSortMode,
+    setSortOrder,
+    setViewMode,
+    handleReset,
+  } = useBlogPosts(posts)
 
   // Wait for the content store to finish loading before deciding whether to redirect.
   // Without this check, an empty `posts` array (initial state) triggers an early redirect
@@ -61,15 +77,36 @@ export default function BlogCategory() {
           {name}
         </h1>
         <p className="text-muted-foreground text-base sm:text-lg">
-          {posts.length} post{posts.length === 1 ? '' : 's'} in this category.
+          {sortedPosts.length} post{sortedPosts.length === 1 ? '' : 's'} in this category.
         </p>
       </header>
 
       <div className="mb-8 sm:mb-12">
-        <CategoryFilter categories={categories} activeCategoryParam={name} />
+        <CategoryFilter
+          categories={categories}
+          activeCategoryParam={name}
+          sortMode={sortMode}
+          sortOrder={sortOrder}
+          viewMode={viewMode}
+          onSortChange={setSortMode}
+          onOrderChange={setSortOrder}
+          onViewChange={setViewMode}
+          onReset={handleReset}
+        />
       </div>
 
-      <PostGrid posts={posts} />
+      <PostGrid posts={visiblePosts} viewMode={viewMode} />
+
+      {visibleCount < sortedPosts.length && (
+        <div className="mt-12 flex justify-center">
+          <button
+            onClick={() => setVisibleCount((v) => v + 6)}
+            className="px-6 py-2.5 rounded-full border border-border bg-card text-foreground font-medium shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-brand-300 transition-all active:scale-95"
+          >
+            Load More Posts
+          </button>
+        </div>
+      )}
     </div>
   )
 }

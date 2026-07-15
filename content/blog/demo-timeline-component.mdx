@@ -1,0 +1,556 @@
+---
+title: "Timeline Component — Full Showcase & Documentation"
+date: "2026-07-15"
+category: "Showcase"
+tags: ["timeline", "components", "mdx", "documentation", "demo"]
+author: chigusa-asuha
+description: "A complete guide to the new Timeline MDX component — covering all variants, icons, colors, nested content, and real-world examples."
+featured: true
+---
+
+The `<Timeline>` component renders a vertical, chronological timeline with connecting lines, optional icons, and color-coded dots — perfect for project histories, roadmaps, release notes, career highlights, and step-by-step progressions.
+
+Every `TimelineItem` is a data container — rendering and layout is handled by the parent `<Timeline>`.
+
+---
+
+## 1. Basic Usage
+
+The simplest timeline with just titles and content:
+
+<Timeline>
+<TimelineItem title="Project Kickoff">
+<div>
+
+Initial planning session with stakeholders. Defined the project scope, timeline, and resource allocation.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Design Phase">
+<div>
+
+Created wireframes and high-fidelity mockups. Conducted user research and iterated on the design based on feedback.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Development Sprint">
+<div>
+
+Implemented core features using React 19 and Vite 8. Set up the CI/CD pipeline and automated testing.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Launch">
+<div>
+
+Deployed to production. Monitored metrics and resolved initial issues. Celebrated with the team!
+
+</div>
+</TimelineItem>
+</Timeline>
+
+````mdx
+<Timeline>
+  <TimelineItem title="Project Kickoff">
+    <div>
+
+Initial planning session with stakeholders.
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="Design Phase">
+    <div>
+
+Created wireframes and high-fidelity mockups.
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="Development Sprint">
+    <div>
+
+Implemented core features using React 19 and Vite 8.
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="Launch">
+    <div>
+
+Deployed to production.
+
+    </div>
+  </TimelineItem>
+</Timeline>
+````
+
+---
+
+## 2. With Date/Time Labels
+
+Add a `time` prop to show dates or time labels beside each dot:
+
+<Timeline>
+<TimelineItem title="Research & Discovery" time="Jan 2026">
+<div>
+
+Conducted competitor analysis and identified key market opportunities. Interviewed 20 potential users to validate the concept.
+
+</div>
+</TimelineItem>
+<TimelineItem title="MVP Development" time="Feb–Apr 2026">
+<div>
+
+Built the minimum viable product with core functionality. Set up the infrastructure and deployed to a staging environment.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Beta Testing" time="May 2026">
+<div>
+
+Opened beta to a closed group of 100 testers. Collected feedback and fixed critical issues.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Public Release" time="Jun 2026">
+<div>
+
+Launched to the public. Reached 1,000 users in the first week.
+
+</div>
+</TimelineItem>
+</Timeline>
+
+````mdx
+<Timeline>
+  <TimelineItem title="Research & Discovery" time="Jan 2026">
+    <div>Conducted competitor analysis...</div>
+  </TimelineItem>
+  <TimelineItem title="MVP Development" time="Feb–Apr 2026">
+    <div>Built the minimum viable product...</div>
+  </TimelineItem>
+  <TimelineItem title="Beta Testing" time="May 2026">
+    <div>Opened beta to 100 testers...</div>
+  </TimelineItem>
+  <TimelineItem title="Public Release" time="Jun 2026">
+    <div>Launched to the public...</div>
+  </TimelineItem>
+</Timeline>
+````
+
+---
+
+## 3. With Icons
+
+Use the `icon` prop with any of the [40+ icon names](/blog/demo-mdx-components#1-badge-component) to replace the dot with a lucide-react icon:
+
+<Timeline>
+<TimelineItem title="Repository Created" time="Day 1" icon="book">
+<div>
+
+Set up the project repository with TypeScript, ESLint, and automated code quality checks.
+
+</div>
+</TimelineItem>
+<TimelineItem title="CI/CD Pipeline" time="Day 2" icon="zap">
+<div>
+
+Configured GitHub Actions for continuous integration and deployment to Vercel preview environments.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Feature Complete" time="Day 5" icon="check">
+<div>
+
+All core features implemented. Code coverage above 90% across the entire codebase.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Deployed to Production" time="Day 7" icon="rocket">
+<div>
+
+Production deployment successful. Zero downtime during the cutover.
+
+</div>
+</TimelineItem>
+</Timeline>
+
+````mdx
+<Timeline>
+  <TimelineItem title="Repository Created" time="Day 1" icon="book">
+    <div>Set up the project repository...</div>
+  </TimelineItem>
+  <TimelineItem title="CI/CD Pipeline" time="Day 2" icon="zap">
+    <div>Configured GitHub Actions...</div>
+  </TimelineItem>
+  <TimelineItem title="Feature Complete" time="Day 5" icon="check">
+    <div>All core features implemented...</div>
+  </TimelineItem>
+  <TimelineItem title="Deployed to Production" time="Day 7" icon="rocket">
+    <div>Production deployment successful...</div>
+  </TimelineItem>
+</Timeline>
+````
+
+---
+
+## 4. Color Variants
+
+Use the `color` prop to change the dot color. Available variants: `brand` (default), `success`, `warning`, `danger`, `info`:
+
+<Timeline>
+<TimelineItem title="All Systems Operational" time="Status" color="success" icon="check">
+<div>
+
+All services running normally. No reported incidents in the last 30 days.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Minor Degradation Detected" time="Status" color="warning" icon="clock">
+<div>
+
+Response times increased by 200ms on the API layer. Investigation in progress.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Critical Outage" time="Status" color="danger" icon="warning">
+<div>
+
+Service unavailable for 12 minutes due to a database connection pool exhaustion.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Recovery Complete" time="Status" color="info" icon="refresh">
+<div>
+
+Issue resolved. Root cause analysis published. Monitoring enhanced.
+
+</div>
+</TimelineItem>
+</Timeline>
+
+````mdx
+<Timeline>
+  <TimelineItem title="All Systems Operational" color="success" icon="check">
+    <div>All services running normally...</div>
+  </TimelineItem>
+  <TimelineItem title="Minor Degradation" color="warning" icon="clock">
+    <div>Response times increased...</div>
+  </TimelineItem>
+  <TimelineItem title="Critical Outage" color="danger" icon="warning">
+    <div>Service unavailable for 12 minutes...</div>
+  </TimelineItem>
+  <TimelineItem title="Recovery Complete" color="info" icon="refresh">
+    <div>Issue resolved...</div>
+  </TimelineItem>
+</Timeline>
+````
+
+---
+
+## 5. Mixed Content
+
+Timeline items support any content — paragraphs, code blocks, badges, and even nested components:
+
+<Timeline>
+<TimelineItem title="Environment Setup" time="Step 1" icon="settings">
+<div>
+
+Ensure you have the required dependencies:
+
+<Badge variant="success" icon="check">Node.js 20+</Badge>
+<Badge variant="info" icon="book">pnpm 8+</Badge>
+
+```bash
+node --version  # v20.0.0 or higher
+pnpm --version   # 8.0.0 or higher
+```
+
+</div>
+</TimelineItem>
+<TimelineItem title="Installation" time="Step 2" icon="download">
+<div>
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/snap-star/mdxhub.git
+cd mdxhub
+pnpm install
+```
+
+This installs React 19, Vite 8, Tailwind CSS 4, and all MDX processing plugins.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Development" time="Step 3" icon="zap">
+<div>
+
+Start the dev server with hot module replacement:
+
+```bash
+pnpm dev
+```
+
+Open <Tooltip content="Your local development server">http://localhost:3000</Tooltip> to see the result. Edit any MDX file and watch the page update instantly.
+
+</div>
+</TimelineItem>
+</Timeline>
+
+````mdx
+<Timeline>
+  <TimelineItem title="Environment Setup" time="Step 1" icon="settings">
+    <div>
+
+Ensure you have the required dependencies:
+
+<Badge variant="success" icon="check">Node.js 20+</Badge>
+<Badge variant="info" icon="book">pnpm 8+</Badge>
+
+```bash
+node --version
+pnpm --version
+```
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="Installation" time="Step 2" icon="download">
+    <div>
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/snap-star/mdxhub.git
+cd mdxhub
+pnpm install
+```
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="Development" time="Step 3" icon="zap">
+    <div>
+
+Start the dev server:
+
+```bash
+pnpm dev
+```
+
+    </div>
+  </TimelineItem>
+</Timeline>
+````
+
+---
+
+## 6. Real-World Examples
+
+### Project Roadmap
+
+A timeline showing the phases of an open-source project:
+
+<Timeline>
+<TimelineItem title="Alpha Release" time="Q1 2026" icon="sparkles" color="brand">
+<div>
+
+First public alpha with core features:
+- Static site generation with MDX
+- Blog and documentation layouts
+- Shiki code highlighting (dual-theme)
+- Responsive design system
+
+</div>
+</TimelineItem>
+<TimelineItem title="Beta Release" time="Q2 2026" icon="star" color="info">
+<div>
+
+Beta with enhanced features:
+- Search via Fuse.js
+- Image optimization (WebP/AVIF)
+- RSS feed and sitemap generation
+- Interactive MDX components (Tabs, Steps, Accordion)
+
+</div>
+</TimelineItem>
+<TimelineItem title="Stable Release" time="Q3 2026" icon="rocket" color="success">
+<div>
+
+Production-ready stable release:
+- Performance optimizations and code splitting
+- Full SEO support (JSON-LD, Open Graph, Twitter Cards)
+- Dark mode with Discord-inspired palette
+- Timeline component (launched today!)
+
+</div>
+</TimelineItem>
+</Timeline>
+
+````mdx
+<Timeline>
+  <TimelineItem title="Alpha Release" time="Q1 2026" icon="sparkles" color="brand">
+    <div>
+
+First public alpha with core features:
+- Static site generation with MDX
+- Blog and documentation layouts
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="Beta Release" time="Q2 2026" icon="star" color="info">
+    <div>
+
+Beta with enhanced features:
+- Search via Fuse.js
+- Image optimization
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="Stable Release" time="Q3 2026" icon="rocket" color="success">
+    <div>
+
+Production-ready stable release:
+- Performance optimizations
+- Timeline component launched!
+
+    </div>
+  </TimelineItem>
+</Timeline>
+````
+
+### Learning Path
+
+A timeline showing the stages of learning web development:
+
+<Timeline>
+<TimelineItem title="HTML & CSS Fundamentals" time="Week 1–2" icon="globe" color="info">
+<div>
+
+Learn the building blocks of the web:
+- Semantic HTML structure
+- CSS layout (Flexbox, Grid)
+- Responsive design principles
+- Browser DevTools
+
+</div>
+</TimelineItem>
+<TimelineItem title="JavaScript Basics" time="Week 3–5" icon="terminal" color="brand">
+<div>
+
+Master the language of the web:
+- Variables, functions, and control flow
+- DOM manipulation and events
+- Async JavaScript (Promises, async/await)
+- ES6+ features
+
+</div>
+</TimelineItem>
+<TimelineItem title="React & Modern Frameworks" time="Week 6–10" icon="sparkles" color="warning">
+<div>
+
+Build modern user interfaces:
+- Components, props, and state
+- Hooks (useState, useEffect, custom hooks)
+- Routing with React Router
+- State management with Zustand
+
+</div>
+</TimelineItem>
+<TimelineItem title="Full-Stack & Deployment" time="Week 11–12" icon="rocket" color="success">
+<div>
+
+Take your apps to production:
+- Build tools (Vite, Webpack)
+- CI/CD pipelines
+- Static site deployment (Vercel, Netlify)
+- Performance optimization
+
+</div>
+</TimelineItem>
+</Timeline>
+
+````mdx
+<Timeline>
+  <TimelineItem title="HTML & CSS Fundamentals" time="Week 1–2" icon="globe" color="info">
+    <div>
+
+Learn the building blocks of the web:
+- Semantic HTML structure
+- CSS layout (Flexbox, Grid)
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="JavaScript Basics" time="Week 3–5" icon="terminal" color="brand">
+    <div>
+
+Master the language of the web:
+- Variables, functions, and control flow
+- DOM manipulation and events
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="React & Modern Frameworks" time="Week 6–10" icon="sparkles" color="warning">
+    <div>
+
+Build modern user interfaces:
+- Components, props, and state
+- Hooks and routing
+
+    </div>
+  </TimelineItem>
+  <TimelineItem title="Full-Stack & Deployment" time="Week 11–12" icon="rocket" color="success">
+    <div>
+
+Take your apps to production:
+- Build tools and CI/CD
+- Deployment and performance
+
+    </div>
+  </TimelineItem>
+</Timeline>
+````
+
+---
+
+## 7. Component API Reference
+
+| Prop | Component | Type | Default | Description |
+| :--- | :--- | :---: | :---: | :--- |
+| `title` | `TimelineItem` | string | — | **Required.** Heading text for the timeline entry |
+| `time` | `TimelineItem` | string | — | Optional date/time label shown in a pill badge |
+| `icon` | `TimelineItem` | string | — | Optional icon name (uses the [same icon map](/blog/demo-mdx-components#1-badge-component) as Badge — 40+ options like `zap`, `rocket`, `star`, `check`) |
+| `color` | `TimelineItem` | string | `brand` | Dot color variant: `brand`, `success`, `warning`, `danger`, `info` |
+| `children` | `TimelineItem` | ReactNode | — | Any content — paragraphs, code blocks, lists, nested components |
+
+### Hover Interactions
+
+Each timeline item has **hover effects**:
+- The dot/icon scales up to **110%** with an enhanced shadow
+- The time badge changes color to the brand accent
+- These add subtle interactivity without overwhelming the content
+
+<Callout type="tip" title="Pro Tip">
+  For the best results with code blocks inside timeline items, wrap them in a `<div>` as shown in the examples above. This ensures MDX v3 correctly parses the Markdown content and avoids rendering issues.
+</Callout>
+
+---
+
+## 8. Comparison: Timeline vs. Steps
+
+Both components display sequential content vertically, but they serve different purposes:
+
+| Aspect | `<Timeline>` | `<Steps>` |
+| :--- | :--- | :--- |
+| **Best for** | Chronological events, histories, roadmaps | Step-by-step guides, tutorials, instructions |
+| **Dot style** | Colored dot or icon (five color variants) | Numbered circle or icon (no color variants) |
+| **Time label** | ✅ `time` prop for dates | ❌ No time support |
+| **Connector** | Neutral border-colored line | Brand-colored gradient line |
+| **Emphasis** | When something happened | What to do next |
+
+**Use `<Steps>` when** you're writing a tutorial with numbered steps that users follow sequentially.
+
+**Use `<Timeline>` when** you're showing a chronological sequence of events, releases, or milestones.
+
+---
+
+<Callout type="info" title="Getting Started">
+  The Timeline component is available globally in any `.mdx` file — no import needed. Start by wrapping your items in `<Timeline>` and adding `<TimelineItem>` with at least a `title` prop. Everything else is optional!
+</Callout>

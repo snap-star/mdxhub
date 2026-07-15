@@ -29,6 +29,9 @@
       "url": "https://lh3.googleusercontent.com/u/0/d/1carcgfO9FDYU3RD5Bg4zoZBoPuaSOr4c"
     }
   },
+  "newsletter": {
+    "actionUrl": "https://mdxhub.us10.list-manage.com/subscribe/post?u=YOUR_USER_ID&id=YOUR_LIST_ID"
+  },
   "share": {
     "tagline": "Enjoyed this article?",
     "taglineSubtitle": "Share it with your community and help others discover it.",

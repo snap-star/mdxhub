@@ -41,7 +41,9 @@
       height: 0;
     }
   }
+
 }
+
 
 /* Custom variants */
 @custom-variant data-open {

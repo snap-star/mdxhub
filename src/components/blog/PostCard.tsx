@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import type { PostIndexEntry } from '@/lib/content/contentIndex'
 import { useContentStore } from '@/store/contentStore'
 import { formatDateShort } from '@/lib/utils'
-import { Clock, Calendar, ChevronRight, MessageCircle } from 'lucide-react'
+import { Clock, Calendar, ChevronRight, MessageCircle, Flame } from 'lucide-react'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
 import { SeriesBadge } from '@/components/blog/SeriesBadge'
 import { OptimizedImage } from '@/components/mdx/OptimizedImage'
@@ -68,10 +68,8 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
           </div>
           {featured && (
             <div className="absolute top-3 right-3 z-10">
-              <span className="relative inline-flex items-center gap-1.5 bg-gradient-to-br from-brand-400 via-brand-500 to-brand-600 text-white font-extrabold text-[0.6rem] uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg shadow-brand border border-brand-300/20 group-hover:shadow-xl group-hover:shadow-brand group-hover:scale-105 transition-all duration-300">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="shrink-0 drop-shadow-sm">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                </svg>
+              <span className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-white/80 dark:bg-gray-950/80 text-red-600 dark:text-red-400 font-semibold text-[0.6rem] uppercase tracking-widest shadow-lg shadow-black/5 border border-red-400/30 dark:border-red-400/40 group-hover:bg-red-500 dark:group-hover:bg-red-600 dark:group-hover:text-white group-hover:text-white group-hover:border-red-500 dark:group-hover:border-red-600 transition-all duration-300">
+                <Flame size={11} className="shrink-0" strokeWidth={2.5} />
                 Featured
               </span>
             </div>

@@ -1,0 +1,360 @@
+---
+title: "Setting Up EmailOctopus Newsletter: A Complete Guide"
+date: "2026-07-16"
+section: "2. Guides"
+author: "chigusa-asuha"
+category: "Tutorial"
+tags: ["newsletter", "emailoctopus", "subscription", "configuration", "setup"]
+description: "How to set up and configure the EmailOctopus newsletter subscription system in this MDX-powered blog platform — from signup to live subscription form, success feedback, and per-post visibility."
+order: 22
+cc: "CC-BY-4.0"
+version: "v1.1"
+---
+
+Building an email list is one of the most effective ways to grow your audience and keep readers coming back. This project ships a premium **Newsletter Subscribe** component that integrates with **EmailOctopus** (and other email marketing services) — no external API keys needed, just a form action URL.
+
+This tutorial walks you through every step, from creating an EmailOctopus account to seeing your first subscriber appear in your dashboard.
+
+---
+
+## What Is EmailOctopus?
+
+EmailOctopus is an email marketing service that offers one of the most generous **free tiers** in the industry:
+
+| Feature | Free Tier |
+| :--- | :--- |
+| Subscribers | Up to **2,500** |
+| Monthly emails | Up to **10,000** |
+| Email templates | Yes |
+| Automation | Yes (basic) |
+| API access | Yes |
+| Form embeds | Yes |
+
+Unlike Mailchimp's restrictive 500-subscriber free tier, EmailOctopus gives you room to grow before you need to upgrade — making it ideal for personal blogs, documentation sites, and side projects.
+
+<Callout type="tip" title="Alternative Providers">
+The `<NewsletterSubscribe />` component works with **any** email marketing service that accepts form POST submissions. Alternatives include [Mailchimp](https://mailchimp.com) (500 free subs), [Buttondown](https://buttondown.email) (1,000 free subs), and [ConvertKit](https://convertkit.com) (1,000 free subs). The setup steps are almost identical.
+</Callout>
+
+---
+
+## How the Newsletter Component Works
+
+Before diving into setup, here's a quick overview of the architecture:
+
+```
+[Reader fills email → clicks Subscribe]
+        │
+        ▼
+[NewsletterSubscribe component]
+        │
+        ├── Validates email (required, format check)
+        │
+        ├── Shows animated success card (CheckCircle2, "You're subscribed!")
+        │
+        └── Native form POST to EmailOctopus (opens in new tab)
+                    │
+                    ▼
+         [EmailOctopus API receives subscriber]
+                    │
+                    ▼
+         [Confirmation email sent to reader]
+```
+
+The component is **fully client-side** — no server, no API keys in your codebase. The form POSTs directly to EmailOctopus's subscription endpoint from the user's browser.
+
+---
+
+## Step 1: Create an EmailOctopus Account
+
+Head over to [emailoctopus.com](https://emailoctopus.com) and click **"Get Started Free"** at the top.
+
+You can sign up using your Google account or with an email and password. EmailOctopus will send a confirmation link to verify your email address — click it to activate your account.
+
+<Callout type="tip">
+If you already have an EmailOctopus account, skip to Step 2. You can reuse your existing list for this site.
+</Callout>
+
+## Step 2: Create a Mailing List
+
+Once logged in, you'll land on the EmailOctopus dashboard:
+
+1. **Click "Audience"** in the left sidebar
+2. **Click "Create a list"** 
+3. Fill in the list details:
+
+| Field | Example Value |
+| :--- | :--- |
+| **List name** | `MDXHub Blog Newsletter` |
+| **Default sender name** | `Chigusa Asuha` |
+| **Default sender email** | `hello@yourdomain.com` |
+| **Company / organization name** | `MDXHub` |
+| **Default subject** | `MDXHub Monthly — Your latest update` |
+
+4. Choose a **contact form** — select **"Name and email address"** (we only need the email)
+5. Configure **double opt-in** — leave this **enabled** (recommended for deliverability and legal compliance)
+6. Click **"Create"**
+
+After creation, EmailOctopus will show you your new list with a summary of settings.
+
+## Step 3: Get the Form Action URL
+
+This is the critical step. The form action URL is what the `<NewsletterSubscribe />` component POSTs to when a reader subscribes.
+
+1. From your list dashboard, click **"Signup forms"** in the left sidebar (under your list name)
+2. Click the **"Embedded forms"** tab
+3. Select the **"Classic"** form type (simplest integration)
+4. Scroll down to the section labeled **"Form action URL"**
+
+You'll see a URL that looks like this:
+
+```
+https://emailoctopus.com/lists/ABC123/forms/XYZ789/subscribe
+```
+
+<Callout type="warning" title="Important">
+The **Form action URL** is different from a regular page URL. It must end with `/subscribe`. Do **not** use the URL of your hosted signup page or a preview link. Copy the exact action URL from the "Embedded forms" section.
+</Callout>
+
+Copy this URL — you'll need it in Step 4.
+
+### Additional Form Fields (Optional)
+
+If you configured your list to collect more than just email (e.g., first name), you'll need to add hidden input fields to the form. By default, the `<NewsletterSubscribe />` component sends only the email address under the field name `EMAIL`.
+
+## Step 4: Configure `site.config.json`
+
+Open `site.config.json` at the project root and replace the placeholder `actionUrl` with the URL you copied:
+
+```json
+{
+  "newsletter": {
+    "actionUrl": "https://emailoctopus.com/lists/ABC123/forms/XYZ789/subscribe"
+  }
+}
+```
+
+<Callout type="tip">
+If you don't have a `newsletter` key yet, add it to the root of the JSON object. The `<NewsletterSubscribe />` component reads this value from `site.config.json` through the `blog.$slug.tsx` route.
+</Callout>
+
+Restart your development server (`pnpm dev`) to pick up the change.
+
+## Step 5: Verify It's Working
+
+Navigate to any blog post on your local server. Scroll to the bottom — you should see the newsletter subscription card between the Disqus comments and the post pagination:
+
+1. **The card should display** — Gradient background, Mail icon, "Stay Updated" heading, email input, and "Subscribe" button
+2. **Submit a test email** — Enter your own email address and click Subscribe
+3. **Check the success feedback** — The form should smoothly animate into a green success card with a CheckCircle icon, showing "You're subscribed!" and your email
+4. **Check EmailOctopus** — Go to your EmailOctopus dashboard → Audience → your list. You should see the test subscriber (after they confirm via double opt-in email)
+
+<Callout type="tip" title="Pro Tip">
+Use a disposable email address like `test@example.com` for initial testing. If double opt-in is enabled, check the inbox of that address and click the confirmation link.
+</Callout>
+
+If the card doesn't appear at all, double-check that:
+- `newsletter.actionUrl` in `site.config.json` is set to a real URL (not `#`)
+- The development server was restarted after editing `site.config.json`
+- You're viewing a blog post (the component only renders in the blog post footer)
+
+---
+
+## How the Component Works
+
+The `<NewsletterSubscribe />` component is a React component located at `src/components/blog/NewsletterSubscribe.tsx`. Here's what it does:
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `actionUrl` | string | `"#"` | Form POST endpoint. When `"#"`, the card **silently hides** — useful when not configured |
+| `heading` | string | `"Stay Updated"` | Card heading text |
+| `description` | string | *(see default)* | Descriptive text below the heading |
+| `placeholder` | string | `"you@example.com"` | Email input placeholder |
+| `buttonLabel` | string | `"Subscribe"` | Submit button label |
+| `onSubscribed` | function | — | Callback fired after successful submission (useful for analytics) |
+| `compact` | boolean | `false` | Compact mode for narrow containers like sidebars — stacks vertically with full-width form and smaller spacing |
+
+### Submission Flow
+
+When a reader clicks **Subscribe**:
+
+1. The email is validated (required field, basic format check via browser `type="email"`)
+2. A **Framer Motion animation** transitions the form into a **success card** with:
+   - A green `CheckCircle2` icon
+   - "You're subscribed!" heading
+   - The subscribed email address (truncated if long)
+   - A "Change email" link to reset the form
+3. Simultaneously, the native form POSTs the email to the EmailOctopus endpoint in a **new browser tab** (so the reader stays on your blog)
+4. The EmailOctopus page confirms the subscription and sends a double opt-in confirmation email
+
+### Success State
+
+```
+┌─────────────────────────────────────────┐
+│ ✓ You're subscribed!          Change    │
+│   your@email.com              email     │
+│                                         │
+│ Check your inbox to confirm your        │
+│ subscription.                           │
+└─────────────────────────────────────────┘
+```
+
+The "Change email" link resets the form so the reader can subscribe with a different address.
+
+### Design
+
+The card features:
+- **Gradient background** — from `card` to brand-tinted (`brand-50/30`)
+- **Decorative blur blobs** — subtle gradient orbs in the corners
+- **Mail icon** — in a brand-tinted rounded box with ring accent
+- **Sparkles accent** — next to the heading text
+- **Responsive layout** — stacks vertically on mobile, side-by-side on `sm+`
+- **Focus states** — branded ring on the email input
+- **Privacy note** — "No spam — unsubscribe anytime." with Shield icon
+
+---
+
+## Customizing the Card
+
+### Changing the Heading or Description
+
+The component accepts optional props. To customize, edit `src/routes/blog.$slug.tsx`:
+
+```tsx
+<NewsletterSubscribe
+  actionUrl={config.newsletter?.actionUrl}
+  heading="Join the Community"
+  description="Get notified about new tutorials and deep dives into React, MDX, and modern web development."
+  placeholder="your@email.com"
+  buttonLabel="Join"
+/>
+```
+
+### Adding Analytics Tracking
+
+The `onSubscribed` callback lets you track signups:
+
+```tsx
+<NewsletterSubscribe
+  actionUrl={config.newsletter?.actionUrl}
+  onSubscribed={(email) => {
+    // Send to your analytics
+    console.log('New subscriber:', email)
+    // Or fire a custom event
+    window.dispatchEvent(new CustomEvent('newsletter-subscribe', { detail: { email } }))
+  }}
+/>
+```
+
+### Using in Other Pages
+
+The component is **not** globally available in MDX — it's a regular React component. To use it on other pages:
+
+```tsx
+import { NewsletterSubscribe } from '@/components/blog/NewsletterSubscribe'
+
+// In your component:
+<NewsletterSubscribe actionUrl={config.newsletter?.actionUrl} />
+```
+
+### Sidebar Usage (Compact Mode)
+
+The newsletter card also appears in the **blog index sidebar** (`/blog`). Because the sidebar is only 300px wide, the component uses the `compact` prop to render a narrower, vertically-stacked version:
+
+```tsx
+// In src/routes/blog._index.tsx — sidebar section
+<NewsletterSubscribe actionUrl={config.newsletter?.actionUrl} compact />
+```
+
+In compact mode, the following adjustments are made:
+
+| Aspect | Default (Footer) | Compact (Sidebar) |
+| :--- | :--- | :--- |
+| **Layout** | Horizontal row (icon + text left, form right) | Always vertical stacking |
+| **Form width** | Minimum 280px (`sm:min-w-[280px]`) | Full width (`w-full`) |
+| **Padding** | `p-6 sm:p-8` | `p-4` |
+| **Icon size** | 22px in 48px box | 18px in 40px box |
+| **Text size** | `text-base sm:text-lg` heading | `text-sm` heading |
+| **Top margin** | `mt-12` (large, for post footer) | `mt-4` (small, for sidebar) |
+| **Decorative blobs** | Full size (h-40) | Scaled down (h-24) |
+
+The compact prop keeps the sidebar tidy and prevents the form from overflowing the 300px container — the same component, automatically adapted.
+
+---
+
+## File Reference
+
+Here is every file that participates in the newsletter integration:
+
+| File | Purpose |
+| :--- | :--- |
+| `site.config.json` | Stores `newsletter.actionUrl` (your EmailOctopus form URL) |
+| `src/components/blog/NewsletterSubscribe.tsx` | The subscription card component with success feedback |
+| `src/routes/blog.$slug.tsx` | Wire-up: renders `<NewsletterSubscribe />` in the post footer |
+| `src/routes/blog._index.tsx` | Wire-up: renders `<NewsletterSubscribe compact />` in the blog index sidebar |
+| `.env` (optional) | Alternative: store the action URL as an environment variable |
+
+---
+
+## Troubleshooting
+
+### "The newsletter card doesn't appear on my blog posts"
+
+Possible causes and fixes:
+
+1. **Missing `actionUrl`** — Open `site.config.json` and verify that `newsletter.actionUrl` is set to a real EmailOctopus URL (not `"#"`). Restart the dev server after editing.
+2. **Wrong URL format** — Ensure the URL ends with `/subscribe`. If you copied a regular page URL instead of the form action URL, go back to Step 3.
+3. **Not on a blog post** — The card only renders in the blog post footer (`/blog/:slug`), not on the blog index or category pages.
+4. **JSON syntax error** — Make sure `site.config.json` is valid JSON. A trailing comma or missing bracket will break the import.
+
+### "Submissions return a 404 error"
+
+The form action URL must point to EmailOctopus's subscriber endpoint. Verify:
+
+- You copied the URL from **"Embedded forms" → "Form action URL"**, not from the browser address bar
+- The URL ends with `/subscribe`
+- Your EmailOctopus list is active (not deleted or paused)
+
+### "The success animation doesn't show"
+
+The success state is triggered immediately on submit (before the network request completes). If it doesn't show:
+
+- Check that JavaScript is enabled
+- Open your browser console — look for errors related to Framer Motion or React
+- The `AnimatePresence` transition requires a `key` prop on the child elements (handled internally)
+
+### "Double opt-in emails not being sent"
+
+Check your EmailOctopus settings:
+
+- Go to **Audience → your list → Settings**
+- Verify **double opt-in** is enabled
+- Check that your sender email is verified (EmailOctopus sends a verification email when you first set up the list)
+
+### "Subscribers appear twice on my list"
+
+This usually happens when the form is submitted twice. The component prevents this by immediately transitioning to the success state on the first click. If duplicated entries persist, enable **double opt-in** in EmailOctopus (which prevents duplicates automatically).
+
+---
+
+## Summary
+
+Here is the complete checklist to get the newsletter running on this project:
+
+| # | Step |
+| :-: | :--- |
+| 1 | Create an EmailOctopus account at [emailoctopus.com](https://emailoctopus.com) |
+| 2 | Create a mailing list (name, sender info, double opt-in) |
+| 3 | Get the **Form action URL** from Embedded forms |
+| 4 | Add `newsletter.actionUrl` to `site.config.json` |
+| 5 | Restart `pnpm dev` |
+| 6 | Scroll to the bottom of any blog post to see the subscription card |
+| 7 | Test with your own email address |
+
+Once configured, readers can subscribe to your newsletter with one click, see animated success feedback, and receive confirmation emails — all managed through your EmailOctopus dashboard with zero additional code.
+
+<Callout type="tip" title="You're All Set">
+Your readers now have a beautiful subscription experience. The next step is to write great content that makes them want to subscribe!
+</Callout>

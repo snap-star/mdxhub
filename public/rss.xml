@@ -6,8 +6,22 @@
     <description>A blazingly fast documentation and blog platform built with React, Vite, and MDX.</description>
     <language>en</language>
     <atom:link href="https://mdxhub.vercel.app/rss.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Sun, 05 Jul 2026 14:37:13 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 15 Jul 2026 18:15:14 GMT</lastBuildDate>
     
+    <item>
+      <title>Timeline Component — Full Showcase &amp; Documentation</title>
+      <link>https://mdxhub.vercel.app/blog/demo-timeline-component</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/demo-timeline-component</guid>
+      <pubDate>Wed, 15 Jul 2026 00:00:00 GMT</pubDate>
+      <description>A complete guide to the new Timeline MDX component — covering all variants, icons, colors, nested content, and real-world examples.</description>
+      <category>Showcase</category>
+      <category>timeline</category>
+      <category>components</category>
+      <category>mdx</category>
+      <category>documentation</category>
+      <category>demo</category>
+      <author>Chigusa Asuha</author>
+    </item>
     <item>
       <title>The Complete Guide to JavaScript</title>
       <link>https://mdxhub.vercel.app/blog/javascript/the-complete-guide-to-javascript</link>
