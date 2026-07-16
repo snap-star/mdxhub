@@ -17,6 +17,8 @@ interface NewsletterSubscribeProps {
   onSubscribed?: (email: string) => void
   /** Compact mode for narrow containers like sidebars (stacks vertically, full-width form) */
   compact?: boolean
+  /** Optional className for the outer div */
+  className?: string
 }
 
 export function NewsletterSubscribe({
@@ -95,7 +97,7 @@ export function NewsletterSubscribe({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.96 }}
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }}
-              className="shrink-0 w-full"
+              className={`shrink-0 ${compact ? 'w-full' : 'w-full sm:w-auto sm:min-w-[300px]'}`}
             >
               <div className="flex flex-col items-center gap-3 rounded-xl bg-success/10 dark:bg-success/15 border border-success/25 px-4 py-3">
                 <div className="flex items-center gap-2.5 w-full">
@@ -135,7 +137,7 @@ export function NewsletterSubscribe({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.96 }}
               transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] as const }}
-              className="shrink-0 w-full"
+              className={`shrink-0 ${compact ? 'w-full' : 'w-full sm:w-auto sm:min-w-[300px]'}`}
             >
               <div className="flex gap-2">
                 <div className="relative flex-1 min-w-0">

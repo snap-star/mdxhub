@@ -321,7 +321,7 @@ export default function BlogPost() {
           )}
 
           {/* Newsletter subscribe card */}
-          <NewsletterSubscribe actionUrl={config.newsletter?.actionUrl} />
+          <NewsletterSubscribe actionUrl={config.newsletter?.actionUrl} compact={false} />
 
           <PostPagination
             prevPost={prevPost ?? undefined}
