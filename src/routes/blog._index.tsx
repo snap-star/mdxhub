@@ -170,7 +170,7 @@ export default function BlogIndex() {
 
             <SidebarCategories categoryCounts={categoryCounts} />
             <TagCloud tags={tags} tagCounts={tagCounts} />
-            <NewsletterSubscribe actionUrl={blogConfig.newsletter?.actionUrl} compact />
+            <NewsletterSubscribe actionUrl={blogConfig.newsletter?.actionUrl} compact={true} />
             <SponsorCard />
           </div>
         </aside>
