@@ -9,7 +9,22 @@ Welcome to the **Project Status** page. Here you'll find an up-to-date log of ne
 
 ## ✨ Newly Implemented Features
 
-This project now includes several content and routing improvements based on the current codebase:
+### Latest Optimization
+
+- **Removed 3 unused dependencies**: `cmdk`, `class-variance-authority`, and `gray-matter` were dropped from `package.json` — unused imports across all source files. Smaller bundle, fewer dependency audits.
+- **Lazy-loaded heavy MDX components**: `Mermaid` diagrams and `CodeSandbox` live editors now use `React.lazy()` — their heavy dependencies (~270KB gzipped combined) only download when a content page actually uses them.
+- **Consolidated vendor chunks**: Small runtime deps (`zustand`, `fuse.js`, `date-fns`, `clsx`, `tailwind-merge`) merged into a single `vendor-misc` chunk, reducing HTTP requests from 4 tiny chunks to 1.
+- **Build orchestrator**: Created `scripts/build.mjs` — a single entry point for all prebuild steps. `package.json` scripts simplified from long `&&` chains to clean `node scripts/build.mjs [mode]` commands.
+- **Simplified blogPrefsStore**: Removed versioned migration system that mapped old `'oldest'` → `'datePosted'` — Zustand's persist handles unknown keys gracefully.
+- **Extracted `createStore` factory**: Deduplicated the 90%-identical module-level store pattern from `lightboxStore.ts` and `tocStore.ts` into `src/lib/createStore.ts`. fewer duplicated patterns.
+- **Deleted unused sort functions**: `sortByDate` and `sortPosts` removed from `@/lib/utils` — confirmed zero imports. -18 lines.
+- **Shared LoadingSkeleton component**: Three near-identical skeleton components (`PageSkeleton`, `BlogSkeleton`, `DocsSkeleton`) replaced with a shared `<LoadingSkeleton text="..." minHeight="..." />` component.
+- **Stdlib reuse in PostCard**: Manual `description.slice(0, 120) + '…'` replaced with `truncate(description, 120)` from `@/lib/utils` — word-boundary-aware cutting.
+- **Inlined private store method**: `_applyTheme` in `themeStore.ts` inlined into `setTheme`/`toggleTheme` and removed from the public interface. -5 lines.
+- **Stopped keyboard listener re-registration**: Search command palette (`SearchCommand.tsx`) now uses `useRef(open)` so the `keydown` listener is registered once (`[]` deps) rather than re-registered on every open/close toggle.
+- **Improved diff line detection**: `CodeBlock.tsx` now uses Shiki's `data-diff-add`/`data-diff-remove` data attributes instead of fragile className string parsing.
+
+### Previous Features
 
 - **Nested content routing**: Blog posts under `content/blog/**` and docs pages under `content/docs/**` both support nested folders. `index.mdx` inside a folder resolves to the parent folder slug.
 - **Filename fallback matching**: Blog routes can resolve posts by their file name when the current route uses the plain filename slug.

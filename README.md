@@ -102,6 +102,9 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Share Buttons**: Social sharing for every blog post
 
 ### ⚡ Performance
+- **Lazy-Loaded Heavy Components**: `Mermaid` diagrams and `CodeSandbox` live editors use `React.lazy()` — only download when content actually uses them
+- **Removed 3 Unused Dependencies**: `cmdk`, `class-variance-authority`, `gray-matter` dropped from bundle
+- **Consolidated Vendor Chunks**: Small runtime deps merged into single `vendor-misc` chunk to reduce HTTP requests
 - **Image Optimization**: Build-time WebP/AVIF generation, lazy loading, and responsive `<picture>` elements
 - **Code Splitting**: Manual chunk splitting via `rollupOptions.output.manualChunks` in `vite.config.ts` — see the [Chunk Splitting Reference](#chunk-splitting-reference) below
 - **CSS View Transitions**: Native `@view-transition` API for smooth page navigations
@@ -124,7 +127,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 | **Math Rendering** | [KaTeX](https://katex.org/) |
 | **Icons** | [Lucide React](https://lucide.dev/) + [Simple Icons](https://simpleicons.org/) |
 | **Search** | [Fuse.js](https://fusejs.io/) (fuzzy search) |
-| **UI Components** | [shadcn/ui](https://ui.shadcn.com/) + [Base UI](https://base-ui.com/) |
+| **UI** | [Base UI](https://base-ui.com/) |
 | **Image Processing** | [Sharp](https://sharp.pixelplumbing.com/) |
 | **Language** | [TypeScript 6](https://www.typescriptlang.org/) |
 
@@ -161,14 +164,13 @@ pnpm run dev
 # Terminal 2 — content file watcher (auto-regenerates content-index.json on every save)
 pnpm run dev:watch
 ```
-
 ### Production Build
 
 ```bash
 pnpm run build
 ```
 
-The build pipeline:
+The build pipeline (orchestrated by `scripts/build.mjs`):
 1. Generates the content index (`public/content-index.json`) — extracting frontmatter fields including `tags`, `featured`, `series`, `seriesOrder`, `cc` — covering 59+ posts and 13+ docs pages
 2. Generates the RSS feed (`public/rss.xml`)
 3. Generates the sitemap (`public/sitemap.xml`) and `robots.txt`
@@ -210,6 +212,7 @@ pnpm run preview
 │   ├── robots.txt             # Auto-generated robots.txt (generated at build time)
 │   └── ...                    # Images, icons, etc.
 ├── scripts/
+│   ├── build.mjs                     # Build orchestrator (index → RSS → sitemap → images)
 │   ├── generate-content-index.cjs    # Builds content-index.json from frontmatter
 │   ├── generate-image-variants.cjs   # WebP/AVIF generation
 │   ├── generate-rss.cjs              # RSS feed generation
@@ -318,15 +321,14 @@ The following vendor chunks are created at build time:
 | Chunk Name | Contents | Rationale |
 | :--- | :--- | :--- |
 | `vendor-react` | `react`, `react-dom`, `react-router`, `react-helmet-async`, `scheduler` | Core framework — always loaded, always cached |
-| `vendor-framer` | `framer-motion` | ~150KB+ animation library, loaded only on pages with animations |
-| `vendor-mdx` | `@mdx-js/react` | MDX runtime — loaded when rendering MDX content |
-| `vendor-shiki` | `shiki`, `@shikijs/*` | Syntax highlighting grammars and themes (large) — only when showing code blocks |
+| `vendor-framer` | `framer-motion` | ~130KB animation library — only on pages with animations |
+| `vendor-shiki` | `shiki`, `@shikijs/*` | Syntax highlighting grammars and themes — only when showing code blocks |
 | `vendor-katex` | `katex` | Math rendering engine (includes CSS + fonts) — only on posts with LaTeX |
-| `vendor-icons` | `lucide-react` | Icon library — accumulates size across many icon imports |
-| `vendor-state` | `zustand`, `fuse.js` | State management + full-text search — loaded for search functionality |
-| `vendor-date` | `date-fns` | Date formatting utilities — imported across many components |
-| `vendor-ui` | `clsx`, `tailwind-merge`, `class-variance-authority`, `cmdk` | UI utility libraries used by search palette and components |
-| `vendor-sandpack` | `@codesandbox/sandpack-react`, `@codesandbox/sandpack-client` | In-browser code sandbox (bundler, editor, preview) — only on pages that embed live code examples |
+| `vendor-icons` | `lucide-react` | Icon library — accumulates across many icon imports |
+| `vendor-sandpack` | `@codesandbox/sandpack-react`, `@codesandbox/sandpack-client` | In-browser code sandbox (bundler, editor, preview) — lazy-loaded, only on pages with live code examples |
+| `vendor-misc` | `zustand`, `fuse.js`, `date-fns`, `clsx`, `tailwind-merge` | Small utility deps merged into one chunk to reduce HTTP requests |
+
+Additionally, `Mermaid` and `CodeSandbox` are `React.lazy()` loaded — their heavy dependencies only download when a content page actually uses them.
 
 ### How to add a new chunk
 
@@ -347,16 +349,16 @@ The order matters — the first matching `if` wins. Place more-specific matches 
 
 | Command | Description |
 | :--- | :--- |
-| `pnpm run dev` | Start dev server (generates content-index + RSS + sitemap on startup) |
-| `pnpm run dev:watch` | Watch `content/` for changes — auto-regenerates content-index.json, RSS feed, and sitemap on every file save |
-| `pnpm run build` | Content-index → RSS → sitemap → image variants → type-check → production build |
+| `pnpm run dev` | Start dev server (runs prebuild steps then Vite) |
+| `pnpm run dev:watch` | Watch `content/` for changes — auto-regenerates content-index, RSS, sitemap on save |
+| `pnpm run build` | Prebuild steps → type-check → production build |
 | `pnpm run preview` | Serve the production build locally |
 | `pnpm run lint` | Run ESLint on all source files |
-| `pnpm run generate:content-index` | Manually regenerate `public/content-index.json` only |
+| `pnpm run generate:content-index` | Regenerate content-index only (via `scripts/build.mjs`) |
 
 ### Build Pipeline
 
-The following scripts run as part of `npm run build`, before type-checking and Vite bundling:
+The build pipeline is orchestrated by `scripts/build.mjs`, which runs the individual scripts in order:
 
 1. **`scripts/generate-content-index.cjs`** — Scans all `.md`/`.mdx` files, extracts YAML frontmatter (including `tags`, `featured`, `series`, `seriesOrder`, `cc`), and outputs `public/content-index.json` and `public/content-slug-map.json`
 2. **`scripts/generate-rss.cjs`** — Generates `public/rss.xml` from all published blog posts
