@@ -16,19 +16,7 @@ import { ImageLightbox } from '@/components/mdx/ImageLightbox'
 
 const rootConfig = siteConfig as unknown as { siteUrl: string }
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-
-// ─── Loading skeleton for lazy-loaded routes ──────────────────────────
-
-function PageSkeleton() {
-  return (
-    <div className="flex items-center justify-center min-h-[50vh] px-4">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      </div>
-    </div>
-  )
-}
+import { LoadingSkeleton } from '@/components/common/LoadingSkeleton'
 
 export function RootLayout() {
   const location = useLocation()
@@ -61,7 +49,7 @@ export function RootLayout() {
         <ErrorBoundary>
           <AnimatePresence mode="wait" initial={false}>
             <PageTransition key={location.pathname.split('/')[1] || 'home'}>
-              <Suspense fallback={<PageSkeleton />}>
+              <Suspense fallback={<LoadingSkeleton />}>
                 <Outlet />
               </Suspense>
             </PageTransition>

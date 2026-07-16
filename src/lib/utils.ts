@@ -175,26 +175,3 @@ export function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T
     {} as Record<string, T[]>,
   )
 }
-
-export function sortByDate<T extends { frontmatter: { date: string } }>(arr: T[]): T[] {
-  return [...arr].sort(
-    (a, b) =>
-      new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime(),
-  )
-}
-
-// ─── Sort posts by order then date desc ────────────────────────────────────
-export function sortPosts<T extends { frontmatter: { date: string; order?: number } }>(
-  arr: T[]
-): T[] {
-  return [...arr].sort((a, b) => {
-    const aOrder = a.frontmatter.order
-    const bOrder = b.frontmatter.order
-    // Posts with explicit order come first, sorted by order ascending
-    if (aOrder != null && bOrder != null) return aOrder - bOrder
-    if (aOrder != null) return -1
-    if (bOrder != null) return 1
-    // Otherwise sort by date descending
-    return new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime()
-  })
-}

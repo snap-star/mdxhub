@@ -14,10 +14,12 @@ import { openLightbox } from '@/lib/lightboxStore'
 import { OptimizedImage } from './OptimizedImage'
 import { Tabs, Tab } from './Tabs'
 import { Steps, Step } from './Steps'
-import { Mermaid } from './Mermaid'
 import { CodeBlock } from './CodeBlock'
-import { CodeSandbox } from './CodeSandbox'
 import { Accordion, AccordionItem } from './Accordion'
+
+// Heavy components: lazy-loaded so they only download when actually used in content
+const Mermaid = React.lazy(() => import('./Mermaid').then((m) => ({ default: m.Mermaid })))
+const CodeSandbox = React.lazy(() => import('./CodeSandbox').then((m) => ({ default: m.CodeSandbox })))
 import { CardGrid, Card } from './CardGrid'
 import { CodeGroup } from './CodeGroup'
 import { Timeline, TimelineItem } from './Timeline'

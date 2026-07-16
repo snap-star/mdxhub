@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router'
 import type { PostIndexEntry } from '@/lib/content/contentIndex'
 import { useContentStore } from '@/store/contentStore'
-import { formatDateShort } from '@/lib/utils'
+import { formatDateShort, truncate } from '@/lib/utils'
 import { Clock, Calendar, ChevronRight, MessageCircle, Flame } from 'lucide-react'
 import { DisqusCommentCount } from '@/components/blog/DisqusCommentCount'
 import { SeriesBadge } from '@/components/blog/SeriesBadge'
@@ -94,9 +94,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
 
         {description && (
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            {description.length > 120
-              ? description.slice(0, 120) + '…'
-              : description}
+            {truncate(description, 120)}
           </p>
         )}
 

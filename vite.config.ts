@@ -94,7 +94,9 @@ export default defineConfig({
     open: true,
   },
   build: {
-    chunkSizeWarningLimit: 900,
+    // Content MDX pages are inherently large (code samples, diagrams) and
+    // already lazy-loaded per-route — raise the warning threshold.
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         manualChunks(id: string) {
@@ -108,10 +110,6 @@ export default defineConfig({
           if (id.includes('node_modules/framer-motion')) {
             return 'vendor-framer'
           }
-          // MDX runtime
-          if (id.includes('node_modules/@mdx-js/react')) {
-            return 'vendor-mdx'
-          }
           // Syntax highlighting (shiki bundles many grammars/themes)
           if (id.includes('node_modules/shiki') || id.includes('node_modules/@shikijs')) {
             return 'vendor-shiki'
@@ -124,22 +122,16 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react')) {
             return 'vendor-icons'
           }
-          // State management & search
-          if (id.includes('node_modules/zustand') || id.includes('node_modules/fuse.js')) {
-            return 'vendor-state'
-          }
-          // Date utilities (imported across many components via @/lib/utils)
-          if (id.includes('node_modules/date-fns/')) {
-            return 'vendor-date'
-          }
-          // UI utilities
-          if (id.includes('node_modules/clsx/') || id.includes('node_modules/tailwind-merge/') ||
-              id.includes('node_modules/class-variance-authority/') || id.includes('node_modules/cmdk/')) {
-            return 'vendor-ui'
-          }
           // Sandpack code sandbox (large — includes bundler, editor, preview)
           if (id.includes('node_modules/@codesandbox/sandpack')) {
             return 'vendor-sandpack'
+          }
+          // Small runtime utilities merged into one chunk to reduce HTTP requests:
+          // state (zustand, fuse.js), date utils (date-fns), class utils (clsx, tailwind-merge)
+          if (id.includes('node_modules/zustand') || id.includes('node_modules/fuse.js') ||
+              id.includes('node_modules/date-fns/') || id.includes('node_modules/clsx/') ||
+              id.includes('node_modules/tailwind-merge/')) {
+            return 'vendor-misc'
           }
         },
       },
