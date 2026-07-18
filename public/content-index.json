@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-18T18:43:36.198Z",
+  "generatedAt": "2026-07-18T19:26:56.207Z",
   "posts": [
     {
-      "slug": "demo-timeline-component",
+      "slug": "showcase/demo-timeline-component",
       "title": "Timeline Component — Full Showcase & Documentation",
       "description": "A complete guide to the new Timeline MDX component — covering all variants, icons, colors, nested content, and real-world examples.",
       "date": "2026-07-15",
@@ -29,6 +29,150 @@
       "updatedAt": ""
     },
     {
+      "slug": "javascript/part-0/introduction-philosophy",
+      "title": "Introduction & Philosophy",
+      "description": "Overview of the JavaScript guide — learning path, skill levels, and how to use this guide effectively.",
+      "date": "2026-06-29",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Javascript",
+      "tags": [
+        "JS",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 1,
+      "comments": true,
+      "series": "Mastering JavaScript",
+      "seriesOrder": 2,
+      "cc": "CC-BY-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "javascript/part-1/foundations",
+      "title": "Junior Level — Foundations",
+      "description": "JavaScript fundamentals — syntax, variables, types, operators, control flow, functions, arrays, objects, strings, DOM, and a practical Todo app.",
+      "date": "2026-06-29",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Javascript",
+      "tags": [
+        "JS",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 10,
+      "comments": true,
+      "series": "Mastering JavaScript",
+      "seriesOrder": 3,
+      "cc": "CC-BY-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "javascript/part-2/building-real-applications",
+      "title": "Intermediate Level — Building Real Applications",
+      "description": "Modern ES6+ JavaScript — destructuring, async/await, classes, modules, error handling, RegExp, Map/Set, and working with APIs.",
+      "date": "2026-06-29",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Javascript",
+      "tags": [
+        "JS",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 8,
+      "comments": true,
+      "series": "Mastering JavaScript",
+      "seriesOrder": 4,
+      "cc": "CC-BY-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "javascript/part-3/mastering-javascript-internals",
+      "title": "Expert Level — Mastering JavaScript Internals",
+      "description": "Deep internals — event loop, closures, prototypes, memory management, design patterns, performance optimization, generators and iterators.",
+      "date": "2026-06-29",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Javascript",
+      "tags": [
+        "JS",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 7,
+      "comments": true,
+      "series": "Mastering JavaScript",
+      "seriesOrder": 5,
+      "cc": "CC-BY-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "javascript/part-4/practical-projects",
+      "title": "Practical Projects",
+      "description": "Build a full-featured Task Manager and a Reactive State Library using modern JavaScript patterns.",
+      "date": "2026-06-29",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Javascript",
+      "tags": [
+        "JS",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 1.5,
+      "comments": true,
+      "series": "Mastering JavaScript",
+      "seriesOrder": 6,
+      "cc": "CC-BY-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "javascript/part-5/common-pitfalls",
+      "title": "Common Pitfalls & Solutions",
+      "description": "Frequent JavaScript mistakes — this binding, closure loops, async/await gotchas, floating point, type coercion — plus appendices and references.",
+      "date": "2026-06-29",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Javascript",
+      "tags": [
+        "JS",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 5,
+      "comments": true,
+      "series": "Mastering JavaScript",
+      "seriesOrder": 7,
+      "cc": "CC-BY-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
       "slug": "javascript/the-complete-guide-to-javascript",
       "title": "The Complete Guide to JavaScript",
       "description": "Mastering JavaScript From Junior to Expert",
@@ -44,7 +188,7 @@
       "draft": false,
       "featured": false,
       "coverImage": "",
-      "readingTime": 32.5,
+      "readingTime": 3,
       "comments": true,
       "series": "Mastering JavaScript",
       "seriesOrder": 1,
@@ -53,7 +197,7 @@
       "updatedAt": ""
     },
     {
-      "slug": "demo-mdx-components",
+      "slug": "showcase/demo-mdx-components",
       "title": "Showcase: New MDX Components & Features",
       "description": "A live demonstration of all globally available MDX components — including the new Tabs, Steps, and Mermaid diagram renderer — all available in any MDX file.",
       "date": "2026-06-27",
@@ -1363,24 +1507,24 @@
       "updatedAt": ""
     },
     {
-      "slug": "advanced-mdx-features",
-      "title": "Exploring Advanced MDX Features: Math, Video, Tables & More",
-      "description": "Learn how to leverage mathematical equations, video embeds, advanced data tables, callouts, and custom MDX components to supercharge your content.",
+      "slug": "architecture/git-as-cms",
+      "title": "Git as a CMS: How We Manage Content Without a Database",
+      "description": "Why we abandoned traditional database-backed Content Management Systems (CMS) in favor of a purely Git-backed, file-based MDX workflow.",
       "date": "2026-06-21",
       "author": "chigusa-asuha",
       "authorName": "Chigusa Asuha",
       "authorAvatar": "/snap-star.png",
-      "category": "Tutorial",
+      "category": "Architecture",
       "tags": [
+        "cms",
+        "git",
         "mdx",
-        "react",
-        "katex",
-        "video",
-        "components"
+        "architecture",
+        "github"
       ],
       "draft": false,
       "featured": false,
-      "coverImage": "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2670&auto=format&fit=crop",
+      "coverImage": "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=2688&auto=format&fit=crop",
       "readingTime": 3,
       "comments": true,
       "series": "",
@@ -1390,7 +1534,7 @@
       "updatedAt": ""
     },
     {
-      "slug": "creating-posts-guide",
+      "slug": "guide/creating-posts",
       "title": "Complete Guide: Creating Posts in This Project",
       "description": "The definitive guide to creating blog posts and docs pages — covering YAML frontmatter, auto-discovery, video embeds, math, callouts, SEO, and every supported feature.",
       "date": "2026-06-21",
@@ -1418,60 +1562,7 @@
       "updatedAt": ""
     },
     {
-      "slug": "embedding-videos-in-mdx",
-      "title": "Embedding Videos in MDX: YouTube, Shorts & More",
-      "description": "Learn how to embed YouTube videos, Shorts, and any iframe-compatible video directly inside your MDX blog posts using the VideoEmbed component.",
-      "date": "2026-06-21",
-      "author": "chigusa-asuha",
-      "authorName": "Chigusa Asuha",
-      "authorAvatar": "/snap-star.png",
-      "category": "Tutorial",
-      "tags": [
-        "mdx",
-        "video",
-        "youtube",
-        "components"
-      ],
-      "draft": false,
-      "featured": false,
-      "coverImage": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=2670&auto=format&fit=crop",
-      "readingTime": 1.5,
-      "comments": true,
-      "series": "",
-      "seriesOrder": 0,
-      "cc": "",
-      "lastEdited": "",
-      "updatedAt": ""
-    },
-    {
-      "slug": "git-as-cms",
-      "title": "Git as a CMS: How We Manage Content Without a Database",
-      "description": "Why we abandoned traditional database-backed Content Management Systems (CMS) in favor of a purely Git-backed, file-based MDX workflow.",
-      "date": "2026-06-21",
-      "author": "chigusa-asuha",
-      "authorName": "Chigusa Asuha",
-      "authorAvatar": "/snap-star.png",
-      "category": "Architecture",
-      "tags": [
-        "cms",
-        "git",
-        "mdx",
-        "architecture",
-        "github"
-      ],
-      "draft": false,
-      "featured": false,
-      "coverImage": "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=2688&auto=format&fit=crop",
-      "readingTime": 3,
-      "comments": true,
-      "series": "",
-      "seriesOrder": 0,
-      "cc": "",
-      "lastEdited": "",
-      "updatedAt": ""
-    },
-    {
-      "slug": "wonderful-indonesia",
+      "slug": "travel/wonderful-indonesia",
       "title": "Wonderful Indonesia: A Journey Through the Archipelago",
       "description": "From the emerald terraced rice fields of Bali to the ancient temples of Yogyakarta and the vibrant coral reefs of Raja Ampat — Indonesia is a world unto itself.",
       "date": "2026-06-21",
@@ -1499,7 +1590,60 @@
       "updatedAt": ""
     },
     {
-      "slug": "getting-started/nested",
+      "slug": "tutorial/advanced-mdx-features",
+      "title": "Exploring Advanced MDX Features: Math, Video, Tables & More",
+      "description": "Learn how to leverage mathematical equations, video embeds, advanced data tables, callouts, and custom MDX components to supercharge your content.",
+      "date": "2026-06-21",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Tutorial",
+      "tags": [
+        "mdx",
+        "react",
+        "katex",
+        "video",
+        "components"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "https://images.unsplash.com/photo-1509228468518-180dd4864904?q=80&w=2670&auto=format&fit=crop",
+      "readingTime": 3,
+      "comments": true,
+      "series": "",
+      "seriesOrder": 0,
+      "cc": "",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "tutorial/embedding-videos-in-mdx",
+      "title": "Embedding Videos in MDX: YouTube, Shorts & More",
+      "description": "Learn how to embed YouTube videos, Shorts, and any iframe-compatible video directly inside your MDX blog posts using the VideoEmbed component.",
+      "date": "2026-06-21",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Tutorial",
+      "tags": [
+        "mdx",
+        "video",
+        "youtube",
+        "components"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=2670&auto=format&fit=crop",
+      "readingTime": 1.5,
+      "comments": true,
+      "series": "",
+      "seriesOrder": 0,
+      "cc": "",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "tutorial/getting-started",
       "title": "Getting Started with MDX in React 19",
       "description": "A comprehensive guide to setting up MDX with Vite 7 and React 19, featuring frontmatter parsing and custom components.",
       "date": "2026-01-15",
@@ -1691,7 +1835,7 @@
       "draft": false,
       "toc": true,
       "version": "",
-      "readingTime": 5
+      "readingTime": 7.5
     }
   ]
 }

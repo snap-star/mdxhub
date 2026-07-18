@@ -1,0 +1,1189 @@
+---
+title: "Expert Level — Mastering JavaScript Internals"
+description: "Deep internals — event loop, closures, prototypes, memory management, design patterns, performance optimization, generators and iterators."
+date: 2026-06-29
+tags: ["JS", "Guide"]
+category: "Javascript"
+author: chigusa-asuha
+cc: "CC-BY-4.0"
+series: "Mastering JavaScript"
+seriesOrder: 5
+---
+
+# Part 3: Expert Level — Mastering JavaScript Internals
+
+## Chapter 19: The JavaScript Engine & Event Loop
+
+<Badge variant="red">Expert</Badge>
+
+### 19.1 How JavaScript Executes
+
+```javascript
+// JavaScript is single-threaded with an event loop.
+// Understanding the call stack, task queue, and microtask queue is essential.
+
+// === The Call Stack ===
+function a() { b(); }
+function b() { c(); }
+function c() { console.trace(); }
+a();
+// Call stack: a() → b() → c() → console.trace()
+// When c finishes, it pops off. Then b, then a.
+
+// === Synchronous vs Asynchronous ===
+console.log("1");           // Call stack: executes immediately
+setTimeout(() => {          // Web API: registers callback, returns immediately
+  console.log("2");         // Callback queue: executes after stack is clear
+}, 0);
+Promise.resolve().then(() => {  // Microtask queue: executes before callback queue
+  console.log("3");
+});
+console.log("4");
+// Output: 1, 4, 3, 2
+
+// Why? Execution order:
+// 1. console.log("1") — call stack
+// 2. setTimeout callback — goes to Web API, then Task Queue
+// 3. Promise .then — goes to Microtask Queue
+// 4. console.log("4") — call stack
+// 5. Call stack empty → check Microtask Queue → console.log("3")
+// 6. Microtask Queue empty → check Task Queue → console.log("2")
+```
+
+### 19.2 Event Loop Deep Dive
+
+```javascript
+// Microtasks vs Macrotasks (Tasks)
+
+// Macrotasks (Task Queue): setTimeout, setInterval, setImmediate, I/O, UI rendering
+// Microtasks: Promise.then/catch/finally, queueMicrotask, MutationObserver
+
+// Rule: ALL microtasks execute before the next macrotask
+
+console.log("start");
+
+setTimeout(() => console.log("timeout 1"), 0);
+setTimeout(() => console.log("timeout 2"), 0);
+
+Promise.resolve().then(() => {
+  console.log("promise 1");
+  Promise.resolve().then(() => console.log("promise 2"));
+  setTimeout(() => console.log("timeout 3"), 0);
+});
+
+queueMicrotask(() => console.log("microtask 1"));
+
+console.log("end");
+
+// Output: start, end, promise 1, microtask 1, promise 2, timeout 1, timeout 2, timeout 3
+
+// Explanation:
+// 1. "start", "end" — synchronous
+// 2. Promise.then callback — microtask, runs before any timeout
+//    Inside it: "promise 1", then registers promise 2 microtask and timeout 3
+// 3. queueMicrotask — microtask, runs: "microtask 1"
+// 4. Check for more microtasks — promise 2 runs: "promise 2"
+// 5. Microtasks exhausted — first timeout runs: "timeout 1"
+// 6. Next timeout: "timeout 2"
+// 7. Next timeout (registered inside promise): "timeout 3"
+```
+
+### 19.3 Practical Event Loop Patterns
+
+```javascript
+// Defer heavy computation without blocking
+function processLargeArray(items, chunkSize = 100) {
+  return new Promise((resolve) => {
+    let index = 0;
+    const results = [];
+    
+    function processChunk() {
+      const chunk = items.slice(index, index + chunkSize);
+      
+      for (const item of chunk) {
+        results.push(heavyComputation(item));
+      }
+      
+      index += chunkSize;
+      
+      if (index < items.length) {
+        // Yield to event loop between chunks
+        setTimeout(processChunk, 0);
+      } else {
+        resolve(results);
+      }
+    }
+    
+    processChunk();
+  });
+}
+
+// Ensure DOM updates render before heavy work
+async function updateAndProcess() {
+  statusElement.textContent = "Processing...";
+  
+  // Force a render before heavy work
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  
+  // Or use a double rAF for guaranteed paint
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  
+  // Now do heavy work
+  const result = heavyComputation();
+  statusElement.textContent = "Done!";
+  return result;
+}
+
+// requestIdleCallback — run work when browser is idle
+requestIdleCallback((deadline) => {
+  while (deadline.timeRemaining() > 0 && workQueue.length > 0) {
+    doLowPriorityWork(workQueue.shift());
+  }
+  
+  if (workQueue.length > 0) {
+    requestIdleCallback(processWork);  // Schedule more
+  }
+});
+```
+
+---
+## Chapter 20: Closures & Lexical Scope
+
+<Badge variant="red">Expert</Badge>
+
+### 20.1 How Closures Work
+
+A **closure** is a function that remembers and accesses variables from its outer scope, even after the outer function has returned.
+
+```javascript
+// Basic closure
+function outer() {
+  const secret = "I'm hidden";
+  
+  function inner() {
+    console.log(secret);  // inner() remembers secret from outer()
+  }
+  
+  return inner;
+}
+
+const fn = outer();   // outer() has returned, its execution context is gone
+fn();                  // But inner() still has access to secret!
+// → "I'm hidden"
+
+// The closure captures the VARIABLE, not the value
+function createCounter() {
+  let count = 0;  // This variable lives in the closure
+  
+  return {
+    increment() { return ++count; },
+    decrement() { return --count; },
+    get() { return count; },
+    reset() { count = 0; },
+  };
+}
+
+const counter = createCounter();
+console.log(counter.increment());  // 1
+console.log(counter.increment());  // 2
+console.log(counter.get());        // 2
+counter.reset();
+console.log(counter.get());        // 0
+
+// Each call creates a NEW closure with its own variables
+const counter2 = createCounter();
+console.log(counter2.get());       // 0 — independent!
+```
+
+### 20.2 Practical Closure Patterns
+
+```javascript
+// === Module Pattern ===
+const DataStore = (function() {
+  // Private variables (closure)
+  let data = {};
+  let listeners = [];
+  
+  // Public API
+  return {
+    set(key, value) {
+      data[key] = value;
+      listeners.forEach(fn => fn(key, value));
+    },
+    get(key) {
+      return data[key];
+    },
+    subscribe(fn) {
+      listeners.push(fn);
+      // Return unsubscribe function (another closure!)
+      return () => {
+        listeners = listeners.filter(l => l !== fn);
+      };
+    },
+    getAll() {
+      return { ...data };  // Return copy, not reference
+    }
+  };
+})();
+
+const unsub = DataStore.subscribe((key, value) => {
+  console.log(`${key} changed to ${value}`);
+});
+DataStore.set("theme", "dark");  // Logs: "theme changed to dark"
+unsub();  // No more notifications
+
+// === Function Factory ===
+function makeMultiplier(factor) {
+  return function(number) {
+    return number * factor;  // factor is captured from closure
+  };
+}
+
+const double = makeMultiplier(2);
+const triple = makeMultiplier(3);
+console.log(double(5));  // 10
+console.log(triple(5));  // 15
+
+// === Memoization ===
+function memoize(fn) {
+  const cache = new Map();  // cache lives in closure
+  
+  return function(...args) {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    
+    const result = fn.apply(this, args);
+    cache.set(key, result);
+    return result;
+  };
+}
+
+const fibonacci = memoize(function(n) {
+  if (n < 2) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+});
+
+console.log(fibonacci(50));  // Fast due to memoization!
+
+// === Partial Application ===
+function partial(fn, ...presetArgs) {
+  return function(...laterArgs) {
+    return fn(...presetArgs, ...laterArgs);
+  };
+}
+
+const greet = (greeting, name) => `${greeting}, ${name}!`;
+const sayHello = partial(greet, "Hello");
+console.log(sayHello("Alice"));  // "Hello, Alice!"
+
+// === Debounce (performance optimization) ===
+function debounce(fn, delay) {
+  let timerId;  // Lives in closure
+  
+  return function(...args) {
+    clearTimeout(timerId);
+    timerId = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+const handleResize = debounce(() => {
+  console.log("Window resized — recalculating layout...");
+}, 250);
+
+window.addEventListener("resize", handleResize);
+
+// === Throttle ===
+function throttle(fn, limit) {
+  let inThrottle;  // Lives in closure
+  
+  return function(...args) {
+    if (!inThrottle) {
+      fn.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+
+const handleScroll = throttle(() => {
+  console.log("Scroll position:", window.scrollY);
+}, 100);
+
+window.addEventListener("scroll", handleScroll);
+```
+
+### 20.3 Closure Gotchas
+
+```javascript
+// Classic closure loop bug
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100);  // 3, 3, 3 (not 0, 1, 2!)
+}
+// Why? 'var' is function-scoped. All closures share the same 'i'.
+
+// Fix 1: Use let (block-scoped)
+for (let i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100);  // 0, 1, 2 ✓
+}
+
+// Fix 2: IIFE (immediately invoked function expression)
+for (var i = 0; i < 3; i++) {
+  (function(capturedI) {
+    setTimeout(() => console.log(capturedI), 100);
+  })(i);
+}
+
+// Another common gotcha: closures in object methods
+const handlers = [];
+for (let i = 0; i < 3; i++) {
+  handlers.push({
+    value: i,
+    log: () => console.log(handlers[i].value)  // ❌ i is captured, but handlers[i] might not exist
+  });
+}
+// Fix: capture the specific value
+for (let i = 0; i < 3; i++) {
+  const item = { value: i };
+  item.log = () => console.log(item.value);
+  handlers.push(item);
+}
+handlers.forEach(h => h.log());  // 0, 1, 2 ✓
+```
+
+---
+
+## Chapter 21: Prototypes & Inheritance
+
+<Badge variant="red">Expert</Badge>
+
+### 21.1 The Prototype Chain
+
+```javascript
+// Every object has an internal [[Prototype]] link
+// When you access a property, JS walks up the chain until it finds it or reaches null
+
+// Creating objects with prototypes
+const animal = {
+  speak() {
+    return `${this.name} makes a sound.`;
+  }
+};
+
+const dog = {
+  name: "Rex",
+  __proto__: animal  // dog's prototype is animal
+};
+
+console.log(dog.speak());  // "Rex makes a sound." — found on animal!
+console.log(dog.toString()); // "[object Object]" — found on Object.prototype!
+
+// Prototype chain: dog → animal → Object.prototype → null
+
+// Object.create — proper way to set prototype
+const cat = Object.create(animal);
+cat.name = "Whiskers";
+console.log(cat.speak());  // "Whiskers makes a sound."
+
+// Check prototype
+console.log(Object.getPrototypeOf(dog) === animal);  // true
+
+// Checking property location
+console.log(dog.hasOwnProperty("name"));     // true — own property
+console.log(dog.hasOwnProperty("speak"));    // false — inherited
+
+// Property lookup walks the chain
+dog.walk = function() { return "Walking..."; };
+// dog → walk (own), name (own), speak (animal), toString (Object.prototype)
+
+// Shadowing — own property hides inherited one
+const silentDog = Object.create(animal);
+silentDog.speak = function() { return "..."; };
+console.log(silentDog.speak());  // "..." — own property shadows prototype
+```
+
+### 21.2 Constructor Functions & `new`
+
+```javascript
+// Pre-class syntax (still works, understand for legacy code)
+function Person(name, age) {
+  // 'new' does this automatically:
+  // 1. Creates new object: this = {}
+  // 2. Sets prototype: this.__proto__ = Person.prototype
+  // 3. Binds 'this': this is the new object
+  // 4. Returns 'this' (unless you return another object)
+  
+  this.name = name;
+  this.age = age;
+}
+
+// Shared methods go on prototype
+Person.prototype.greet = function() {
+  return `Hi, I'm ${this.name}`;
+};
+
+Person.prototype.isAdult = function() {
+  return this.age >= 18;
+};
+
+const alice = new Person("Alice", 30);
+console.log(alice.greet());    // "Hi, I'm Alice"
+console.log(alice.isAdult());  // true
+
+// Prototype chain: alice → Person.prototype → Object.prototype → null
+console.log(alice instanceof Person);   // true
+console.log(alice instanceof Object);   // true
+
+// Inheritance with constructors
+function Employee(name, age, role) {
+  Person.call(this, name, age);  // Call parent constructor
+  this.role = role;
+}
+
+// Set up prototype chain
+Employee.prototype = Object.create(Person.prototype);
+Employee.prototype.constructor = Employee;  // Fix constructor reference
+
+Employee.prototype.work = function() {
+  return `${this.name} is working as ${this.role}.`;
+};
+
+const dev = new Employee("Bob", 25, "developer");
+console.log(dev.greet());   // "Hi, I'm Bob" — inherited from Person
+console.log(dev.work());    // "Bob is working as developer."
+```
+
+### 21.3 Modern vs Legacy Inheritance
+
+```javascript
+// === Modern (Classes — syntactic sugar over prototypes) ===
+class Animal {
+  constructor(name) { this.name = name; }
+  speak() { return `${this.name} speaks.`; }
+}
+
+class Dog extends Animal {
+  constructor(name, breed) {
+    super(name);
+    this.breed = breed;
+  }
+  speak() { return `${this.name} barks!`; }
+}
+
+// === Legacy (Prototypes) ===
+function AnimalLegacy(name) { this.name = name; }
+AnimalLegacy.prototype.speak = function() { return `${this.name} speaks.`; };
+
+function DogLegacy(name, breed) {
+  AnimalLegacy.call(this, name);
+  this.breed = breed;
+}
+DogLegacy.prototype = Object.create(AnimalLegacy.prototype);
+DogLegacy.prototype.constructor = DogLegacy;
+DogLegacy.prototype.speak = function() { return `${this.name} barks!`; };
+
+// === Under the hood, they're the same ===
+// class syntax is just cleaner syntax for the prototype pattern
+```
+
+---
+
+## Chapter 22: Memory Management
+
+<Badge variant="red">Expert</Badge>
+
+### 22.1 Garbage Collection
+
+```javascript
+// JavaScript uses automatic garbage collection (mark-and-sweep)
+// Objects are collected when no references exist
+
+// Reference counting basics
+let obj = { data: "value" };  // Object has 1 reference
+let ref = obj;                 // Object has 2 references
+obj = null;                    // Object has 1 reference
+ref = null;                    // Object has 0 references → COLLECTED!
+
+// Circular references (handled by mark-and-sweep)
+function createCircular() {
+  const a = {};
+  const b = { ref: a };
+  a.ref = b;  // Circular: a ↔ b
+  return null;  // Both a and b are unreachable → COLLECTED!
+}
+
+// Memory leaks — common causes
+
+// 1. Forgotten timers/intervals
+function leakyComponent() {
+  const data = { hugeArray: new Array(1000000) };
+  
+  setInterval(() => {
+    console.log(data.hugeArray.length);  // Closure keeps data alive forever!
+  }, 1000);
+}
+
+// Fix: Clean up
+function fixedComponent() {
+  const data = { hugeArray: new Array(1000000) };
+  
+  const intervalId = setInterval(() => {
+    console.log(data.hugeArray.length);
+  }, 1000);
+  
+  return () => clearInterval(intervalId);  // Return cleanup function
+}
+
+// 2. Forgotten event listeners
+function attachHandler() {
+  const element = document.getElementById("button");
+  const bigData = new Array(1000000);
+  
+  element.addEventListener("click", () => {
+    console.log(bigData.length);  // bigData kept alive by closure!
+  });
+  // If element is removed from DOM but listener not removed → LEAK!
+}
+
+// Fix: Remove listeners or use WeakRef
+function safeAttach() {
+  const bigData = new Array(1000000);
+  const handler = () => console.log(bigData.length);
+  const element = document.getElementById("button");
+  
+  element.addEventListener("click", handler);
+  
+  return () => element.removeEventListener("click", handler);
+}
+
+// 3. Global variables (accidental)
+function accidentallyGlobal() {
+  leak = "I'm global!";  // Forgot 'const'/'let'/'var' → window.leak
+}
+
+// 4. Closures holding large data
+function processData(hugeDataset) {
+  return {
+    getSummary() {
+      // This closure holds reference to hugeDataset even though
+      // we only use a small summary
+      return hugeDataset.length;
+    }
+  };
+}
+
+// Fix: Only capture what you need
+function processDataFixed(hugeDataset) {
+  const count = hugeDataset.length;  // Extract what we need
+  return {
+    getSummary() {
+      return count;  // Closure only holds the count, not the dataset
+    }
+  };
+}
+```
+
+### 22.2 Performance Profiling
+
+```javascript
+// Measure memory usage (Node.js)
+const before = process.memoryUsage();
+// ... do work ...
+const after = process.memoryUsage();
+console.log("Heap used delta:", after.heapUsed - before.heapUsed);
+
+// Performance API (browser & Node)
+const start = performance.now();
+heavyComputation();
+const duration = performance.now() - start;
+console.log(`Took ${duration.toFixed(2)}ms`);
+
+// Performance marks and measures
+performance.mark("start-process");
+processData();
+performance.mark("end-process");
+performance.measure("process", "start-process", "end-process");
+
+const entries = performance.getEntriesByType("measure");
+console.log(entries[0].duration);
+
+// User Timing API for React/Vue component profiling
+// (Used by React DevTools Profiler)
+```
+
+---
+## Chapter 23: Design Patterns in JavaScript
+
+<Badge variant="red">Expert</Badge>
+
+### 23.1 Creational Patterns
+
+```javascript
+// === Singleton ===
+// Ensure only one instance exists
+class Database {
+  static #instance = null;
+  
+  constructor() {
+    if (Database.#instance) {
+      return Database.#instance;
+    }
+    this.connection = this.connect();
+    Database.#instance = this;
+  }
+  
+  connect() { /* ... */ }
+  
+  static getInstance() {
+    if (!Database.#instance) {
+      Database.#instance = new Database();
+    }
+    return Database.#instance;
+  }
+}
+
+// Modern approach with module system (preferred)
+// db.js
+class Database { /* ... */ }
+export default new Database();  // Single export = singleton
+
+// === Factory ===
+// Create objects without specifying exact class
+class User { /* ... */ }
+class Admin { /* ... */ }
+class Guest { /* ... */ }
+
+function createUser(type, data) {
+  const types = { user: User, admin: Admin, guest: Guest };
+  const UserClass = types[type] || User;
+  return new UserClass(data);
+}
+
+const user = createUser("admin", { name: "Alice" });
+
+// === Builder ===
+// Step-by-step object construction
+class QueryBuilder {
+  #parts = [];
+  
+  select(...columns) {
+    this.#parts.push(`SELECT ${columns.join(", ")}`);
+    return this;  // Enable chaining
+  }
+  
+  from(table) {
+    this.#parts.push(`FROM ${table}`);
+    return this;
+  }
+  
+  where(condition) {
+    this.#parts.push(`WHERE ${condition}`);
+    return this;
+  }
+  
+  limit(n) {
+    this.#parts.push(`LIMIT ${n}`);
+    return this;
+  }
+  
+  build() {
+    return this.#parts.join(" ");
+  }
+}
+
+const query = new QueryBuilder()
+  .select("name", "email")
+  .from("users")
+  .where("age > 18")
+  .limit(10)
+  .build();
+// "SELECT name, email FROM users WHERE age > 18 LIMIT 10"
+```
+
+### 23.2 Structural Patterns
+
+```javascript
+// === Decorator ===
+// Add behavior dynamically
+function timingDecorator(fn) {
+  return async function(...args) {
+    const start = performance.now();
+    const result = await fn.apply(this, args);
+    console.log(`${fn.name} took ${performance.now() - start}ms`);
+    return result;
+  };
+}
+
+const timedFetch = timingDecorator(fetch);
+
+// === Adapter ===
+// Convert one interface to another
+class ModernStorage {
+  get(key) { return localStorage.getItem(key); }
+  set(key, value) { localStorage.setItem(key, value); }
+}
+
+class LegacyStorageAdapter {
+  constructor() { this.storage = new ModernStorage(); }
+  
+  read(key) { return this.storage.get(key); }
+  write(key, value) { this.storage.set(key, value); }
+}
+
+// === Proxy ===
+// Intercept object operations
+const handler = {
+  get(target, prop) {
+    console.log(`Getting ${String(prop)}`);
+    return target[prop];
+  },
+  
+  set(target, prop, value) {
+    console.log(`Setting ${String(prop)} = ${value}`);
+    target[prop] = value;
+    return true;
+  },
+  
+  has(target, prop) {
+    return prop in target && !prop.startsWith("_");
+  }
+};
+
+const logged = new Proxy({}, handler);
+logged.name = "Alice";   // Logs: Setting name = Alice
+console.log(logged.name); // Logs: Getting name → "Alice"
+
+// Practical: Validation proxy
+function createValidator(schema) {
+  return {
+    set(target, prop, value) {
+      if (schema[prop] && !schema[prop](value)) {
+        throw new TypeError(`Invalid value for ${String(prop)}: ${value}`);
+      }
+      target[prop] = value;
+      return true;
+    }
+  };
+}
+
+const user = new Proxy({}, createValidator({
+  age: v => typeof v === "number" && v >= 0,
+  email: v => typeof v === "string" && v.includes("@"),
+}));
+
+user.age = 30;     // ✓
+// user.age = -5;  // ❌ TypeError!
+```
+
+### 23.3 Behavioral Patterns
+
+```javascript
+// === Observer / Pub-Sub ===
+class EventEmitter {
+  #listeners = new Map();
+  
+  on(event, callback) {
+    if (!this.#listeners.has(event)) {
+      this.#listeners.set(event, new Set());
+    }
+    this.#listeners.get(event).add(callback);
+    
+    // Return unsubscribe
+    return () => this.#listeners.get(event)?.delete(callback);
+  }
+  
+  emit(event, data) {
+    this.#listeners.get(event)?.forEach(cb => cb(data));
+  }
+  
+  once(event, callback) {
+    const wrapper = (data) => {
+      callback(data);
+      this.off(event, wrapper);
+    };
+    this.on(event, wrapper);
+  }
+  
+  off(event, callback) {
+    this.#listeners.get(event)?.delete(callback);
+  }
+}
+
+// === Strategy ===
+// Encapsulate interchangeable algorithms
+const paymentStrategies = {
+  creditCard: {
+    process(amount) { return `Processing $${amount} via Credit Card`; }
+  },
+  paypal: {
+    process(amount) { return `Processing $${amount} via PayPal`; }
+  },
+  crypto: {
+    process(amount) { return `Processing $${amount} via Crypto`; }
+  }
+};
+
+function processPayment(method, amount) {
+  const strategy = paymentStrategies[method];
+  if (!strategy) throw new Error("Unknown payment method");
+  return strategy.process(amount);
+}
+
+// === Command ===
+// Encapsulate operations as objects
+class CommandManager {
+  #history = [];
+  #redoStack = [];
+  
+  execute(command) {
+    command.execute();
+    this.#history.push(command);
+    this.#redoStack = [];  // Clear redo on new action
+  }
+  
+  undo() {
+    const command = this.#history.pop();
+    if (command) {
+      command.undo();
+      this.#redoStack.push(command);
+    }
+  }
+  
+  redo() {
+    const command = this.#redoStack.pop();
+    if (command) {
+      command.execute();
+      this.#history.push(command);
+    }
+  }
+}
+
+class AddTodoCommand {
+  constructor(todos, text) {
+    this.todos = todos;
+    this.text = text;
+    this.id = null;
+  }
+  
+  execute() {
+    this.id = Date.now();
+    this.todos.push({ id: this.id, text: this.text });
+  }
+  
+  undo() {
+    this.todos = this.todos.filter(t => t.id !== this.id);
+  }
+}
+```
+
+---
+
+## Chapter 24: Performance Optimization
+
+<Badge variant="red">Expert</Badge>
+
+### 24.1 Algorithmic Optimization
+
+```javascript
+// O(n²) → O(n) with Set lookup
+function hasDuplicateSlow(arr) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      if (arr[i] === arr[j]) return true;
+    }
+  }
+  return false;
+}
+
+function hasDuplicateFast(arr) {
+  const seen = new Set();
+  for (const item of arr) {
+    if (seen.has(item)) return true;
+    seen.add(item);
+  }
+  return false;
+}
+
+// O(n) → O(1) with Map lookup
+function findByIdSlow(users, id) {
+  return users.find(u => u.id === id);  // Linear scan
+}
+
+function buildUserMap(users) {
+  return new Map(users.map(u => [u.id, u]));
+}
+const userMap = buildUserMap(users);
+const user = userMap.get(userId);  // O(1) lookup!
+
+// Pre-computation / caching
+function createLookupIndex(items, keyFn) {
+  const index = new Map();
+  for (const item of items) {
+    const key = keyFn(item);
+    if (!index.has(key)) index.set(key, []);
+    index.get(key).push(item);
+  }
+  return index;
+}
+
+// Batch processing to avoid blocking
+async function* batchProcessor(items, batchSize, processFn) {
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    yield await processFn(batch);
+    // Yield to event loop between batches
+    await new Promise(r => setTimeout(r, 0));
+  }
+}
+```
+
+### 24.2 Memory Optimization
+
+```javascript
+// Object pooling — reuse objects instead of creating new ones
+class ObjectPool {
+  #available = [];
+  #inUse = new Set();
+  #factory;
+  #reset;
+  
+  constructor(factory, reset, initialSize = 10) {
+    this.#factory = factory;
+    this.#reset = reset;
+    for (let i = 0; i < initialSize; i++) {
+      this.#available.push(factory());
+    }
+  }
+  
+  acquire() {
+    const obj = this.#available.pop() || this.#factory();
+    this.#inUse.add(obj);
+    return obj;
+  }
+  
+  release(obj) {
+    if (this.#inUse.has(obj)) {
+      this.#inUse.delete(obj);
+      this.#reset(obj);
+      this.#available.push(obj);
+    }
+  }
+}
+
+// Flyweight pattern — share common data
+class Particle {
+  static sharedSprite = loadSprite("particle.png");
+  
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    // sprite is accessed via the shared static, not per-instance
+  }
+}
+
+// Structured cloning for transferables
+const buffer = new ArrayBuffer(1024 * 1024);
+// Transfer ownership (zero-copy) to worker
+worker.postMessage({ buffer }, [buffer]);
+// buffer is now detached in main thread
+```
+
+### 24.3 Rendering Performance
+
+```javascript
+// Debounce and throttle (see Chapter 20 for implementations)
+
+// Intersection Observer for lazy loading
+const imageObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const img = entry.target;
+      img.src = img.dataset.src;
+      imageObserver.unobserve(img);
+    }
+  });
+});
+
+document.querySelectorAll("img[data-src]").forEach(img => {
+  imageObserver.observe(img);
+});
+
+// Web Workers for CPU-intensive tasks
+// worker.js
+self.addEventListener("message", (e) => {
+  const result = heavyComputation(e.data);
+  self.postMessage(result);
+});
+
+// main.js
+const worker = new Worker("worker.js");
+worker.postMessage(largeDataset);
+worker.onmessage = (e) => console.log("Result:", e.data);
+
+// RequestAnimationFrame for animations
+function smoothAnimation() {
+  let start;
+  function step(timestamp) {
+    if (!start) start = timestamp;
+    const progress = (timestamp - start) / 1000;  // seconds
+    
+    element.style.transform = `translateX(${progress * 100}px)`;
+    
+    if (progress < 2) {
+      requestAnimationFrame(step);
+    }
+  }
+  requestAnimationFrame(step);
+}
+```
+
+---
+## Chapter 25: Generators & Iterators
+
+<Badge variant="red">Expert</Badge>
+
+### 25.1 Generator Functions
+
+```javascript
+// Generator functions can pause and resume execution
+function* countUpTo(max) {
+  let n = 1;
+  while (n <= max) {
+    yield n;  // Pause here, return n
+    n++;
+  }
+}
+
+const counter = countUpTo(3);
+console.log(counter.next());  // { value: 1, done: false }
+console.log(counter.next());  // { value: 2, done: false }
+console.log(counter.next());  // { value: 3, done: false }
+console.log(counter.next());  // { value: undefined, done: true }
+
+// Iteration with for...of
+for (const num of countUpTo(5)) {
+  console.log(num);  // 1, 2, 3, 4, 5
+}
+
+// Spread with generators
+const numbers = [...countUpTo(5)];  // [1, 2, 3, 4, 5]
+
+// Two-way communication
+function* echoGenerator() {
+  const received = yield "Ready";  // yield sends "Ready", receives value
+  yield `You said: ${received}`;
+}
+
+const gen = echoGenerator();
+console.log(gen.next());           // { value: "Ready", done: false }
+console.log(gen.next("Hello!"));   // { value: "You said: Hello!", done: false }
+
+// Infinite generator
+function* fibonacci() {
+  let [a, b] = [0, 1];
+  while (true) {
+    yield a;
+    [a, b] = [b, a + b];
+  }
+}
+
+const fib = fibonacci();
+console.log(fib.next().value);  // 0
+console.log(fib.next().value);  // 1
+console.log(fib.next().value);  // 1
+console.log(fib.next().value);  // 2
+console.log(fib.next().value);  // 3
+
+// Lazy evaluation pipeline
+function* range(start, end) {
+  for (let i = start; i <= end; i++) yield i;
+}
+
+function* filter(iterable, predicate) {
+  for (const item of iterable) {
+    if (predicate(item)) yield item;
+  }
+}
+
+function* map(iterable, transform) {
+  for (const item of iterable) {
+    yield transform(item);
+  }
+}
+
+// Process 1,000,000 items without creating intermediate arrays!
+const result = [...map(
+  filter(range(1, 1000000), n => n % 2 === 0),
+  n => n * n
+)].slice(0, 10);  // [4, 16, 36, 64, 100, 144, 196, 256, 324, 400]
+
+// Async generators
+async function* fetchPages(url) {
+  let nextUrl = url;
+  while (nextUrl) {
+    const response = await fetch(nextUrl);
+    const data = await response.json();
+    yield data.results;
+    nextUrl = data.next;  // Pagination link
+  }
+}
+
+// Usage
+for await (const page of fetchPages("/api/items")) {
+  console.log(`Loaded ${page.length} items`);
+}
+
+// yield* — delegate to another generator
+function* combined() {
+  yield* [1, 2, 3];        // Delegate to array iterator
+  yield* countUpTo(3);      // Delegate to another generator
+}
+console.log([...combined()]);  // [1, 2, 3, 1, 2, 3]
+```
+
+### 25.2 Custom Iterators
+
+```javascript
+// Make any object iterable
+class Range {
+  constructor(start, end, step = 1) {
+    this.start = start;
+    this.end = end;
+    this.step = step;
+  }
+  
+  [Symbol.iterator]() {
+    let current = this.start;
+    return {
+      next: () => {
+        if (current > this.end) {
+          return { done: true };
+        }
+        const value = current;
+        current += this.step;
+        return { value, done: false };
+      }
+    };
+  }
+  
+  // Reverse iterator
+  [Symbol.asyncIterator]() { /* ... */ }
+}
+
+for (const n of new Range(1, 5)) {
+  console.log(n);  // 1, 2, 3, 4, 5
+}
+
+for (const n of new Range(0, 10, 2)) {
+  console.log(n);  // 0, 2, 4, 6, 8, 10
+}
+
+// Iterator helpers (ES2025)
+const nums = [1, 2, 3, 4, 5, 6];
+const result = nums.values()
+  .filter(n => n % 2 === 0)   // [2, 4, 6]
+  .map(n => n ** 2)            // [4, 16, 36]
+  .take(2)                     // [4, 16]
+  .toArray();
+```
