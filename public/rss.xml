@@ -6,12 +6,12 @@
     <description>A blazingly fast documentation and blog platform built with React, Vite, and MDX.</description>
     <language>en</language>
     <atom:link href="https://mdxhub.vercel.app/rss.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Sat, 18 Jul 2026 19:16:52 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 18 Jul 2026 19:33:36 GMT</lastBuildDate>
     
     <item>
       <title>Timeline Component — Full Showcase &amp; Documentation</title>
-      <link>https://mdxhub.vercel.app/blog/demo-timeline-component</link>
-      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/demo-timeline-component</guid>
+      <link>https://mdxhub.vercel.app/blog/showcase/demo-timeline-component</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/showcase/demo-timeline-component</guid>
       <pubDate>Wed, 15 Jul 2026 00:00:00 GMT</pubDate>
       <description>A complete guide to the new Timeline MDX component — covering all variants, icons, colors, nested content, and real-world examples.</description>
       <category>Showcase</category>
@@ -20,6 +20,72 @@
       <category>mdx</category>
       <category>documentation</category>
       <category>demo</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Introduction &amp; Philosophy</title>
+      <link>https://mdxhub.vercel.app/blog/javascript/part-0/introduction-philosophy</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/javascript/part-0/introduction-philosophy</guid>
+      <pubDate>Mon, 29 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Overview of the JavaScript guide — learning path, skill levels, and how to use this guide effectively.</description>
+      <category>Javascript</category>
+      <category>JS</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Junior Level — Foundations</title>
+      <link>https://mdxhub.vercel.app/blog/javascript/part-1/foundations</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/javascript/part-1/foundations</guid>
+      <pubDate>Mon, 29 Jun 2026 00:00:00 GMT</pubDate>
+      <description>JavaScript fundamentals — syntax, variables, types, operators, control flow, functions, arrays, objects, strings, DOM, and a practical Todo app.</description>
+      <category>Javascript</category>
+      <category>JS</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Intermediate Level — Building Real Applications</title>
+      <link>https://mdxhub.vercel.app/blog/javascript/part-2/building-real-applications</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/javascript/part-2/building-real-applications</guid>
+      <pubDate>Mon, 29 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Modern ES6+ JavaScript — destructuring, async/await, classes, modules, error handling, RegExp, Map/Set, and working with APIs.</description>
+      <category>Javascript</category>
+      <category>JS</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Expert Level — Mastering JavaScript Internals</title>
+      <link>https://mdxhub.vercel.app/blog/javascript/part-3/mastering-javascript-internals</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/javascript/part-3/mastering-javascript-internals</guid>
+      <pubDate>Mon, 29 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Deep internals — event loop, closures, prototypes, memory management, design patterns, performance optimization, generators and iterators.</description>
+      <category>Javascript</category>
+      <category>JS</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Practical Projects</title>
+      <link>https://mdxhub.vercel.app/blog/javascript/part-4/practical-projects</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/javascript/part-4/practical-projects</guid>
+      <pubDate>Mon, 29 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Build a full-featured Task Manager and a Reactive State Library using modern JavaScript patterns.</description>
+      <category>Javascript</category>
+      <category>JS</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Common Pitfalls &amp; Solutions</title>
+      <link>https://mdxhub.vercel.app/blog/javascript/part-5/common-pitfalls</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/javascript/part-5/common-pitfalls</guid>
+      <pubDate>Mon, 29 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Frequent JavaScript mistakes — this binding, closure loops, async/await gotchas, floating point, type coercion — plus appendices and references.</description>
+      <category>Javascript</category>
+      <category>JS</category>
+      <category>Guide</category>
       <author>Chigusa Asuha</author>
     </item>
     <item>
@@ -35,8 +101,8 @@
     </item>
     <item>
       <title>Showcase: New MDX Components &amp; Features</title>
-      <link>https://mdxhub.vercel.app/blog/demo-mdx-components</link>
-      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/demo-mdx-components</guid>
+      <link>https://mdxhub.vercel.app/blog/showcase/demo-mdx-components</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/showcase/demo-mdx-components</guid>
       <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
       <description>A live demonstration of all globally available MDX components — including the new Tabs, Steps, and Mermaid diagram renderer — all available in any MDX file.</description>
       <category>Showcase</category>
@@ -681,23 +747,23 @@
       <author>Chigusa Asuha</author>
     </item>
     <item>
-      <title>Exploring Advanced MDX Features: Math, Video, Tables &amp; More</title>
-      <link>https://mdxhub.vercel.app/blog/advanced-mdx-features</link>
-      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/advanced-mdx-features</guid>
+      <title>Git as a CMS: How We Manage Content Without a Database</title>
+      <link>https://mdxhub.vercel.app/blog/architecture/git-as-cms</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/architecture/git-as-cms</guid>
       <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
-      <description>Learn how to leverage mathematical equations, video embeds, advanced data tables, callouts, and custom MDX components to supercharge your content.</description>
-      <category>Tutorial</category>
+      <description>Why we abandoned traditional database-backed Content Management Systems (CMS) in favor of a purely Git-backed, file-based MDX workflow.</description>
+      <category>Architecture</category>
+      <category>cms</category>
+      <category>git</category>
       <category>mdx</category>
-      <category>react</category>
-      <category>katex</category>
-      <category>video</category>
-      <category>components</category>
+      <category>architecture</category>
+      <category>github</category>
       <author>Chigusa Asuha</author>
     </item>
     <item>
       <title>Complete Guide: Creating Posts in This Project</title>
-      <link>https://mdxhub.vercel.app/blog/creating-posts-guide</link>
-      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/creating-posts-guide</guid>
+      <link>https://mdxhub.vercel.app/blog/guide/creating-posts</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/guide/creating-posts</guid>
       <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
       <description>The definitive guide to creating blog posts and docs pages — covering YAML frontmatter, auto-discovery, video embeds, math, callouts, SEO, and every supported feature.</description>
       <category>Guide</category>
@@ -710,36 +776,9 @@
       <author>Chigusa Asuha</author>
     </item>
     <item>
-      <title>Embedding Videos in MDX: YouTube, Shorts &amp; More</title>
-      <link>https://mdxhub.vercel.app/blog/embedding-videos-in-mdx</link>
-      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/embedding-videos-in-mdx</guid>
-      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
-      <description>Learn how to embed YouTube videos, Shorts, and any iframe-compatible video directly inside your MDX blog posts using the VideoEmbed component.</description>
-      <category>Tutorial</category>
-      <category>mdx</category>
-      <category>video</category>
-      <category>youtube</category>
-      <category>components</category>
-      <author>Chigusa Asuha</author>
-    </item>
-    <item>
-      <title>Git as a CMS: How We Manage Content Without a Database</title>
-      <link>https://mdxhub.vercel.app/blog/git-as-cms</link>
-      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/git-as-cms</guid>
-      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
-      <description>Why we abandoned traditional database-backed Content Management Systems (CMS) in favor of a purely Git-backed, file-based MDX workflow.</description>
-      <category>Architecture</category>
-      <category>cms</category>
-      <category>git</category>
-      <category>mdx</category>
-      <category>architecture</category>
-      <category>github</category>
-      <author>Chigusa Asuha</author>
-    </item>
-    <item>
       <title>Wonderful Indonesia: A Journey Through the Archipelago</title>
-      <link>https://mdxhub.vercel.app/blog/wonderful-indonesia</link>
-      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/wonderful-indonesia</guid>
+      <link>https://mdxhub.vercel.app/blog/travel/wonderful-indonesia</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/travel/wonderful-indonesia</guid>
       <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
       <description>From the emerald terraced rice fields of Bali to the ancient temples of Yogyakarta and the vibrant coral reefs of Raja Ampat — Indonesia is a world unto itself.</description>
       <category>Travel</category>
@@ -752,9 +791,36 @@
       <author>Chigusa Asuha</author>
     </item>
     <item>
+      <title>Exploring Advanced MDX Features: Math, Video, Tables &amp; More</title>
+      <link>https://mdxhub.vercel.app/blog/tutorial/advanced-mdx-features</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tutorial/advanced-mdx-features</guid>
+      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn how to leverage mathematical equations, video embeds, advanced data tables, callouts, and custom MDX components to supercharge your content.</description>
+      <category>Tutorial</category>
+      <category>mdx</category>
+      <category>react</category>
+      <category>katex</category>
+      <category>video</category>
+      <category>components</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Embedding Videos in MDX: YouTube, Shorts &amp; More</title>
+      <link>https://mdxhub.vercel.app/blog/tutorial/embedding-videos-in-mdx</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tutorial/embedding-videos-in-mdx</guid>
+      <pubDate>Sun, 21 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Learn how to embed YouTube videos, Shorts, and any iframe-compatible video directly inside your MDX blog posts using the VideoEmbed component.</description>
+      <category>Tutorial</category>
+      <category>mdx</category>
+      <category>video</category>
+      <category>youtube</category>
+      <category>components</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
       <title>Getting Started with MDX in React 19</title>
-      <link>https://mdxhub.vercel.app/blog/getting-started/nested</link>
-      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/getting-started/nested</guid>
+      <link>https://mdxhub.vercel.app/blog/tutorial/getting-started</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/tutorial/getting-started</guid>
       <pubDate>Thu, 15 Jan 2026 00:00:00 GMT</pubDate>
       <description>A comprehensive guide to setting up MDX with Vite 7 and React 19, featuring frontmatter parsing and custom components.</description>
       <category>Tutorial</category>

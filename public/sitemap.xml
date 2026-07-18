@@ -21,50 +21,56 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/advanced-mdx-features</loc>
-    <lastmod>2026-06-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://mdxhub.vercel.app/blog/creating-posts-guide</loc>
+    <loc>https://mdxhub.vercel.app/blog/architecture/git-as-cms</loc>
     <lastmod>2026-07-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/demo-mdx-components</loc>
-    <lastmod>2026-07-03</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/guide/creating-posts</loc>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/demo-timeline-component</loc>
-    <lastmod>2026-07-15</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/javascript/part-0/introduction-philosophy</loc>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/embedding-videos-in-mdx</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/javascript/part-1/foundations</loc>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/getting-started/nested</loc>
-    <lastmod>2026-06-30</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/javascript/part-2/building-real-applications</loc>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/git-as-cms</loc>
-    <lastmod>2026-07-02</lastmod>
+    <loc>https://mdxhub.vercel.app/blog/javascript/part-3/mastering-javascript-internals</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/javascript/part-4/practical-projects</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/javascript/part-5/common-pitfalls</loc>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/blog/javascript/the-complete-guide-to-javascript</loc>
-    <lastmod>2026-07-03</lastmod>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -249,6 +255,18 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mdxhub.vercel.app/blog/showcase/demo-mdx-components</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/showcase/demo-timeline-component</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mdxhub.vercel.app/blog/tailwindcss-v4/cheatsheet/quick-reference</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
@@ -297,6 +315,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mdxhub.vercel.app/blog/travel/wonderful-indonesia</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mdxhub.vercel.app/blog/trpc-zod/cheatsheet/quick-reference</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
@@ -339,7 +363,19 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mdxhub.vercel.app/blog/wonderful-indonesia</loc>
+    <loc>https://mdxhub.vercel.app/blog/tutorial/advanced-mdx-features</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/tutorial/embedding-videos-in-mdx</loc>
+    <lastmod>2026-06-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/tutorial/getting-started</loc>
     <lastmod>2026-06-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -376,13 +412,13 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/1-introduction</loc>
-    <lastmod>2026-07-15</lastmod>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/code-blocks</loc>
-    <lastmod>2026-06-30</lastmod>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -394,7 +430,7 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components</loc>
-    <lastmod>2026-07-15</lastmod>
+    <lastmod>2026-07-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
