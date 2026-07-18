@@ -7,6 +7,95 @@ description: "Current project status, recent changes, project limitations, and k
 
 Welcome to the **Project Status** page. Here you'll find an up-to-date log of newly implemented features, project limitations, and known behavior notes for this MDX platform.
 
+## 📋 Changelog
+
+### v1.5.7 (2026-07-19)
+- **SSG Migration**: Migrated to React Router framework mode with `ssr: false` + `prerender()` for static site generation
+- **Testing**: Added Vitest + Testing Library with ErrorBoundary tests
+- **CI/CD**: GitHub Actions workflow (type-check → test → build)
+- **Bundle Analysis**: `rollup-plugin-visualizer` with `pnpm build:analyze`
+- **Dependency Slimdown**: Removed `clsx`, `tailwind-merge`, `date-fns`, `fuse.js`, `react-helmet-async`, `@base-ui/react`
+- **Stdlib Replacements**: `date-fns` → `toLocaleDateString`, `fuse.js` → `.filter()`, `react-helmet-async` → React 19 auto-hoisting, `@base-ui/react` Tooltip → CSS tooltip
+- **Over-engineering Cleanup**: Simplified NotFound (238→70 lines), ErrorBoundary (188→40 lines), SectionBackground → CSS gradients, removed Framer Motion page transitions
+- **Dead Code Removal**: Removed `cn`, `timeAgo`, `groupBy`, `pathToSlug` from utils; 4 dead selectors from contentStore
+- **Duplication Reduction**: Extracted `walk` + `escapeXml` to `scripts/helpers.cjs`
+- **Error Tracking**: Client-side `ErrorTracker` with `componentDidCatch` integration
+- **Environment Validation**: Zod schema for `VITE_*` env vars in `src/config/env.ts`
+- **Content Validation**: Build-time frontmatter schema checks (fixed 6 missing `description` fields)
+- **Web Vitals**: CLS, FCP, LCP, TTFB tracking via `web-vitals`
+
+### v1.5.6 (2026-07-17)
+- Removed `highlight.js` (fully replaced by Shiki)
+- Fixed newsletter component styling
+- Refactored dead code and optimized vendor chunks
+- Updated documentation for v1.5.6
+
+### v1.5.5 (2026-07-14)
+- Updated dependencies: `@shikijs/rehype` v4.3.1, `framer-motion` v12.42.2, `react` v19.2.7, `react-router` v8.2.0, `shiki` v4.3.1, `tailwindcss` v4.3.2, `typescript` v6.0.3, `vite` v8.1.4
+- Added GitHub Actions workflow for release process
+
+### v1.5.4 (2026-07-05)
+- Fixed deprecated `import.meta.glob` query syntax; set eager to false for content globs
+- Enhanced CardGrid with link handling
+- Improved text styling with `clamp()` and mobile support
+- Removed unused shadcn components
+
+### v1.5.3 (2026-07-04)
+- Version bump
+
+### v1.5.2 (2026-07-04)
+- Added Google site verification meta tag
+- Enhanced `vercel.json` with Content-Type headers for SEO assets
+- Updated timestamps and category names in content index and RSS feed
+- Documentation updates for SEO
+
+### v1.5.1 (2026-07-04)
+- Fixed `generatedAt` and `lastBuildDate` timestamps
+- Updated loading skeleton heights
+- Added Google site verification tag
+
+### v1.5.0 (2026-07-03)
+- Added CardGrid and Card components for categorized content
+
+### v1.4.x (2026-07-01 — 2026-07-02)
+- Content indexing and slug mapping for blog and docs
+- Pull request and issue templates
+- Contributing guide, code of conduct, security policy
+- Dynamic footer copyright from site config
+
+### v1.3.0 (2026-06-28)
+- Enhanced CodeBlock with line diff detection
+- Added Tabs, Steps, and Mermaid diagram components
+- RSS feed and sitemap generation with `robots.txt`
+- Comprehensive code blocks guide
+- Updated js-yaml to v4.3.0
+
+### v1.2.5 (2026-06-27)
+- Build-time image compression (WebP/AVIF via Sharp)
+- Optimized build chunks
+- Zustand complete guide posts
+- Fixed Disqus comment count
+
+### v1.2.2 (2026-06-25)
+- Blog series with part navigation and series badge
+- Disqus comment system
+- Enhanced TOC accuracy
+- Previous/next post navigation
+- Share buttons
+- Social media icon pack integration
+
+### v1.0.0 – v1.2.1 (2026-06-22 — 2026-06-25)
+- Initial project setup with Vite + React
+- MDX integration with `@mdx-js/rollup`
+- Tailwind CSS v4 styling
+- Blog and docs routing
+- Author schema and content management
+- SEO configuration with Open Graph
+- Lightbox, Tooltip, Badge MDX components
+- Nested content folder routing
+- Image support and relative path resolution
+- MIT License
+
 ## ✨ Newly Implemented Features
 
 ### Latest Optimization
