@@ -35,10 +35,14 @@ export default function DocPage() {
         setMdxLoading(false)
         return
       }
-      const Component = await useContentStore.getState().loadDocComponent(fullSlug)
-      if (!cancelled) {
-        setMdxComponent(() => Component || null)
-        setMdxLoading(false)
+      try {
+        const Component = await useContentStore.getState().loadDocComponent(fullSlug)
+        if (!cancelled) {
+          setMdxComponent(() => Component || null)
+          setMdxLoading(false)
+        }
+      } catch {
+        if (!cancelled) setMdxLoading(false)
       }
     }
     load()
@@ -186,7 +190,7 @@ export default function DocPage() {
       </main>
 
       {toc !== false && (
-        <div className="docs-toc sticky top-[100px] self-start hidden lg:block pr-2 max-h-[calc(100vh-140px)] overflow-y-auto">
+        <div className="docs-toc sticky top-16 self-start hidden lg:block pr-2 overflow-y-auto">
           <TableOfContents items={headings} activeId={activeId} />
         </div>
       )}
