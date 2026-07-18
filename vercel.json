@@ -1,4 +1,6 @@
 {
+  "outputDirectory": "build/client",
+  "buildCommand": "pnpm build",
   "headers": [
     {
       "source": "/(.*)",
