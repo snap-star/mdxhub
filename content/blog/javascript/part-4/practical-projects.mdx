@@ -1,0 +1,328 @@
+---
+title: "Practical Projects"
+description: "Build a full-featured Task Manager and a Reactive State Library using modern JavaScript patterns."
+date: 2026-06-29
+tags: ["JS", "Guide"]
+category: "Javascript"
+author: chigusa-asuha
+cc: "CC-BY-4.0"
+series: "Mastering JavaScript"
+seriesOrder: 6
+---
+
+# Part 4: Practical Projects
+
+## Project 1: Task Manager (Intermediate)
+
+```javascript
+// task-manager.js — Full-featured task manager
+
+class TaskManager extends EventEmitter {
+  #tasks = new Map();
+  #categories = new Set(["default"]);
+  #filters = { status: "all", category: "all", search: "" };
+  #sortBy = "createdAt";
+  #sortOrder = "desc";
+
+  constructor() {
+    super();
+    this.#loadFromStorage();
+  }
+
+  // === CRUD Operations ===
+  
+  create({ title, description = "", category = "default", priority = "medium", dueDate = null }) {
+    if (!title?.trim()) throw new ValidationError("title", "Title is required");
+    
+    const task = {
+      id: crypto.randomUUID(),
+      title: title.trim(),
+      description,
+      category,
+      priority,  // "low" | "medium" | "high"
+      status: "pending",  // "pending" | "in-progress" | "completed"
+      dueDate,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      completedAt: null,
+    };
+    
+    this.#tasks.set(task.id, Object.freeze(task));
+    this.#categories.add(category);
+    this.#save();
+    this.emit("created", task);
+    return task;
+  }
+
+  update(id, updates) {
+    const task = this.#tasks.get(id);
+    if (!task) throw new Error(`Task ${id} not found`);
+    
+    const updated = {
+      ...task,
+      ...updates,
+      id: task.id,  // Prevent ID change
+      updatedAt: Date.now(),
+    };
+    
+    if (updates.status === "completed" && task.status !== "completed") {
+      updated.completedAt = Date.now();
+    }
+    
+    this.#tasks.set(id, Object.freeze(updated));
+    this.#save();
+    this.emit("updated", updated);
+    return updated;
+  }
+
+  delete(id) {
+    const task = this.#tasks.get(id);
+    if (!task) return false;
+    
+    this.#tasks.delete(id);
+    this.#save();
+    this.emit("deleted", { id });
+    return true;
+  }
+
+  toggleStatus(id) {
+    const task = this.#tasks.get(id);
+    const newStatus = task.status === "completed" ? "pending" : "completed";
+    return this.update(id, { status: newStatus });
+  }
+
+  // === Querying ===
+  
+  getById(id) {
+    return this.#tasks.get(id) ?? null;
+  }
+
+  getFiltered() {
+    let result = [...this.#tasks.values()];
+    
+    // Apply filters
+    if (this.#filters.status !== "all") {
+      result = result.filter(t => t.status === this.#filters.status);
+    }
+    if (this.#filters.category !== "all") {
+      result = result.filter(t => t.category === this.#filters.category);
+    }
+    if (this.#filters.search) {
+      const q = this.#filters.search.toLowerCase();
+      result = result.filter(t => 
+        t.title.toLowerCase().includes(q) || 
+        t.description.toLowerCase().includes(q)
+      );
+    }
+    
+    // Apply sorting
+    const order = this.#sortOrder === "asc" ? 1 : -1;
+    result.sort((a, b) => {
+      const aVal = a[this.#sortBy] ?? 0;
+      const bVal = b[this.#sortBy] ?? 0;
+      return (aVal > bVal ? 1 : -1) * order;
+    });
+    
+    return result;
+  }
+
+  getStats() {
+    const tasks = [...this.#tasks.values()];
+    return {
+      total: tasks.length,
+      pending: tasks.filter(t => t.status === "pending").length,
+      inProgress: tasks.filter(t => t.status === "in-progress").length,
+      completed: tasks.filter(t => t.status === "completed").length,
+      overdue: tasks.filter(t => t.dueDate && t.dueDate < Date.now() && t.status !== "completed").length,
+    };
+  }
+
+  // === Persistence ===
+  
+  #save() {
+    localStorage.setItem("tasks", JSON.stringify([...this.#tasks]));
+    localStorage.setItem("categories", JSON.stringify([...this.#categories]));
+  }
+
+  #loadFromStorage() {
+    try {
+      const stored = localStorage.getItem("tasks");
+      if (stored) {
+        const entries = JSON.parse(stored);
+        this.#tasks = new Map(entries);
+      }
+      const cats = localStorage.getItem("categories");
+      if (cats) {
+        this.#categories = new Set(JSON.parse(cats));
+      }
+    } catch {
+      // Ignore corrupted storage
+    }
+  }
+
+  exportToJSON() {
+    return JSON.stringify([...this.#tasks.values()], null, 2);
+  }
+
+  importFromJSON(json) {
+    const tasks = JSON.parse(json);
+    for (const task of tasks) {
+      this.#tasks.set(task.id, Object.freeze(task));
+      this.#categories.add(task.category);
+    }
+    this.#save();
+    this.emit("imported", { count: tasks.length });
+  }
+}
+```
+
+---
+
+## Project 2: Reactive State Library (Expert)
+
+```javascript
+// reactive.js — A simplified Vue-like reactivity system
+
+// === Effect Tracking ===
+let activeEffect = null;
+const effectStack = [];
+
+function effect(fn, options = {}) {
+  const e = createEffect(fn, options);
+  e.run();
+  return e;
+}
+
+function createEffect(fn, options) {
+  const e = {
+    run() {
+      if (e.dirty) {
+        try {
+          effectStack.push(e);
+          activeEffect = e;
+          e.dirty = false;
+          return fn();
+        } finally {
+          effectStack.pop();
+          activeEffect = effectStack[effectStack.length - 1] || null;
+        }
+      }
+    },
+    stop() {
+      // Cleanup subscriptions
+      e.deps?.forEach(dep => dep.delete(e));
+      e.deps = new Set();
+    },
+    dirty: true,
+    deps: new Set(),
+    scheduler: options.scheduler,
+  };
+  return e;
+}
+
+// === Reactive Proxy ===
+const targetMap = new WeakMap();
+
+function track(target, key) {
+  if (!activeEffect) return;
+  
+  let depsMap = targetMap.get(target);
+  if (!depsMap) {
+    depsMap = new Map();
+    targetMap.set(target, depsMap);
+  }
+  
+  let dep = depsMap.get(key);
+  if (!dep) {
+    dep = new Set();
+    depsMap.set(key, dep);
+  }
+  
+  dep.add(activeEffect);
+  activeEffect.deps.add(dep);
+}
+
+function trigger(target, key) {
+  const depsMap = targetMap.get(target);
+  if (!depsMap) return;
+  
+  const dep = depsMap.get(key);
+  if (dep) {
+    dep.forEach(e => {
+      if (e.scheduler) {
+        e.scheduler(e.run);
+      } else {
+        e.run();
+      }
+    });
+  }
+}
+
+function reactive(target) {
+  return new Proxy(target, {
+    get(target, key) {
+      track(target, key);
+      return target[key];
+    },
+    set(target, key, value) {
+      const oldValue = target[key];
+      target[key] = value;
+      if (oldValue !== value) {
+        trigger(target, key);
+      }
+      return true;
+    },
+  });
+}
+
+function ref(value) {
+  const r = {
+    get value() {
+      track(r, "value");
+      return value;
+    },
+    set value(newValue) {
+      if (value !== newValue) {
+        value = newValue;
+        trigger(r, "value");
+      }
+    },
+  };
+  return r;
+}
+
+function computed(getter) {
+  const c = ref();
+  effect(() => {
+    c.value = getter();
+  }, { scheduler: queueJob });
+  return c;
+}
+
+// === Batching / Scheduler ===
+const queue = new Set();
+let isFlushing = false;
+
+function queueJob(job) {
+  queue.add(job);
+  if (!isFlushing) {
+    isFlushing = true;
+    Promise.resolve().then(() => {
+      queue.forEach(job => job());
+      queue.clear();
+      isFlushing = false;
+    });
+  }
+}
+
+// === Usage ===
+const state = reactive({ count: 0, message: "Hello" });
+const doubled = computed(() => state.count * 2);
+
+// Track and re-run when state changes
+effect(() => {
+  console.log(`Count: ${state.count}, Doubled: ${doubled.value}`);
+});
+
+state.count++;  // Effect re-runs automatically!
+```

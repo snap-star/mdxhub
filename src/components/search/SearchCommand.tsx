@@ -16,19 +16,22 @@ export function SearchCommand() {
   const blogResults = results.filter((r) => r.type === 'blog')
   const docResults = results.filter((r) => r.type === 'doc')
 
+  const openRef = React.useRef(open)
+  React.useEffect(() => { openRef.current = open }, [open])
+
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        setOpen((open) => !open)
+        setOpen((o) => !o)
       }
-      if (e.key === 'Escape' && open) {
+      if (e.key === 'Escape' && openRef.current) {
         setOpen(false)
       }
     }
     window.addEventListener('keydown', down)
     return () => window.removeEventListener('keydown', down)
-  }, [open])
+  }, [])
 
   const onSelect = (slug: string, type: 'blog' | 'doc') => {
     setOpen(false)

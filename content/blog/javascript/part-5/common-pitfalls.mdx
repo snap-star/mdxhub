@@ -1,0 +1,346 @@
+---
+title: "Common Pitfalls & Solutions"
+description: "Frequent JavaScript mistakes — this binding, closure loops, async/await gotchas, floating point, type coercion — plus appendices and references."
+date: 2026-06-29
+tags: ["JS", "Guide"]
+category: "Javascript"
+author: chigusa-asuha
+cc: "CC-BY-4.0"
+series: "Mastering JavaScript"
+seriesOrder: 7
+---
+
+# Part 5: Common Pitfalls & Solutions
+
+## 1. `this` Binding Confusion
+
+```javascript
+const obj = {
+  name: "Alice",
+  greet() {
+    return `Hello, ${this.name}`;
+  }
+};
+
+obj.greet();           // "Hello, Alice" ✓ — method call
+
+const greet = obj.greet;
+greet();               // "Hello, undefined" ✗ — 'this' is lost!
+
+// Solutions:
+// 1. Arrow functions (lexical this)
+const obj2 = {
+  name: "Alice",
+  greet: () => `Hello, ${this.name}`  // ⚠️ Arrow inherits this from surrounding scope
+};
+
+// 2. bind()
+const boundGreet = obj.greet.bind(obj);
+boundGreet();          // "Hello, Alice" ✓
+
+// 3. Arrow in method
+class User {
+  constructor(name) { this.name = name; }
+  greet = () => `Hello, ${this.name}`;  // Arrow: 'this' always bound
+}
+const user = new User("Alice");
+const extracted = user.greet;
+extracted();           // "Hello, Alice" ✓
+```
+## 2. Closure in Loops
+
+```javascript
+// WRONG: All functions share the same 'i'
+const fns = [];
+for (var i = 0; i < 3; i++) {
+  fns.push(() => console.log(i));
+}
+fns.forEach(fn => fn());  // 3, 3, 3
+
+// RIGHT: Use let (block-scoped)
+const fns2 = [];
+for (let i = 0; i < 3; i++) {
+  fns2.push(() => console.log(i));
+}
+fns2.forEach(fn => fn());  // 0, 1, 2
+
+// RIGHT: IIFE
+const fns3 = [];
+for (var i = 0; i < 3; i++) {
+  fns3.push((function(captured) {
+    return () => console.log(captured);
+  })(i));
+}
+```
+
+## 3. Mutating Function Arguments
+
+```javascript
+// WRONG: Mutating input
+function addDefaults(config) {
+  config.timeout = config.timeout || 5000;  // Mutates caller's object!
+  return config;
+}
+
+// RIGHT: Create a copy
+function addDefaults(config) {
+  return { timeout: 5000, ...config };  // Spread creates shallow copy
+}
+
+// RIGHT: For deep objects, use structuredClone
+function deepCopy(obj) {
+  return structuredClone(obj);  // Deep clone (available in modern environments)
+}
+```
+
+## 4. Floating Point Precision
+
+```javascript
+console.log(0.1 + 0.2 === 0.3);  // false!
+console.log(0.1 + 0.2);           // 0.30000000000000004
+
+// Solutions:
+// 1. Use epsilon comparison
+function floatEqual(a, b, epsilon = 1e-10) {
+  return Math.abs(a - b) < epsilon;
+}
+floatEqual(0.1 + 0.2, 0.3);  // true
+
+// 2. Convert to integers for money
+const total = (1999 + 499) / 100;  // $19.99 + $4.99 = $24.98
+
+// 3. Use decimal.js library for financial calculations
+```
+
+## 5. `==` vs `===`
+
+```javascript
+// NEVER use == (loose equality)
+0 == "0"       // true
+0 == []        // true
+"" == false    // true
+null == undefined // true
+"1" == true    // true
+
+// ALWAYS use === (strict equality)
+0 === "0"      // false ✓
+0 === []       // false ✓
+null === undefined // false ✓
+
+// Exception: checking null or undefined
+if (x == null)  // Acceptable: catches both null and undefined
+if (x === null || x === undefined)  // Same but more explicit
+```
+
+## 6. Async/Await Mistakes
+
+```javascript
+// WRONG: No error handling
+const data = await fetchData();  // Unhandled rejection if fetch fails!
+
+// RIGHT: Always use try/catch
+async function safeFetch() {
+  try {
+    return await fetchData();
+  } catch (error) {
+    console.error("Fetch failed:", error);
+    return null;
+  }
+}
+
+// WRONG: forEach with async
+items.forEach(async (item) => {  // Fire-and-forget! Errors lost!
+  await process(item);
+});
+
+// RIGHT: Use for...of for sequential
+for (const item of items) {
+  await process(item);
+}
+
+// RIGHT: Use Promise.all for parallel
+await Promise.all(items.map(item => process(item)));
+
+// WRONG: Implicit Promise return in map
+const results = items.map(async (item) => {
+  return await fetch(item.id);  // Returns Promise, not result!
+});
+console.log(results);  // [Promise, Promise, Promise] — not the data!
+
+// RIGHT: Await Promise.all
+const results = await Promise.all(items.map(async (item) => {
+  return await fetch(item.id);
+}));
+console.log(results);  // [data1, data2, data3] ✓
+```
+
+---
+
+# Appendix A: Quick Reference Card
+
+## Type Conversions
+
+| From | To | Method |
+|------|-----|--------|
+| String → Number | `parseInt("42")`, `parseFloat("3.14")`, `Number("42")`, `+"42"` |
+| Number → String | `String(42)`, `42.toString()`, `` `${42}` `` |
+| Any → Boolean | `Boolean(x)`, `!!x` |
+| Any → String | `String(x)` |
+| Object → JSON | `JSON.stringify(obj)` |
+| JSON → Object | `JSON.parse(str)` |
+
+## Array Methods
+
+| Method | Purpose | Mutates? |
+|--------|---------|----------|
+| `push()` | Add to end | Yes |
+| `pop()` | Remove from end | Yes |
+| `shift()` | Remove from start | Yes |
+| `unshift()` | Add to start | Yes |
+| `splice()` | Add/remove at index | Yes |
+| `slice()` | Copy portion | No |
+| `map()` | Transform each | No |
+| `filter()` | Keep matching | No |
+| `reduce()` | Reduce to value | No |
+| `find()` | First match | No |
+| `some()` | Any match? | No |
+| `every()` | All match? | No |
+| `sort()` | Sort (with comparator) | Yes |
+| `reverse()` | Reverse order | Yes |
+| `toSorted()` | Return sorted copy | No (ES2023) |
+
+## String Escapes
+
+| Escape | Meaning |
+|--------|---------|
+| `\n` | New line |
+| `\t` | Tab |
+| `\\` | Backslash |
+| `\'` | Single quote |
+| `\"` | Double quote |
+| `\`` | Backtick |
+| `\u{1F600}` | Unicode emoji |
+
+## Operator Precedence (High to Low)
+
+1. `()` Grouping
+2. `.` `[]` `()` `?.` Member access, call
+3. `++` `--` (postfix)
+4. `!` `~` `+` `-` `++` `--` (prefix) `typeof` `void` `delete` `await`
+5. `**` Exponentiation
+6. `*` `/` `%`
+7. `+` `-`
+8. `<<` `>>` `>>>`
+9. `<` `<=` `>` `>=` `instanceof` `in`
+10. `==` `!=` `===` `!==`
+11. `&`
+12. `^`
+13. `\|` (bitwise OR)
+14. `&&`
+15. `\|\|` `??`
+16. `? :` Ternary
+17. `=` `+=` `-=` etc.
+18. `,` (comma)
+
+---
+
+# Appendix B: ES Version Features
+
+| Version | Year | Key Features |
+|---------|------|-------------|
+| ES6/ES2015 | 2015 | `let`/`const`, arrow functions, classes, modules, template literals, destructuring, spread, `Map`/`Set`, Promises, `for...of`, generators |
+| ES2016 | 2016 | `Array.prototype.includes`, exponentiation operator `**` |
+| ES2017 | 2017 | `async`/`await`, `Object.entries`/`values`, string padding, trailing commas |
+| ES2018 | 2018 | Rest/spread properties, `for await...of`, `Promise.finally`, RegExp improvements |
+| ES2019 | 2019 | `Array.flat`/`flatMap`, `Object.fromEntries`, `String.trimStart`/`End`, optional catch binding |
+| ES2020 | 2020 | `BigInt`, `nullish coalescing ??`, `optional chaining ?.`, `Promise.allSettled`, `import()`, `globalThis` |
+| ES2021 | 2021 | `Promise.any`, `String.replaceAll`, logical assignment `??=` `||=` `&&=`, numeric separators `1_000_000` |
+| ES2022 | 2022 | Class fields & private methods `#`, `at()` method, top-level `await`, error cause |
+| ES2023 | 2023 | `toSorted`/`toReversed`/`toSpliced`/`with`, `findLast`/`findLastIndex`, `Array.fromAsync` |
+| ES2024 | 2024 | `Object.groupBy`/`Map.groupBy`, `Promise.withResolvers`, `ArrayBuffer.transfer`, `RegExp` `/v` flag, `Well-formed` Unicode strings |
+| ES2025 | 2025 | `Set` methods (union, intersection, etc.), `Iterator` helpers, `import.defer` |
+
+---
+
+# Appendix C: Browser & Node.js Compatibility
+
+## Feature Detection
+
+```javascript
+// Check if feature exists before using
+if (typeof structuredClone === "function") {
+  const copy = structuredClone(obj);
+} else {
+  // Fallback
+  const copy = JSON.parse(JSON.stringify(obj));
+}
+
+// Modern: Optional chaining handles missing features
+const supportsAt = [].at !== undefined;
+```
+
+## Polyfills
+
+```javascript
+// Simple polyfill for Array.prototype.at (if needed)
+if (!Array.prototype.at) {
+  Array.prototype.at = function(index) {
+    if (index < 0) index = this.length + index;
+    return this[index];
+  };
+}
+```
+
+---
+
+# Glossary
+
+| Term | Definition |
+|------|------------|
+| **Hoisting** | JavaScript's behavior of moving declarations to the top of their scope |
+| **Closure** | A function that retains access to its outer scope's variables |
+| **Prototype** | The object from which another object inherits properties |
+| **Event Loop** | The mechanism that handles async callbacks in JavaScript |
+| **Promise** | An object representing a future value that may not be available yet |
+| **Microtask** | High-priority async task (Promise callbacks, queueMicrotask) |
+| **Macrotask** | Regular async task (setTimeout, setInterval, I/O) |
+| **Garbage Collection** | Automatic memory management that removes unreachable objects |
+| **Tree Shaking** | Build optimization that removes unused code |
+| **Polyfill** | Code that provides modern features in older environments |
+| **IIFE** | Immediately Invoked Function Expression: `(function(){})()` |
+| **Currying** | Transforming a function that takes multiple args into a sequence of single-arg functions |
+| **Memoization** | Caching function results to avoid recomputation |
+| **JIT** | Just-In-Time compilation (how V8 optimizes hot code) |
+| **AST** | Abstract Syntax Tree — the parsed representation of code |
+
+---
+
+# Resources & Further Reading
+
+## Official Documentation
+- [MDN JavaScript Reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript) — The definitive reference
+- [ECMAScript Specification](https://tc39.es/ecma262/) — The official language spec
+- [JavaScript.info](https://javascript.info) — Excellent modern tutorial
+
+## Books
+- **"You Don't Know JS"** by Kyle Simpson — Deep dive into language mechanics
+- **"Eloquent JavaScript"** by Marijn Haverbeke — Comprehensive guide
+- **"JavaScript: The Good Parts"** by Douglas Crockford — Classic
+
+## Practice
+- [Exercism JavaScript Track](https://exercism.org/tracks/javascript)
+- [Codewars](https://codewars.com)
+- [LeetCode](https://leetcode.com)
+
+## Tools
+- **ESLint** — Static code analysis
+- **Prettier** — Code formatting
+- **TypeScript** — Typed superset of JavaScript
+- **Jest / Vitest** — Testing frameworks
+
+---
+
+*This guide is a living document. JavaScript evolves rapidly through the TC39 process. Check the official ECMAScript specification and MDN for the latest features.*
+
+*Last updated: June 2026*
+

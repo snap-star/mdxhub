@@ -7,25 +7,22 @@ import { extractTextContent } from '@/lib/react-utils'
 type LineDiffType = 'add' | 'remove' | null
 
 /**
- * Traverse the Shiki <code> element's children (<span class="line">) and
- * detect which lines have diff classes (diff.add / diff.remove) from
- * transformerNotationDiff.
+ * Check Shiki <span> elements for `data-diff-add` / `data-diff-remove`
+ * attributes set by transformerNotationDiff, instead of parsing classNames.
  */
 function getLineDiffTypes(children: React.ReactNode): LineDiffType[] {
   if (!React.isValidElement<{ children?: React.ReactNode }>(children)) return []
 
-  // children is the <code> element; its children are the line spans
   const lineNodes = children.props.children
   if (!lineNodes) return []
 
-  const nodes: React.ReactNode[] = Array.isArray(lineNodes) ? lineNodes : [lineNodes]
+  const nodes = Array.isArray(lineNodes) ? lineNodes : [lineNodes]
 
-  return nodes.map((line: React.ReactNode) => {
-    if (React.isValidElement<{ className?: string }>(line)) {
-      const cls = line.props.className ?? ''
-      if (cls.includes('diff add') || cls.includes(' add')) return 'add'
-      if (cls.includes('diff remove') || cls.includes(' remove')) return 'remove'
-      if (cls.includes('highlighted') || cls.includes('focused')) return null
+  return nodes.map((line) => {
+    if (React.isValidElement(line)) {
+      const p = line.props as Record<string, unknown>
+      if (p['data-diff-add'] !== undefined) return 'add'
+      if (p['data-diff-remove'] !== undefined) return 'remove'
     }
     return null
   })

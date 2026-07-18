@@ -1,5 +1,6 @@
 import React from 'react'
 import { useLocation } from 'react-router'
+import { config } from '@/config/env'
 
 declare global {
   interface Window {
@@ -111,7 +112,7 @@ function DisqusEmbed({ identifier, title, url, shortname }: DisqusCommentsProps 
 }
 
 export function DisqusComments({ identifier, title, url }: DisqusCommentsProps) {
-  const shortname = (import.meta.env.VITE_DISQUS_SHORTNAME as string | undefined)?.trim()
+  const shortname = config.VITE_DISQUS_SHORTNAME?.trim()
 
   if (!shortname) return null
 

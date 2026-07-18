@@ -1,6 +1,4 @@
 import { create } from 'zustand'
-import { useShallow } from 'zustand/react/shallow'
-import Fuse from 'fuse.js'
 import type { MDXBlogModule, MDXDocModule, SearchResult } from '@/lib/content/types'
 import type { PostIndexEntry, DocIndexEntry } from '@/lib/content/contentIndex'
 import { loadContentIndex, loadSlugMap } from '@/lib/content/contentIndex'
@@ -25,7 +23,7 @@ interface ContentStore {
   _docComponentCache: Record<string, React.ComponentType>
 
   // Search
-  fuseIndex: Fuse<SearchResult> | null
+  searchData: SearchResult[]
 
   // Status
   status: 'idle' | 'loading' | 'loaded' | 'error'
@@ -52,16 +50,16 @@ export const useContentStore = create<ContentStore>((set, get) => ({
   docs: [],
   _blogComponentCache: {},
   _docComponentCache: {},
-  fuseIndex: null,
+  searchData: [],
   status: 'idle',
   error: null,
 
-  loadContent: async () => {
+  loadContent: async (preloadedData?: { generatedAt: string; posts: PostIndexEntry[]; docs: DocIndexEntry[] }) => {
     if (get().status === 'loaded' || get().status === 'loading') return
     set({ status: 'loading' })
     try {
-      // Load the lightweight content index (metadata only — no MDX components)
-      const index = await loadContentIndex()
+      // Use preloaded data from route loader (during prerender) or fetch at runtime
+      const index = preloadedData ?? await loadContentIndex()
 
       // Sort posts: by order ascending, then by date descending
       const publishedPosts = index.posts
@@ -78,7 +76,6 @@ export const useContentStore = create<ContentStore>((set, get) => ({
         .filter((d) => !d.draft)
         .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
 
-      // Build Fuse.js search index from metadata
       const searchData: SearchResult[] = [
         ...publishedPosts.map((p) => ({
           type: 'blog' as const,
@@ -97,20 +94,7 @@ export const useContentStore = create<ContentStore>((set, get) => ({
         })),
       ]
 
-      const fuseIndex = new Fuse(searchData, {
-        keys: [
-          { name: 'title', weight: 0.5 },
-          { name: 'description', weight: 0.3 },
-          { name: 'tags', weight: 0.1 },
-          { name: 'category', weight: 0.05 },
-          { name: 'section', weight: 0.05 },
-        ],
-        threshold: 0.35,
-        includeScore: true,
-        ignoreLocation: true,
-      })
-
-      set({ posts: publishedPosts, docs: publishedDocs, fuseIndex, status: 'loaded' })
+      set({ posts: publishedPosts, docs: publishedDocs, searchData, status: 'loaded' })
     } catch (err) {
       set({ status: 'error', error: String(err) })
     }
@@ -181,19 +165,14 @@ export const useContentStore = create<ContentStore>((set, get) => ({
   getDocsBySection: (section) => get().docs.filter((d) => d.sectionSlug === section),
   search: (query) => {
     if (!query.trim()) return []
-    return get().fuseIndex?.search(query).map((r) => r.item) ?? []
+    const q = query.toLowerCase()
+    return get().searchData.filter(
+      (s) =>
+        s.title.toLowerCase().includes(q) ||
+        (s.description ?? '').toLowerCase().includes(q) ||
+        s.tags?.some((t) => t.toLowerCase().includes(q)),
+    )
   },
 }))
 
-// ─── Selector hooks ────────────────────────────────────────────────────────
-export const useAllPosts = () =>
-  useContentStore(useShallow((s) => s.posts))
 
-export const useFeaturedPosts = () =>
-  useContentStore(useShallow((s) => s.posts.filter((p) => p.featured)))
-
-export const useAllDocs = () =>
-  useContentStore(useShallow((s) => s.docs))
-
-export const useContentStatus = () =>
-  useContentStore((s) => s.status)

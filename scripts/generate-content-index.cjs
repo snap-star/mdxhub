@@ -132,21 +132,50 @@ function pathToSlug(filePath, base) {
     .replace(/^\/+/, '')
 }
 
-async function scanDir(dir, baseDir) {
+async function scanDir(dir, baseDir, type) {
   const results = []
   const entries = fs.readdirSync(dir, { withFileTypes: true })
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name)
     if (entry.isDirectory()) {
-      results.push(...await scanDir(fullPath, baseDir))
+      results.push(...await scanDir(fullPath, baseDir, type))
     } else if (entry.isFile() && /\.mdx?$/i.test(entry.name)) {
       const content = fs.readFileSync(fullPath, 'utf-8')
       const { frontmatter } = parseFrontmatter(content)
       const slug = pathToSlug(fullPath, baseDir)
+      validateFrontmatter(fullPath, frontmatter, type)
       results.push({ slug, frontmatter, filePath: fullPath })
     }
   }
   return results
+}
+
+// ─── Frontmatter validation ───────────────────────────────────────────────────
+
+const FRONTMATTER_SCHEMA = {
+  blog: {
+    required: ['title', 'date', 'author', 'category', 'tags', 'description'],
+  },
+  docs: {
+    required: ['title', 'section', 'order', 'description'],
+  },
+}
+
+function validateFrontmatter(filePath, frontmatter, type) {
+  const schema = FRONTMATTER_SCHEMA[type]
+  const missing = schema.required.filter((field) => !frontmatter[field] && frontmatter[field] !== 0)
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required frontmatter fields in ${filePath}:\n   - ${missing.join('\n   - ')}`
+    )
+  }
+  if (type === 'blog' && frontmatter.date && !/^\d{4}-\d{2}-\d{2}$/.test(frontmatter.date)) {
+    throw new Error(`Invalid date format in ${filePath}. Expected YYYY-MM-DD, got: ${frontmatter.date}`)
+  }
+  if (type === 'blog' && frontmatter.tags && !Array.isArray(frontmatter.tags)) {
+    throw new Error(`tags must be an array in ${filePath}`)
+  }
+  return true
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
@@ -192,7 +221,7 @@ async function main() {
   // Scan blog posts
   let blogPosts = []
   if (fs.existsSync(blogDir)) {
-    blogPosts = await scanDir(blogDir, blogDir)
+    blogPosts = await scanDir(blogDir, blogDir, 'blog')
     // Sort by date descending
     blogPosts.sort((a, b) => {
       const dateA = a.frontmatter.date ? new Date(a.frontmatter.date).getTime() : 0
@@ -204,7 +233,7 @@ async function main() {
   // Scan docs
   let docs = []
   if (fs.existsSync(docsDir)) {
-    docs = await scanDir(docsDir, docsDir)
+    docs = await scanDir(docsDir, docsDir, 'docs')
     // Sort by order
     docs.sort((a, b) => (a.frontmatter.order ?? 99) - (b.frontmatter.order ?? 99))
   }
@@ -273,7 +302,7 @@ async function main() {
   // This is used by the client to dynamically import the correct MDX module
   const blogSlugMap = {}
   if (fs.existsSync(blogDir)) {
-    const allPosts = await scanDir(blogDir, blogDir)
+    const allPosts = await scanDir(blogDir, blogDir, 'blog')
     for (const post of allPosts) {
       // Store relative file path for Vite's import.meta.glob resolution
       const relativePath = path.relative(projectRoot, post.filePath).replace(/\\/g, '/')
@@ -283,7 +312,7 @@ async function main() {
 
   const docsSlugMap = {}
   if (fs.existsSync(docsDir)) {
-    const allDocs = await scanDir(docsDir, docsDir)
+    const allDocs = await scanDir(docsDir, docsDir, 'docs')
     for (const doc of allDocs) {
       const relativePath = path.relative(projectRoot, doc.filePath).replace(/\\/g, '/')
       docsSlugMap[doc.slug] = `/content/docs/${relativePath.replace(/^content\/docs\//, '')}`

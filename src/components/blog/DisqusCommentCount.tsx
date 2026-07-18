@@ -1,5 +1,6 @@
 import React from 'react'
 import { useLocation } from 'react-router'
+import { config } from '@/config/env'
 
 declare global {
   interface Window {
@@ -21,7 +22,7 @@ export function DisqusCommentCount({
   className,
 }: DisqusCommentCountProps) {
   const location = useLocation()
-  const shortname = (import.meta.env.VITE_DISQUS_SHORTNAME as string | undefined)?.trim()
+  const shortname = config.VITE_DISQUS_SHORTNAME?.trim()
 
   const disqusUrl = React.useMemo(() => {
     if (!href || typeof window === 'undefined') return undefined

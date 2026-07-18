@@ -30,19 +30,7 @@ const SITE_TITLE = siteConfig.title || 'MDXHub'
 const SITE_DESCRIPTION = siteConfig.description || ''
 const SITE_LANG = siteConfig.language || 'en'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
-
-async function* walk(dir) {
-  const entries = await fs.promises.readdir(dir, { withFileTypes: true })
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name)
-    if (entry.isDirectory()) {
-      yield* walk(fullPath)
-    } else {
-      yield fullPath
-    }
-  }
-}
+const { walk, escapeXml } = require('./helpers.cjs')
 
 /** Parse YAML frontmatter from a .md or .mdx file */
 function parseFrontmatter(content) {
@@ -62,17 +50,6 @@ function pathToSlug(filePath) {
     .replace(/\\/g, '/')
     .replace(/\/index\.mdx?$/, '')
     .replace(/\.mdx?$/, '')
-}
-
-/** Escape XML special characters */
-function escapeXml(str) {
-  if (typeof str !== 'string') return ''
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
 }
 
 /** Convert date to RFC 2822 format for RSS pubDate.

@@ -1,0 +1,1542 @@
+---
+title: "Junior Level — Foundations"
+description: "JavaScript fundamentals — syntax, variables, types, operators, control flow, functions, arrays, objects, strings, DOM, and a practical Todo app."
+date: 2026-06-29
+tags: ["JS", "Guide"]
+category: "Javascript"
+author: chigusa-asuha
+cc: "CC-BY-4.0"
+series: "Mastering JavaScript"
+seriesOrder: 3
+---
+
+# Part 1: Junior Level — Foundations
+
+## Chapter 1: Your First JavaScript
+
+<Badge variant="green">Junior</Badge>
+
+### 1.1 Running JavaScript
+
+JavaScript runs in multiple environments. Here are the three easiest ways to start:
+
+**Option A: Browser Console (Fastest)**
+
+Open any web page, press `F12`, click the **Console** tab, and type:
+
+```javascript
+console.log("Hello, World!");
+// → Hello, World!
+```
+
+**Option B: HTML File**
+
+Create `index.html`:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My First JS</title>
+</head>
+<body>
+  <script>
+    console.log("Hello from HTML!");
+  </script>
+</body>
+</html>
+```
+
+Or link an external file:
+
+```html
+<script src="app.js"></script>
+```
+
+**Option C: Node.js (Terminal)**
+
+```bash
+# Install Node.js from https://nodejs.org
+node -v   # Check version (v22+ recommended)
+
+# Run a file
+node app.js
+
+# Or use the REPL (Read-Eval-Print Loop)
+node
+> console.log("Hello from Node!")
+Hello from Node!
+> 2 + 2
+4
+```
+
+### 1.2 Statements and Semicolons
+
+JavaScript is executed as a sequence of **statements**. Each statement is an instruction.
+
+```javascript
+// A statement performs an action
+console.log("This is a statement");
+
+// Statements are separated by semicolons (mostly optional)
+let a = 1; let b = 2;
+
+// JavaScript has Automatic Semicolon Insertion (ASI)
+// But ALWAYS use semicolons to avoid subtle bugs
+let c = 3  // ← No semicolon — works, but risky
+let d = 4  // ← This line could merge with the previous one
+
+// Bad: returns undefined because ASI inserts after 'return'
+function bad() {
+  return           // ← ASI inserts here!
+    { value: 42 }  // ← This becomes unreachable
+}
+
+// Good: keep return value on same line
+function good() {
+  return { value: 42 };
+}
+```
+
+### 1.3 Comments
+
+```javascript
+// Single-line comment
+
+/*
+  Multi-line comment.
+  Use this for longer explanations.
+*/
+
+/**
+ * JSDoc comment — used for documentation
+ * @param {number} x — the input value
+ * @returns {number} — the doubled value
+ */
+function double(x) {
+  return x * 2;
+}
+```
+
+### 1.4 `console` Methods
+
+```javascript
+// Logging
+console.log("General output");
+console.info("Informational message");
+console.warn("Warning!");
+console.error("Error occurred!");
+
+// Styled logging
+console.log("%cStyled text", "color: blue; font-size: 20px;");
+
+// Tables — great for arrays/objects
+const users = [{ name: "Alice", age: 30 }, { name: "Bob", age: 25 }];
+console.table(users);
+
+// Grouped logging
+console.group("User Details");
+  console.log("Name: Alice");
+  console.log("Age: 30");
+console.groupEnd();
+
+// Timing code
+console.time("loop");
+for (let i = 0; i < 1000000; i++) {}
+console.timeEnd("loop");  // → loop: 2.345ms
+
+// Stack trace
+console.trace("Where was this called?");
+```
+
+---
+
+## Chapter 2: Variables and Data Types
+
+<Badge variant="green">Junior</Badge>
+
+### 2.1 Declaring Variables
+
+JavaScript has three ways to declare variables. **Use `const` by default, `let` when reassignment is needed, and never use `var`.**
+
+```javascript
+// const — value cannot be reassigned (preferred)
+const PI = 3.14159;
+PI = 3;  // ❌ TypeError: Assignment to constant variable
+
+// const objects/arrays can have their contents modified
+const person = { name: "Alice" };
+person.name = "Bob";     // ✓ This works!
+person = {};             // ❌ TypeError
+
+// let — value can be reassigned
+let count = 0;
+count = 1;  // ✓ This works
+
+// var — legacy, function-scoped, avoid it
+var old = "don't use this";
+```
+
+### 2.2 Naming Rules
+
+```javascript
+// Valid names
+const userName = "Alice";     // camelCase (preferred in JS)
+const _private = "value";     // underscore prefix for private-ish
+const $element = null;        // dollar sign (common for DOM)
+const user2 = "Bob";          // numbers allowed (not at start)
+const MAX_SIZE = 100;         // UPPER_SNAKE_CASE for constants
+
+// Invalid names
+const 2user = "no";           // ❌ Cannot start with number
+const user-name = "no";       // ❌ Hyphens not allowed
+const class = "no";           // ❌ Reserved word
+
+// Reserved words you cannot use as variable names:
+// break, case, catch, class, const, continue, debugger, default, delete,
+// do, else, export, extends, finally, for, function, if, import, in,
+// instanceof, new, return, super, switch, this, throw, try, typeof,
+// var, void, while, with, yield, let, static, await, enum
+```
+
+### 2.3 Primitive Data Types
+
+JavaScript has **7 primitive types** — immutable, stored by value.
+
+```javascript
+// === string ===
+const name = "Alice";           // Double quotes
+const greeting = 'Hello';       // Single quotes
+const template = `Hi, ${name}`; // Template literal (backticks)
+
+// String concatenation
+const full = "Hello, " + name;  // "Hello, Alice"
+const better = `Hello, ${name}`; // "Hello, Alice" (preferred)
+
+// === number ===
+const integer = 42;
+const float = 3.14;
+const negative = -10;
+const scientific = 1.5e3;       // 1500
+const hex = 0xff;               // 255 (hexadecimal)
+const binary = 0b1010;          // 10 (binary)
+const octal = 0o77;             // 63 (octal)
+
+// Special number values
+console.log(typeof NaN);        // "number" (Not a Number)
+console.log(1 / 0);             // Infinity
+console.log(-1 / 0);            // -Infinity
+
+// === bigint === (for very large integers)
+const huge = 9007199254740991n;
+const bigger = huge + 1n;
+// Cannot mix BigInt and Number: 1n + 1 → TypeError
+
+// === boolean ===
+const isActive = true;
+const isComplete = false;
+
+// === undefined ===
+let notAssigned;
+console.log(notAssigned);       // undefined
+console.log(typeof notAssigned); // "undefined"
+
+// === null ===
+const empty = null;
+console.log(typeof empty);       // "object" (known bug, won't be fixed)
+
+// === symbol === (unique identifier)
+const id1 = Symbol("id");
+const id2 = Symbol("id");
+console.log(id1 === id2);        // false — every Symbol is unique
+
+// === typeof operator ===
+console.log(typeof "hello");     // "string"
+console.log(typeof 42);          // "number"
+console.log(typeof 42n);         // "bigint"
+console.log(typeof true);        // "boolean"
+console.log(typeof undefined);   // "undefined"
+console.log(typeof Symbol());    // "symbol"
+console.log(typeof null);        // "object" (quirk!)
+console.log(typeof {});          // "object"
+console.log(typeof function(){});// "function"
+```
+
+### 2.4 The Object Type
+
+Objects are **reference types** — mutable, stored by reference.
+
+```javascript
+// Object literal
+const user = {
+  name: "Alice",
+  age: 30,
+  isAdmin: false,
+  "favorite color": "blue",     // Quoted key with space
+  hobbies: ["reading", "gaming"], // Array as value
+  address: {                    // Nested object
+    city: "New York",
+    zip: "10001"
+  }
+};
+
+// Accessing properties
+console.log(user.name);           // Dot notation: "Alice"
+console.log(user["favorite color"]); // Bracket notation: "blue"
+
+// Adding/modifying properties
+user.email = "alice@example.com";
+user.age = 31;
+
+// Deleting properties
+delete user.isAdmin;
+
+// Check if property exists
+console.log("name" in user);      // true
+console.log(user.hasOwnProperty("name")); // true (ignores inherited)
+
+// Check all keys/values
+console.log(Object.keys(user));   // ["name", "age", "favorite color", ...]
+console.log(Object.values(user)); // ["Alice", 31, "blue", ...]
+console.log(Object.entries(user)); // [["name", "Alice"], ["age", 31], ...]
+
+// Array (special type of object)
+const fruits = ["apple", "banana", "cherry"];
+console.log(fruits[0]);           // "apple" (zero-indexed)
+console.log(fruits.length);       // 3
+```
+
+### 2.5 `null` vs `undefined` vs undeclared
+
+```javascript
+// undefined — variable exists but has no value
+let x;
+console.log(x);                   // undefined
+
+// null — explicitly "no value" (intentional absence)
+let y = null;
+console.log(y);                   // null
+
+// undeclared — variable doesn't exist at all
+// console.log(z);                // ❌ ReferenceError: z is not defined
+
+// Best practice: use null for intentional emptiness
+const findUser = (id) => {
+  if (id === 0) return null;      // Explicitly "not found"
+  return { id, name: "Alice" };   // Found a user
+};
+
+// Check for null OR undefined (but not false, 0, "")
+const result = findUser(0);
+if (result == null) {             // Loose equality catches both
+  console.log("User not found");
+}
+
+// Strict check for only null
+if (result === null) {
+  console.log("Explicitly null");
+}
+```
+
+---
+
+## Chapter 3: Operators
+
+<Badge variant="green">Junior</Badge>
+
+### 3.1 Arithmetic Operators
+
+```javascript
+// Basic arithmetic
+console.log(5 + 3);     // 8  (addition)
+console.log(10 - 4);    // 6  (subtraction)
+console.log(6 * 7);     // 42 (multiplication)
+console.log(20 / 4);    // 5  (division)
+console.log(17 % 5);    // 2  (remainder)
+console.log(2 ** 8);    // 256 (exponentiation, ES2016)
+
+// Increment / decrement
+let n = 5;
+console.log(++n);       // 6 (pre-increment: add 1, then return)
+console.log(n++);       // 6 (post-increment: return, then add 1)
+console.log(n);         // 7
+
+// String concatenation with +
+console.log("Hello " + "World"); // "Hello World"
+console.log("Age: " + 25);       // "Age: 25" (number coerced to string)
+
+// Unary plus (converts to number)
+console.log(+"42");      // 42
+console.log(+true);      // 1
+
+// Unary minus (negates)
+console.log(-5);         // -5
+console.log(-(-5));      // 5
+```
+
+### 3.2 Comparison Operators
+
+```javascript
+// === Strict equality (ALWAYS USE THIS)
+console.log(5 === 5);    // true
+console.log(5 === "5");  // false (different types)
+console.log(true === 1); // false
+
+// == Loose equality (AVOID — type coercion causes bugs)
+console.log(5 == "5");   // true  (string "5" coerced to number 5)
+console.log(true == 1);  // true
+console.log(false == 0); // true
+console.log(null == undefined); // true
+console.log("" == 0);    // true
+console.log("" == false);// true
+
+// !== Strict inequality
+console.log(5 !== "5");  // true
+
+// >, <, >=, <=
+console.log(10 > 5);     // true
+console.log("apple" < "banana"); // true (string comparison)
+
+// Comparing objects (by reference, not value)
+const a = { x: 1 };
+const b = { x: 1 };
+const c = a;
+console.log(a === b);    // false (different objects in memory)
+console.log(a === c);    // true (same reference)
+```
+
+### 3.3 Logical Operators
+
+```javascript
+// && AND — returns first falsy value, or last truthy
+console.log(true && true);   // true
+console.log(true && false);  // false
+console.log("hello" && 42);  // 42 (both truthy, returns last)
+console.log(null && "hi");   // null (first falsy, short-circuits)
+
+// || OR — returns first truthy value, or last falsy
+console.log(false || true);  // true
+console.log(0 || "fallback"); // "fallback"
+console.log("hello" || 42);  // "hello" (first truthy, short-circuits)
+
+// ! NOT — inverts boolean
+console.log(!true);          // false
+console.log(!false);         // true
+console.log(!"hello");       // false (string is truthy)
+console.log(!"");            // true  (empty string is falsy)
+console.log(!!"hello");      // true  (double NOT coerces to boolean)
+
+// ?? Nullish Coalescing (ES2020)
+// Returns right side only if left is null or undefined
+const value = null ?? "default";       // "default"
+const zero = 0 ?? "default";           // 0 (0 is not nullish!)
+const emptyStr = "" ?? "default";      // "" (empty string is not nullish!)
+
+// || vs ?? comparison
+console.log(0 || "fallback");    // "fallback" (0 is falsy)
+console.log(0 ?? "fallback");    // 0        (0 is not nullish) ✓ Better!
+```
+
+### 3.4 Truthy and Falsy Values
+
+```javascript
+// Falsy values (coerce to false in boolean context)
+// There are only 8 falsy values:
+console.log(Boolean(false));       // false
+console.log(Boolean(0));           // false
+console.log(Boolean(-0));          // false
+console.log(Boolean(0n));          // false (BigInt zero)
+console.log(Boolean(""));          // false (empty string)
+console.log(Boolean(null));        // false
+console.log(Boolean(undefined));   // false
+console.log(Boolean(NaN));         // false
+
+// Everything else is truthy
+console.log(Boolean(true));        // true
+console.log(Boolean(1));           // true
+console.log(Boolean(-1));          // true
+console.log(Boolean("hello"));     // true
+console.log(Boolean("false"));     // true! (non-empty string)
+console.log(Boolean([]));          // true! (empty array)
+console.log(Boolean({}));          // true! (empty object)
+console.log(Boolean(function(){}));// true
+```
+
+### 3.5 Assignment Operators
+
+```javascript
+let x = 10;
+
+x += 5;   // x = x + 5;   → 15
+x -= 3;   // x = x - 3;   → 12
+x *= 2;   // x = x * 2;   → 24
+x /= 4;   // x = x / 4;   → 6
+x %= 4;   // x = x % 4;   → 2
+x **= 3;  // x = x ** 3;  → 8
+
+// Destructuring assignment
+const [a, b] = [1, 2];           // a=1, b=2
+const { name, age } = { name: "Alice", age: 30 }; // name="Alice", age=30
+
+// Logical assignment operators (ES2021)
+let config = null;
+config ??= { theme: "dark" };    // config = config ?? { theme: "dark" }
+
+let count = 0;
+count ||= 10;  // count = count || 10 → count becomes 10 (0 is falsy)
+
+count &&= 5;   // count = count && 5 → if count is truthy, set to 5
+```
+
+### 3.6 The Ternary Operator
+
+```javascript
+// condition ? valueIfTrue : valueIfFalse
+const age = 20;
+const status = age >= 18 ? "adult" : "minor";
+
+// Nested ternaries (use sparingly — can become unreadable)
+const category = age < 13 ? "child" : age < 20 ? "teen" : "adult";
+
+// Equivalent with if/else (more readable for complex cases)
+let category;
+if (age < 13) {
+  category = "child";
+} else if (age < 20) {
+  category = "teen";
+} else {
+  category = "adult";
+}
+```
+
+---
+
+## Chapter 4: Control Flow
+
+<Badge variant="green">Junior</Badge>
+
+### 4.1 `if` / `else if` / `else`
+
+```javascript
+const score = 85;
+
+if (score >= 90) {
+  console.log("Grade: A");
+} else if (score >= 80) {
+  console.log("Grade: B");    // This runs
+} else if (score >= 70) {
+  console.log("Grade: C");
+} else if (score >= 60) {
+  console.log("Grade: D");
+} else {
+  console.log("Grade: F");
+}
+
+// One-liner (only for single statements)
+if (score > 0) console.log("Positive");
+```
+
+### 4.2 `switch` Statement
+
+```javascript
+const day = 3;
+
+switch (day) {
+  case 1:
+    console.log("Monday");
+    break;  // Don't forget break! Without it, execution falls through
+  case 2:
+    console.log("Tuesday");
+    break;
+  case 3:
+    console.log("Wednesday");  // This runs
+    break;
+  case 4:
+    console.log("Thursday");
+    break;
+  case 5:
+    console.log("Friday");
+    break;
+  default:
+    console.log("Weekend");
+}
+
+// Multiple cases with same result (fall-through is useful here)
+switch (day) {
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+    console.log("Weekday");
+    break;
+  case 6:
+  case 0:
+    console.log("Weekend");
+    break;
+  default:
+    console.log("Invalid day");
+}
+```
+
+### 4.3 `for` Loop
+
+```javascript
+// Standard for loop
+for (let i = 0; i < 5; i++) {
+  console.log(i);  // 0, 1, 2, 3, 4
+}
+
+// Loop through array
+const colors = ["red", "green", "blue"];
+for (let i = 0; i < colors.length; i++) {
+  console.log(`${i}: ${colors[i]}`);
+}
+// → 0: red
+// → 1: green
+// → 2: blue
+
+// Multiple variables
+for (let i = 0, j = 10; i < j; i++, j--) {
+  console.log(i, j);  // 0 10, 1 9, 2 8...
+}
+
+// Skip iterations with continue
+for (let i = 0; i < 10; i++) {
+  if (i % 2 === 0) continue;  // Skip even numbers
+  console.log(i);  // 1, 3, 5, 7, 9
+}
+
+// Break out of loop early
+for (let i = 0; i < 100; i++) {
+  if (i === 5) break;
+  console.log(i);  // 0, 1, 2, 3, 4
+}
+```
+
+### 4.4 `while` and `do...while` Loops
+
+```javascript
+// while — check condition before each iteration
+let count = 0;
+while (count < 5) {
+  console.log(count);  // 0, 1, 2, 3, 4
+  count++;
+}
+
+// do...while — runs at least once
+let num = 0;
+do {
+  console.log(num);  // 0
+  num++;
+} while (num < 0);  // Condition is false, but loop ran once
+
+// Reading until condition met
+function findFactorial(n) {
+  let result = 1;
+  while (n > 1) {
+    result *= n;
+    n--;
+  }
+  return result;
+}
+console.log(findFactorial(5));  // 120
+```
+
+### 4.5 `for...of` (Iterable Values)
+
+```javascript
+// Arrays
+const fruits = ["apple", "banana", "cherry"];
+for (const fruit of fruits) {
+  console.log(fruit);  // apple, banana, cherry
+}
+
+// Strings
+for (const char of "Hello") {
+  console.log(char);   // H, e, l, l, o
+}
+
+// With index using entries()
+for (const [index, fruit] of fruits.entries()) {
+  console.log(`${index}: ${fruit}`);
+}
+
+// Can use break/continue
+for (const num of [1, 2, 3, 4, 5]) {
+  if (num === 3) break;
+  console.log(num);  // 1, 2
+}
+```
+
+### 4.6 `for...in` (Object Keys)
+
+```javascript
+// ⚠️ for...in iterates over KEYS (including inherited ones)
+const person = { name: "Alice", age: 30, city: "NYC" };
+
+for (const key in person) {
+  console.log(`${key}: ${person[key]}`);
+}
+// → name: Alice
+// → age: 30
+// → city: NYC
+
+// Always check hasOwnProperty to avoid inherited properties
+for (const key in person) {
+  if (person.hasOwnProperty(key)) {
+    console.log(key);
+  }
+}
+
+// 💡 Prefer Object.keys(), Object.values(), or Object.entries()
+for (const [key, value] of Object.entries(person)) {
+  console.log(`${key}: ${value}`);
+}
+```
+
+---
+
+## Chapter 5: Functions
+
+<Badge variant="green">Junior</Badge>
+
+### 5.1 Function Declarations
+
+```javascript
+// Function declaration — hoisted (can be called before definition)
+function greet(name) {
+  return `Hello, ${name}!`;
+}
+console.log(greet("Alice"));  // "Hello, Alice!"
+
+// Function expression — NOT hoisted
+const sayHi = function(name) {
+  return `Hi, ${name}!`;
+};
+console.log(sayHi("Bob"));    // "Hi, Bob!"
+
+// Named function expression (useful for stack traces)
+const factorial = function fact(n) {
+  if (n <= 1) return 1;
+  return n * fact(n - 1);  // Can reference itself internally
+};
+```
+
+### 5.2 Arrow Functions (ES6)
+
+```javascript
+// Arrow function syntax
+const add = (a, b) => a + b;
+console.log(add(2, 3));  // 5
+
+// With block body (multiple statements)
+const greet = (name) => {
+  const greeting = "Hello";
+  return `${greeting}, ${name}!`;
+};
+
+// Single parameter — parentheses optional
+const double = x => x * 2;
+
+// No parameters — empty parentheses required
+const getTimestamp = () => Date.now();
+
+// Returning an object (wrap in parentheses)
+const makeUser = (name, age) => ({ name, age });
+console.log(makeUser("Alice", 30));  // { name: "Alice", age: 30 }
+
+// Arrow functions don't have their own 'this' — inherits from parent
+// (This is their most important characteristic — see Expert Chapter)
+```
+
+### 5.3 Default Parameters
+
+```javascript
+function greet(name = "Guest", greeting = "Hello") {
+  return `${greeting}, ${name}!`;
+}
+
+console.log(greet());              // "Hello, Guest!"
+console.log(greet("Alice"));        // "Hello, Alice!"
+console.log(greet("Alice", "Hi"));  // "Hi, Alice!"
+
+// Default with expression
+function createId(prefix = "user") {
+  return `${prefix}_${Math.random().toString(36).slice(2)}`;
+}
+
+// Previous parameter as default
+function greetUser(name, greeting = `Hello, ${name}`) {
+  return greeting;
+}
+console.log(greetUser("Alice"));  // "Hello, Alice"
+```
+
+### 5.4 Rest Parameters
+
+```javascript
+// Rest parameter collects remaining arguments into an array
+function sum(...numbers) {
+  return numbers.reduce((total, n) => total + n, 0);
+}
+
+console.log(sum(1, 2, 3));       // 6
+console.log(sum(10, 20));        // 30
+console.log(sum());              // 0
+
+// Rest with named parameters
+function createUser(name, age, ...tags) {
+  return { name, age, tags };
+}
+console.log(createUser("Alice", 30, "admin", "verified"));
+// → { name: "Alice", age: 30, tags: ["admin", "verified"] }
+
+// Must be the last parameter
+// function wrong(a, ...rest, b) {}  // ❌ SyntaxError
+```
+
+### 5.5 The `arguments` Object (Legacy)
+
+```javascript
+// Old way to access all arguments (avoid in modern code — use rest parameters)
+function oldSum() {
+  let total = 0;
+  for (let i = 0; i < arguments.length; i++) {
+    total += arguments[i];
+  }
+  return total;
+}
+
+// ⚠️ arguments is NOT a real array (no map, filter, etc.)
+// ⚠️ Arrow functions don't have arguments object
+
+// Modern approach (preferred):
+const modernSum = (...nums) => nums.reduce((a, b) => a + b, 0);
+```
+
+### 5.6 Function Scope
+
+```javascript
+function outer() {
+  const outerVar = "I'm outer";
+
+  function inner() {
+    const innerVar = "I'm inner";
+    console.log(outerVar);  // ✓ Can access outer scope
+    console.log(innerVar);  // ✓ Can access own scope
+  }
+
+  inner();
+  // console.log(innerVar); // ❌ ReferenceError — innerVar not accessible here
+}
+
+outer();
+
+// Variables are function-scoped (var) or block-scoped (let/const)
+function scopeDemo() {
+  if (true) {
+    var functionScoped = "visible throughout function";
+    let blockScoped = "only in this block";
+    const alsoBlockScoped = "only in this block";
+  }
+  console.log(functionScoped);        // ✓ Works
+  // console.log(blockScoped);        // ❌ ReferenceError
+  // console.log(alsoBlockScoped);    // ❌ ReferenceError
+}
+```
+
+---
+
+## Chapter 6: Arrays Deep Dive
+
+<Badge variant="green">Junior</Badge>
+
+### 6.1 Creating and Accessing Arrays
+
+```javascript
+// Creating arrays
+const empty = [];
+const fruits = ["apple", "banana", "cherry"];
+const mixed = [1, "two", true, null, { x: 1 }, [2, 3]];
+const sparse = [1, , 3];  // Sparse array (hole at index 1)
+
+// Accessing elements
+console.log(fruits[0]);       // "apple" (zero-indexed!)
+console.log(fruits[1]);       // "banana"
+console.log(fruits[fruits.length - 1]);  // "cherry" (last element)
+console.log(fruits[10]);      // undefined (no error for out of bounds)
+
+// Modifying arrays
+fruits[1] = "blueberry";      // Replace
+fruits[3] = "date";           // Add at index
+fruits.push("elderberry");    // Add to end
+fruits.unshift("apricot");    // Add to beginning
+
+// Array length
+console.log(fruits.length);   // 6
+
+// Array.isArray check
+console.log(Array.isArray(fruits));  // true
+console.log(Array.isArray({}));      // false
+```
+
+### 6.2 Essential Array Methods
+
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+
+// === Adding/Removing ===
+
+const arr = ["a", "b", "c"];
+arr.push("d");          // Add to end → ["a","b","c","d"], returns new length
+arr.pop();              // Remove from end → ["a","b","c"], returns removed item
+arr.unshift("z");       // Add to start → ["z","a","b","c"], returns new length
+arr.shift();            // Remove from start → ["a","b","c"], returns removed item
+
+// splice — powerful but mutates (often avoid in favor of spread)
+const nums = [1, 2, 3, 4, 5];
+nums.splice(2, 1);           // At index 2, remove 1 → [1, 2, 4, 5]
+nums.splice(2, 0, "a", "b"); // At index 2, remove 0, insert → [1, 2, "a", "b", 4, 5]
+
+// slice — non-mutating, returns copy
+const sliced = [1, 2, 3, 4].slice(1, 3);  // [2, 3] (start inclusive, end exclusive)
+const copy = [1, 2, 3].slice();            // Shallow copy
+
+// === Searching ===
+
+const users = [
+  { id: 1, name: "Alice" },
+  { id: 2, name: "Bob" },
+  { id: 3, name: "Carol" }
+];
+
+// find — first matching element
+const alice = users.find(u => u.name === "Alice");  // { id: 1, name: "Alice" }
+const nobody = users.find(u => u.name === "Dave");  // undefined
+
+// findIndex — index of first match
+const aliceIndex = users.findIndex(u => u.id === 1);  // 0
+
+// includes — checks if value exists
+[1, 2, 3].includes(2);     // true
+[1, 2, 3].includes(5);     // false
+
+// some — any element matches?
+[1, 2, 3].some(n => n > 2);   // true
+
+// every — all elements match?
+[1, 2, 3].every(n => n > 0);  // true
+
+// indexOf / lastIndexOf
+["a", "b", "a"].indexOf("a");     // 0
+["a", "b", "a"].lastIndexOf("a"); // 2
+
+// === Transforming ===
+
+// map — transform each element, returns new array
+const doubled = [1, 2, 3].map(n => n * 2);        // [2, 4, 6]
+const names = users.map(u => u.name);              // ["Alice", "Bob", "Carol"]
+
+// filter — keep elements that match condition
+const evens = [1, 2, 3, 4, 5].filter(n => n % 2 === 0);  // [2, 4]
+const adults = users.filter(u => u.age >= 18);
+
+// reduce — reduce to single value
+const sum = [1, 2, 3, 4, 5].reduce((acc, n) => acc + n, 0);  // 15
+const max = [3, 1, 4, 1, 5].reduce((max, n) => n > max ? n : max, -Infinity);
+
+// reduce with object result
+const userMap = users.reduce((map, user) => {
+  map[user.id] = user;
+  return map;
+}, {});
+// → { 1: {id: 1, name: "Alice"}, 2: {...} }
+
+// flat — flatten nested arrays
+[1, [2, 3], [4, [5]]].flat();      // [1, 2, 3, 4, [5]] (depth 1 default)
+[1, [2, 3], [4, [5]]].flat(2);     // [1, 2, 3, 4, 5] (depth 2)
+[1, [2, [3, [4]]]].flat(Infinity);  // [1, 2, 3, 4]
+
+// flatMap — map then flat(depth 1)
+const sentences = ["Hello world", "Goodbye"];
+const words = sentences.flatMap(s => s.split(" "));  // ["Hello", "world", "Goodbye"]
+
+// === Ordering ===
+
+// sort — ⚠️ MUTATES the original array!
+const toSort = [3, 1, 4, 1, 5];
+toSort.sort((a, b) => a - b);   // [1, 1, 3, 4, 5] (ascending)
+toSort.sort((a, b) => b - a);   // [5, 4, 3, 1, 1] (descending)
+
+// Non-mutating sort (spread first)
+const original = [3, 1, 4];
+const sorted = [...original].sort((a, b) => a - b);
+console.log(original);  // [3, 1, 4] — unchanged!
+
+// Sort strings
+["banana", "Apple", "cherry"].sort((a, b) => a.localeCompare(b));
+
+// Sort objects
+users.sort((a, b) => a.name.localeCompare(b.name));
+
+// reverse — also mutates!
+[1, 2, 3].reverse();  // [3, 2, 1]
+
+// === Other Useful Methods ===
+
+// join — array to string
+["Hello", "World"].join(" ");   // "Hello World"
+[1, 2, 3].join("-");            // "1-2-3"
+
+// fill
+new Array(3).fill(0);           // [0, 0, 0]
+
+// at — supports negative indices (ES2022)
+[1, 2, 3].at(-1);   // 3 (last element)
+[1, 2, 3].at(-2);   // 2 (second to last)
+[1, 2, 3].at(0);    // 1
+
+// with — non-mutating replacement (ES2023)
+const original2 = [1, 2, 3];
+const replaced = original2.with(1, 99);  // [1, 99, 3]
+console.log(original2);  // [1, 2, 3] — unchanged!
+
+// toSorted, toReversed, toSpliced — non-mutating versions (ES2023)
+const arr3 = [3, 1, 2];
+const sorted3 = arr3.toSorted((a, b) => a - b);  // [1, 2, 3]
+const reversed3 = arr3.toReversed();                // [2, 1, 3]
+console.log(arr3);  // [3, 1, 2] — unchanged!
+```
+### 6.3 Chaining Array Methods
+
+```javascript
+// Chain methods for readable data pipelines
+const users = [
+  { name: "Alice", age: 30, active: true },
+  { name: "Bob", age: 17, active: true },
+  { name: "Carol", age: 25, active: false },
+  { name: "Dave", age: 35, active: true },
+];
+
+// Pipeline: filter active adults → sort by age → get names
+const result = users
+  .filter(u => u.active && u.age >= 18)  // [{Alice, 30}, {Dave, 35}]
+  .sort((a, b) => a.age - b.age)          // [{Alice, 30}, {Dave, 35}]
+  .map(u => u.name);                       // ["Alice", "Dave"]
+
+// Complex data processing
+const products = [
+  { name: "Laptop", price: 999, category: "Electronics", inStock: true },
+  { name: "Book", price: 15, category: "Education", inStock: true },
+  { name: "Phone", price: 699, category: "Electronics", inStock: false },
+  { name: "Course", price: 49, category: "Education", inStock: true },
+];
+
+// Get average price of in-stock Electronics
+const avgElectronicsPrice = products
+  .filter(p => p.category === "Electronics" && p.inStock)
+  .map(p => p.price)
+  .reduce((sum, price, _, arr) => sum + price / arr.length, 0);
+// → 999
+```
+
+---
+
+## Chapter 7: Objects Deep Dive
+
+<Badge variant="green">Junior</Badge>
+
+### 7.1 Object Basics
+
+```javascript
+// Object literal
+const person = {
+  firstName: "Alice",
+  lastName: "Johnson",
+  age: 30,
+  email: "alice@example.com",
+  
+  // Method (shorthand)
+  greet() {
+    return `Hello, I'm ${this.firstName}`;
+  },
+  
+  // Computed property name
+  ["user_" + Date.now()]: "generated"
+};
+
+// Property access
+console.log(person.firstName);           // Dot notation: "Alice"
+console.log(person["lastName"]);         // Bracket notation: "Johnson"
+console.log(person.greet());             // "Hello, I'm Alice"
+
+// Dynamic property access
+const prop = "email";
+console.log(person[prop]);               // "alice@example.com"
+
+// Property shorthand (when variable name matches key)
+const x = 1, y = 2;
+const point = { x, y };  // { x: 1, y: 2 }
+
+// Destructuring
+const { firstName, lastName, age } = person;
+console.log(firstName);  // "Alice"
+
+// Destructuring with rename
+const { firstName: fn, lastName: ln } = person;
+console.log(fn);  // "Alice"
+
+// Destructuring with default
+const { middleName = "N/A" } = person;
+console.log(middleName);  // "N/A"
+
+// Destructuring nested objects
+const user = {
+  profile: {
+    name: "Alice",
+    address: { city: "NYC" }
+  }
+};
+const { profile: { name, address: { city } } } = user;
+console.log(name, city);  // "Alice" "NYC"
+```
+
+### 7.2 Object Methods
+
+```javascript
+const car = { brand: "Toyota", model: "Camry", year: 2023 };
+
+// Get keys, values, entries
+Object.keys(car);      // ["brand", "model", "year"]
+Object.values(car);    // ["Toyota", "Camry", 2023]
+Object.entries(car);   // [["brand","Toyota"], ["model","Camry"], ["year",2023]]
+
+// Create from entries
+const fromEntries = Object.fromEntries([
+  ["a", 1],
+  ["b", 2]
+]);  // { a: 1, b: 2 }
+
+// Check if property exists
+console.log("brand" in car);           // true
+console.log(car.hasOwnProperty("brand")); // true (own property only)
+
+// Merge objects (shallow)
+const defaults = { color: "white", doors: 4 };
+const myCar = Object.assign({}, defaults, car);
+// → { color: "white", doors: 4, brand: "Toyota", model: "Camry", year: 2023 }
+
+// Modern merge with spread (preferred)
+const myCar2 = { ...defaults, ...car };
+
+// Freeze — make object immutable (shallow)
+const frozen = Object.freeze({ x: 1 });
+frozen.x = 2;  // ❌ Silently fails in non-strict, throws in strict mode
+
+// Seal — can modify existing properties, can't add/remove
+const sealed = Object.seal({ x: 1 });
+sealed.x = 2;     // ✓ Works
+sealed.y = 3;     // ❌ Fails
+
+// Property descriptors
+Object.defineProperty(car, "id", {
+  value: 12345,
+  writable: false,      // Can't be changed
+  enumerable: false,    // Won't show in Object.keys
+  configurable: false   // Can't be deleted or reconfigured
+});
+```
+
+### 7.3 `this` in Methods
+
+```javascript
+const calculator = {
+  value: 0,
+  
+  add(n) {
+    this.value += n;    // this refers to calculator
+    return this;        // Enable chaining
+  },
+  
+  subtract(n) {
+    this.value -= n;
+    return this;
+  },
+  
+  getValue() {
+    return this.value;
+  }
+};
+
+// Method chaining
+calculator.add(10).subtract(3).add(5);
+console.log(calculator.getValue());  // 12
+
+// ⚠️ this is lost when method is assigned
+const add = calculator.add;
+add(5);  // this is now undefined (or global in non-strict)
+// → calculator.value is still 12!
+
+// Fix with bind
+const boundAdd = calculator.add.bind(calculator);
+boundAdd(5);
+console.log(calculator.value);  // 17
+```
+
+---
+
+## Chapter 8: Strings
+
+<Badge variant="green">Junior</Badge>
+
+### 8.1 Template Literals
+
+```javascript
+const name = "Alice";
+const age = 30;
+
+// Basic interpolation
+const greeting = `Hello, ${name}!`;  // "Hello, Alice!"
+
+// Expressions
+const info = `${name} is ${age} years old. Next year she'll be ${age + 1}.`;
+
+// Multi-line strings
+const html = `
+  <div class="card">
+    <h2>${name}</h2>
+    <p>Age: ${age}</p>
+  </div>
+`;
+
+// Tagged templates (advanced)
+function highlight(strings, ...values) {
+  return strings.reduce((result, str, i) => {
+    const val = values[i] ? `**${values[i]}**` : '';
+    return result + str + val;
+  }, '');
+}
+console.log(highlight`Hello ${name}, you are ${age}`);
+// "Hello **Alice**, you are **30**"
+```
+
+### 8.2 Essential String Methods
+
+```javascript
+const str = "Hello, World!";
+
+// Length
+console.log(str.length);           // 13
+
+// Access characters
+console.log(str[0]);               // "H"
+console.log(str.at(-1));           // "!" (ES2022)
+
+// Case
+console.log(str.toUpperCase());    // "HELLO, WORLD!"
+console.log(str.toLowerCase());    // "hello, world!"
+
+// Search
+console.log(str.indexOf("World"));  // 7
+console.log(str.includes("World")); // true
+console.log(str.startsWith("Hello")); // true
+console.log(str.endsWith("!"));     // true
+
+// Extract
+console.log(str.slice(7, 12));      // "World" (start, end)
+console.log(str.slice(7));          // "World!" (start to end)
+console.log(str.slice(-6));         // "World!" (from end)
+console.log(str.substring(7, 12));  // "World" (similar to slice)
+
+// Replace
+console.log(str.replace("World", "JavaScript"));  // "Hello, JavaScript!"
+console.log(str.replace(/l/g, "L"));              // "HeLLo, WorLd!"
+
+// Split and Join
+console.log(str.split(", "));       // ["Hello", "World!"]
+console.log(str.split(""));          // ["H","e","l","l","o",...]
+console.log(["Hello", "World"].join(" "));  // "Hello World"
+
+// Trim
+"  hello  ".trim();          // "hello"
+"  hello  ".trimStart();     // "hello  "
+"  hello  ".trimEnd();       // "  hello"
+
+// Padding (ES2017)
+"42".padStart(5, "0");       // "00042"
+"42".padEnd(5, "0");         // "42000"
+
+// Repeat (ES2015)
+"ha".repeat(3);              // "hahaha"
+
+// Check content
+"hello123".match(/\d+/);     // ["123"] — regex match
+"abc".localeCompare("def");  // -1 (comes before)
+```
+
+---
+
+## Chapter 9: Working with the DOM
+
+<Badge variant="green">Junior</Badge>
+### 9.1 Selecting Elements
+
+```javascript
+// By ID
+const header = document.getElementById("header");
+
+// By class name (returns HTMLCollection — live!)
+const items = document.getElementsByClassName("item");
+
+// By tag name
+const paragraphs = document.getElementsByTagName("p");
+
+// CSS selector (first match)
+const nav = document.querySelector("nav");
+const button = document.querySelector(".btn-primary");
+const input = document.querySelector("input[name='email']");
+
+// CSS selector (all matches — returns NodeList)
+const cards = document.querySelectorAll(".card");
+cards.forEach(card => console.log(card.textContent));
+
+// Traversing
+const parent = element.parentElement;
+const children = element.children;        // Only element children
+const childNodes = element.childNodes;    // All nodes including text
+const next = element.nextElementSibling;
+const prev = element.previousElementSibling;
+```
+
+### 9.2 Modifying Elements
+
+```javascript
+const element = document.querySelector("#app");
+
+// Content
+element.textContent = "New text";      // Plain text (safe from XSS)
+element.innerHTML = "<strong>Bold</strong>";  // Parses HTML (XSS risk!)
+
+// Attributes
+element.setAttribute("data-id", "123");
+element.getAttribute("data-id");       // "123"
+element.removeAttribute("data-id");
+element.hasAttribute("disabled");      // true/false
+
+// Classes
+element.classList.add("active");
+element.classList.remove("hidden");
+element.classList.toggle("expanded");
+element.classList.contains("active");  // true/false
+
+// Styles
+element.style.backgroundColor = "blue";
+element.style.cssText = "color: red; font-size: 16px;";
+
+// Data attributes
+// HTML: <div data-user-id="42" data-role="admin">
+element.dataset.userId;    // "42"
+element.dataset.role;      // "admin"
+element.dataset.status = "active";  // Creates data-status="active"
+```
+
+### 9.3 Creating and Removing Elements
+
+```javascript
+// Create element
+const newDiv = document.createElement("div");
+newDiv.className = "card";
+newDiv.textContent = "I'm new here!";
+
+// Add to DOM
+const container = document.querySelector("#container");
+container.appendChild(newDiv);              // Add as last child
+container.prepend(newDiv);                  // Add as first child
+container.insertBefore(newDiv, reference);  // Before specific element
+container.append(newDiv, anotherElement);   // Append multiple (modern)
+
+// Remove element
+newDiv.remove();                            // Remove self (modern)
+container.removeChild(newDiv);              // Older approach
+
+// Replace
+container.replaceChild(newElement, oldElement);
+
+// Clone
+const clone = element.cloneNode(true);      // true = deep clone with children
+const shallow = element.cloneNode(false);   // false = just the element
+
+// Document fragment (batch DOM operations for performance)
+const fragment = document.createDocumentFragment();
+for (let i = 0; i < 1000; i++) {
+  const li = document.createElement("li");
+  li.textContent = `Item ${i}`;
+  fragment.appendChild(li);
+}
+list.appendChild(fragment);  // Single reflow instead of 1000!
+```
+
+### 9.4 Event Handling
+
+```javascript
+const button = document.querySelector("#myButton");
+
+// Add event listener (modern, preferred)
+button.addEventListener("click", handleClick);
+
+function handleClick(event) {
+  console.log("Clicked!");
+  console.log(event.target);       // Element that was clicked
+  console.log(event.currentTarget); // Element listener is attached to
+  console.log(event.type);          // "click"
+  
+  event.preventDefault();          // Prevent default behavior
+  event.stopPropagation();         // Stop bubbling
+}
+
+// Remove event listener (must use same function reference)
+button.removeEventListener("click", handleClick);
+
+// Common events
+button.addEventListener("click", handler);
+input.addEventListener("input", handler);      // Value changes
+input.addEventListener("change", handler);     // Value committed
+form.addEventListener("submit", handler);
+window.addEventListener("load", handler);
+document.addEventListener("DOMContentLoaded", handler); // DOM ready, before images
+window.addEventListener("resize", handler);
+element.addEventListener("mouseenter", handler);
+element.addEventListener("keydown", handler);
+
+// Event delegation (efficient for many elements)
+document.querySelector("#todo-list").addEventListener("click", (e) => {
+  if (e.target.matches(".delete-btn")) {
+    e.target.closest("li").remove();
+  }
+  if (e.target.matches(".toggle-btn")) {
+    e.target.closest("li").classList.toggle("completed");
+  }
+});
+
+// Keyboard events
+document.addEventListener("keydown", (e) => {
+  console.log(e.key);        // "Enter", "Escape", "a", etc.
+  console.log(e.code);       // "KeyA", "Enter", etc.
+  console.log(e.ctrlKey);    // Is Ctrl pressed?
+  console.log(e.shiftKey);   // Is Shift pressed?
+  
+  if (e.key === "Escape") closeModal();
+  if (e.key === "Enter" && e.ctrlKey) submitForm();
+});
+```
+
+---
+
+## Chapter 10: Practical Junior Project — Todo App
+
+<Badge variant="green">Junior</Badge>
+
+```javascript
+// === Todo App (Vanilla JavaScript) ===
+
+// State
+let todos = JSON.parse(localStorage.getItem("todos")) || [];
+let filter = "all"; // "all" | "active" | "completed"
+
+// DOM Elements
+const form = document.querySelector("#todo-form");
+const input = document.querySelector("#todo-input");
+const list = document.querySelector("#todo-list");
+const filterButtons = document.querySelectorAll("[data-filter]");
+const countSpan = document.querySelector("#todo-count");
+
+// Render todos
+function render() {
+  list.innerHTML = "";
+  
+  const filtered = todos.filter(todo => {
+    if (filter === "active") return !todo.completed;
+    if (filter === "completed") return todo.completed;
+    return true;
+  });
+  
+  filtered.forEach(todo => {
+    const li = document.createElement("li");
+    li.className = `todo-item ${todo.completed ? "completed" : ""}`;
+    li.dataset.id = todo.id;
+    
+    li.innerHTML = `
+      <input type="checkbox" ${todo.completed ? "checked" : ""} 
+             class="todo-checkbox">
+      <span class="todo-text">${escapeHtml(todo.text)}</span>
+      <button class="todo-delete">Delete</button>
+    `;
+    
+    list.appendChild(li);
+  });
+  
+  const activeCount = todos.filter(t => !t.completed).length;
+  countSpan.textContent = `${activeCount} item${activeCount !== 1 ? "s" : ""} left`;
+  
+  saveTodos();
+}
+
+// Add todo
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text) return;
+  
+  todos.push({
+    id: Date.now(),
+    text,
+    completed: false
+  });
+  
+  input.value = "";
+  render();
+});
+
+// Toggle & Delete (event delegation)
+list.addEventListener("click", (e) => {
+  const id = Number(e.target.closest("li")?.dataset.id);
+  if (!id) return;
+  
+  if (e.target.matches(".todo-checkbox")) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) todo.completed = !todo.completed;
+    render();
+  }
+  
+  if (e.target.matches(".todo-delete")) {
+    todos = todos.filter(t => t.id !== id);
+    render();
+  }
+});
+
+// Filter
+filterButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    filter = btn.dataset.filter;
+    filterButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  });
+});
+
+// Persistence
+function saveTodos() {
+  localStorage.setItem("todos", JSON.stringify(todos));
+}
+
+// Utility
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Initial render
+render();
+```

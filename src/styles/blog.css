@@ -100,6 +100,54 @@
   border-color: oklch(32% 0.055 245);
 }
 
+/* Callout / admonition (shared with blog posts) */
+.callout {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  border-left: 4px solid;
+  margin: 1.5rem 0;
+  font-size: var(--text-sm);
+}
+.callout-note    { background: oklch(93% 0.030 245 / 0.6); border-color: var(--color-brand-400); color: var(--color-brand-800); }
+.callout-tip     { background: oklch(93% 0.12 145 / 0.4);  border-color: var(--color-success);   color: oklch(38% 0.15 145); }
+.callout-warning { background: oklch(96% 0.12 72 / 0.4);   border-color: var(--color-warning);   color: oklch(38% 0.18 72); }
+.callout-danger  { background: oklch(96% 0.12 20 / 0.4);   border-color: var(--color-danger);    color: oklch(38% 0.22 20); }
+.dark .callout-note    { background: oklch(28.5% 0.045 245 / 0.55); border-color: var(--color-brand-500); color: var(--color-brand-200); }
+.dark .callout-tip     { background: oklch(25.0% 0.06 145 / 0.50);  border-color: var(--color-success);   color: oklch(85% 0.15 145); }
+.dark .callout-warning { background: oklch(25.0% 0.06 72 / 0.50);   border-color: var(--color-warning);   color: oklch(90% 0.15 72); }
+.dark .callout-danger  { background: oklch(25.0% 0.06 20 / 0.50);   border-color: var(--color-danger);    color: oklch(85% 0.15 20); }
+
+/* Table of Contents (shared with blog posts) */
+.toc-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-base-muted);
+  margin-bottom: 0.75rem;
+}
+.toc-link {
+  display: block;
+  padding: 0.25rem 0.5rem;
+  color: var(--color-base-muted);
+  text-decoration: none;
+  border-left: 2px solid var(--color-base-border);
+  transition: color 0.12s, border-color 0.12s;
+  line-height: 1.4;
+  margin-bottom: 2px;
+  font-size: var(--text-sm);
+}
+.toc-link:hover { color: var(--color-brand-600); border-color: var(--color-brand-300); }
+.toc-link.active {
+  color: var(--color-brand-600);
+  border-color: var(--color-brand-500);
+  font-weight: 500;
+}
+.dark .toc-link { color: var(--color-slate-500); border-color: var(--color-slate-700); }
+.dark .toc-link:hover { color: var(--color-brand-400); border-color: var(--color-brand-600); }
+.dark .toc-link.active { color: var(--color-brand-400); border-color: var(--color-brand-500); }
+.toc-link-h3 { padding-left: 1rem; font-size: 0.775rem; }
+
 /* Author avatar ring */
 .author-avatar {
   border: 2px solid var(--color-brand-300);

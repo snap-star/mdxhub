@@ -7,7 +7,7 @@ version: "v1.0"
 next: "docs/troubleshooting"
 ---
 
-Because this project is built with Vite as a purely static Single Page Application (SPA), deploying it to modern static hosting providers is incredibly simple. When you run the build command, Vite compiles your entire application, including the MDX files, into highly optimized static assets inside the `dist` directory.
+Because this project uses React Router framework mode with SPA + SSG (all routes pre-rendered to static HTML at build time, then hydrated client-side), deploying it to modern static hosting providers is incredibly simple. When you run the build command, the framework bundles your entire application — including pre-rendered HTML for every route — into highly optimized static assets inside the `build/client/` directory.
 
 Here is how you can deploy your project to the most popular hosting platforms.
 
@@ -27,14 +27,14 @@ Vercel is the creator of Next.js and provides first-class support for Vite appli
    ```bash
    vercel
    ```
-3. Follow the interactive prompts. Vercel will automatically detect that you are using Vite and configure the build settings (`npm run build` and the `dist` output directory) for you.
+3. Follow the interactive prompts. Vercel will automatically detect that you are using Vite and configure the build settings (`npm run build` and the `build/client` output directory) for you.
 
 ### Deploy from GitHub (Continuous Integration)
 
 1. Push your code to a GitHub repository.
 2. Log into the [Vercel Dashboard](https://vercel.com/dashboard) and click **Add New** > **Project**.
 3. Import your GitHub repository.
-4. Leave the default settings (Framework Preset: `Vite`, Build Command: `npm run build`, Output Directory: `dist`).
+4. Leave the default settings (Framework Preset: `Vite`, Build Command: `npm run build`, Output Directory: `build/client`).
 5. Click **Deploy**. Vercel will now automatically rebuild your site every time you push to the `main` branch.
 
 <Callout type="tip">
@@ -43,39 +43,80 @@ Vercel automatically configures a reverse proxy to handle client-side routing. Y
 
 ### Static File Overrides for SEO
 
-This project includes a `vercel.json` with explicit static file overrides and Content-Type headers to ensure Google Search Console and other crawlers can read your SEO assets:
+This project includes a `vercel.json` with security headers, explicit static file overrides, and Content-Type headers to ensure Google Search Console and other crawlers can read your SEO assets:
 
 ```json
 {
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), camera=(), microphone=(), payment=(), usb=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' https://disqus.com https://*.disquscdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.disqus.com; frame-src https://disqus.com https://*.disquscdn.com https://www.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(woff2|woff|ttf|otf)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(webp|avif|png|jpg|jpeg|svg|ico)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }
+      ]
+    },
+    {
       "source": "/sitemap.xml",
       "headers": [
-        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {
       "source": "/robots.txt",
       "headers": [
-        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {
       "source": "/rss.xml",
       "headers": [
-        { "key": "Content-Type", "value": "application/rss+xml; charset=utf-8" }
+        { "key": "Content-Type", "value": "application/rss+xml; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     },
     {
       "source": "/content-index.json",
       "headers": [
-        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=3600" }
       ]
     },
     {
       "source": "/content-slug-map.json",
       "headers": [
-        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=3600" }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     }
   ],
@@ -85,12 +126,14 @@ This project includes a `vercel.json` with explicit static file overrides and Co
     { "source": "/rss.xml", "destination": "/rss.xml" },
     { "source": "/content-index.json", "destination": "/content-index.json" },
     { "source": "/content-slug-map.json", "destination": "/content-slug-map.json" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/__spa-fallback.html" }
   ]
 }
 ```
 
 The explicit 1:1 pass-through rewrites before the catch-all guarantee that `sitemap.xml`, `robots.txt`, and `rss.xml` are served as individual static files instead of being intercepted by the SPA routing rule. The `headers` block then enforces the correct `Content-Type` MIME types (`application/xml`, `text/plain`, `application/rss+xml`, `application/json`) so that Google Search Console, RSS readers, and other consumers parse the content correctly. This is a common SEO best practice for SPAs deployed on Vercel.
+
+The catch-all rewrite points to `__spa-fallback.html` (generated by React Router framework mode) instead of `index.html`, ensuring unmatched routes return the correct SPA fallback.
 
 These files are all auto-generated during the build pipeline:
 
@@ -114,7 +157,7 @@ Netlify is another excellent option for static site hosting with built-in CI/CD.
    ```bash
    netlify deploy
    ```
-3. Follow the prompts. When asked for the publish directory, specify `dist`.
+3. Follow the prompts. When asked for the publish directory, specify `build/client`.
 4. To deploy to production, run:
    ```bash
    netlify deploy --prod
@@ -125,15 +168,15 @@ Netlify is another excellent option for static site hosting with built-in CI/CD.
 1. Push your code to GitHub.
 2. Log into [Netlify](https://app.netlify.com/) and click **Add new site** > **Import an existing project**.
 3. Connect your GitHub account and select your repository.
-4. Set the **Build command** to `npm run build` and the **Publish directory** to `dist`.
+4. Set the **Build command** to `npm run build` and the **Publish directory** to `build/client`.
 5. Click **Deploy site**.
 
 ### Handling React Router on Netlify
 
-Because this is a Single Page Application (SPA), Netlify needs to route all traffic to `index.html`. You **must** create a `public/_redirects` file with the following content:
+Because this is a pre-rendered SPA, Netlify needs to route unmatched traffic to the SPA fallback. You **must** create a `public/_redirects` file with the following content:
 
 ```text
-/*    /index.html   200
+/*    /__spa-fallback.html   200
 ```
 
 Alternatively, if you prefer using a `netlify.toml` file in your project root:
@@ -141,7 +184,7 @@ Alternatively, if you prefer using a `netlify.toml` file in your project root:
 ```toml
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/__spa-fallback.html"
   status = 200
 ```
 
@@ -149,25 +192,24 @@ Alternatively, if you prefer using a `netlify.toml` file in your project root:
 
 ## GitHub Pages
 
-Deploying to GitHub Pages is completely free, but it requires a slightly different Vite configuration since your site will likely be hosted on a sub-path (e.g., `https://username.github.io/repo-name/`).
+Deploying to GitHub Pages is completely free, but it requires adjusting the `base` path in `vite.config.ts` since your site will likely be hosted on a sub-path (e.g., `https://username.github.io/repo-name/`).
 
-### Step 1: Update Vite Config
+### Step 1: Update `base` in Vite Config
 
-In your `vite.config.ts`, you need to set the `base` property to match your GitHub repository name:
+In your `vite.config.ts`, set the `base` property to match your GitHub repository name:
 
 ```ts
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   // If your repo is named "my-blog", set this to "/my-blog/"
   base: '/my-blog/', 
-  plugins: [react(), /* mdx plugins... */],
+  // ... rest of config
 })
 ```
 
 <Callout type="warning">
-If you are deploying to a custom domain (e.g., `www.mywebsite.com`) rather than a `.github.io` subdomain, you should leave `base: '/'` as the default!
+If you are deploying to a custom domain (e.g., `www.mywebsite.com`) rather than a `.github.io` subdomain, leave `base: '/'` as the default!
 </Callout>
 
 ### Step 2: Set up GitHub Actions
@@ -214,8 +256,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: './dist'
+          path: './build/client'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

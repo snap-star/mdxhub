@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config'
+import { reactRouter } from '@react-router/dev/vite'
 import tailwindcss from '@tailwindcss/vite'
 import mdx from '@mdx-js/rollup'
 import yaml from '@rollup/plugin-yaml'
@@ -22,22 +22,17 @@ import {
 } from '@shikijs/transformers'
 import path from 'path'
 import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
     ViteImageOptimizer({
-      // PNG: lossy compression with high quality
       png: { quality: 80, effort: 10 },
-      // JPEG: lossy compression
       jpeg: { quality: 80, progressive: true, mozjpeg: true },
-      // WebP: generated alongside originals for modern browsers
       webp: { quality: 75, effort: 6 },
-      // AVIF: next-gen format, more aggressive compression
       avif: { quality: 50, effort: 7 },
-      // SVG: strip metadata
       svg: { plugins: ['preset-default', 'removeDimensions'] },
-      // Also optimize images in the public directory
       includePublic: true,
     }),
     {
@@ -78,11 +73,10 @@ export default defineConfig({
         providerImportSource: '@mdx-js/react',
       }),
     },
-    react({
-      include: /\.(md|mdx|js|jsx|ts|tsx)$/,
-    }),
+    reactRouter(),
     yaml(),
-  ],
+    process.env.ANALYZE ? visualizer({ open: true, gzipSize: true, brotliSize: true, filename: 'dist/stats.html' }) : null,
+  ].filter(Boolean),
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -93,53 +87,43 @@ export default defineConfig({
     port: 3000,
     open: true,
   },
+  test: {
+    environment: 'happy-dom',
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    css: true,
+    env: {
+      VITE_SITE_URL: 'https://mdxhub.vercel.app',
+      VITE_DISQUS_SHORTNAME: 'mdxhub',
+    },
+  },
   build: {
-    chunkSizeWarningLimit: 900,
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         manualChunks(id: string) {
-          // Core React ecosystem
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/react-router/') || id.includes('node_modules/react-helmet-async/') ||
+              id.includes('node_modules/react-router/') ||
               id.includes('node_modules/scheduler/')) {
             return 'vendor-react'
           }
-          // Animation (framer-motion is ~150KB+)
           if (id.includes('node_modules/framer-motion')) {
             return 'vendor-framer'
           }
-          // MDX runtime
-          if (id.includes('node_modules/@mdx-js/react')) {
-            return 'vendor-mdx'
-          }
-          // Syntax highlighting (shiki bundles many grammars/themes)
           if (id.includes('node_modules/shiki') || id.includes('node_modules/@shikijs')) {
             return 'vendor-shiki'
           }
-          // KaTeX math rendering (includes CSS + fonts)
           if (id.includes('node_modules/katex')) {
             return 'vendor-katex'
           }
-          // Icon library (lucide-react accumulates size across many icon imports)
           if (id.includes('node_modules/lucide-react')) {
             return 'vendor-icons'
           }
-          // State management & search
-          if (id.includes('node_modules/zustand') || id.includes('node_modules/fuse.js')) {
-            return 'vendor-state'
-          }
-          // Date utilities (imported across many components via @/lib/utils)
-          if (id.includes('node_modules/date-fns/')) {
-            return 'vendor-date'
-          }
-          // UI utilities
-          if (id.includes('node_modules/clsx/') || id.includes('node_modules/tailwind-merge/') ||
-              id.includes('node_modules/class-variance-authority/') || id.includes('node_modules/cmdk/')) {
-            return 'vendor-ui'
-          }
-          // Sandpack code sandbox (large — includes bundler, editor, preview)
           if (id.includes('node_modules/@codesandbox/sandpack')) {
             return 'vendor-sandpack'
+          }
+          if (id.includes('node_modules/zustand')) {
+            return 'vendor-misc'
           }
         },
       },

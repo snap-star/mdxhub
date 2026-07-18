@@ -7,22 +7,46 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build output
 dist
 dist-ssr
-*.local
+build
 
-# Editor directories and files
+# React Router generated types
+.react-router/**
+
+# TypeScript
+*.tsbuildinfo
+.vite/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage
+
+# Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-.vite/*
-new-blog-layout-design.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
+.agents
 .agents/**
 skills-lock.json
+new-blog-layout-design.md
+TODO.md

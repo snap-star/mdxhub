@@ -23,9 +23,10 @@
   <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat&logo=tailwindcss" alt="Tailwind CSS v4" /></a>
   <a href="https://reactrouter.com/"><img src="https://img.shields.io/badge/React_Router-v8-CA4245?style=flat&logo=reactrouter" alt="React Router v8" /></a>
   <a href="https://zustand-demo.pmnd.rs/"><img src="https://img.shields.io/badge/Zustand-v5-433E38?style=flat&logo=react" alt="Zustand v5" /></a>
-  <a href="https://www.framer.com/motion/"><img src="https://img.shields.io/badge/Framer_Motion-12-0055FF?style=flat&logo=framer" alt="Framer Motion 12" /></a>
   <a href="https://shiki.style/"><img src="https://img.shields.io/badge/Shiki-v4-3C89E3?style=flat&logo=shiki" alt="Shiki v4" /></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=flat&logo=typescript" alt="TypeScript 6" /></a>
+  <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Vitest-4-6E9F18?style=flat&logo=vitest" alt="Vitest 4" /></a>
+  <a href="https://zod.dev/"><img src="https://img.shields.io/badge/Zod-4-3068B7?style=flat&logo=zod" alt="Zod 4" /></a>
 </p>
 
 A blazingly fast, highly interactive, and beautiful MDX-powered platform for building blogs and documentation sites. Built from the ground up to provide a world-class developer and authoring experience.
@@ -87,25 +88,38 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Responsive Design**: Mobile-first with dedicated mobile sidebar drawer and bottom TOC sheet
 
 ### 🔍 Search & Navigation
-- **Full-Text Search**: Press `Ctrl+K`/`Cmd+K` anywhere — fuzzy search across all blog posts and docs using Fuse.js
+- **Full-Text Search**: Press `Ctrl+K`/`Cmd+K` anywhere — native `.filter()` search across all blog posts and docs (replaced Fuse.js with zero-cost stdlib alternative)
 - **Table of Contents**: Scroll-spy powered by IntersectionObserver, with mobile slide-out sheet
 - **Breadcrumbs**: Contextual navigation in blog posts and docs pages
 - **Category & Tag Filtering**: Filter blog posts by category or tag, with sidebar widgets and interactive tag clouds
 - **Series Navigation**: Inline series badge and prev/next navigation with progress indicator between parts
 
 ### 🔗 SEO & Discovery
-- **Automatic SEO**: Per-page `og:image`, `twitter:card`, canonical URLs, and meta tags via `react-helmet-async`
+- **Automatic SEO**: Per-page `og:image`, `twitter:card`, canonical URLs, and meta tags — React 19 auto-hoists `<title>` and `<meta>` to `<head>` (no `react-helmet-async` needed)
 - **Sitemap**: Auto-generated `sitemap.xml` with `lastmod` dates from file modification times — served via explicit Vercel rewrite to ensure Google Search Console can read it
 - **Robots.txt**: Auto-generated with `Allow: /` and `Sitemap:` directive
 - **RSS Feed**: Auto-generated `/rss.xml` with all published blog posts, categories, tags, and author metadata
-- **Disqus Comments**: Per-post commenting with comment count badges on cards
+- **Disqus Comments**: Per-post commenting with comment count badges on cards — with env validation via Zod schema
 - **Share Buttons**: Social sharing for every blog post
 
 ### ⚡ Performance
+- **Lazy-Loaded Heavy Components**: `Mermaid` diagrams and `CodeSandbox` live editors use `React.lazy()` — only download when content actually uses them
+- **Dependency Slimdown**: Removed 8 unused/over-engineered deps: `cmdk`, `class-variance-authority`, `gray-matter`, `date-fns`, `fuse.js`, `react-helmet-async`, `@base-ui/react`, `tailwind-merge`, `clsx`
+- **Stdlib Replacements**: Replaced `date-fns` → `toLocaleDateString`, `fuse.js` → native `.filter()`, `react-helmet-async` → React 19 auto-hoisting, `@base-ui/react` Tooltip → pure CSS tooltip
+- **Consolidated Vendor Chunks**: Small runtime deps merged into single `vendor-misc` chunk to reduce HTTP requests
 - **Image Optimization**: Build-time WebP/AVIF generation, lazy loading, and responsive `<picture>` elements
 - **Code Splitting**: Manual chunk splitting via `rollupOptions.output.manualChunks` in `vite.config.ts` — see the [Chunk Splitting Reference](#chunk-splitting-reference) below
 - **CSS View Transitions**: Native `@view-transition` API for smooth page navigations
 - **Lazy Loading**: Images and videos are lazy-loaded by default. The Disqus comment section uses a lazy-loading pattern with `IntersectionObserver` — the embed script is only loaded when the user scrolls near the comments.
+- **Over-engineering Cleanup**: Removed Framer Motion page transitions (replaced by CSS `@view-transition`), simplified ErrorBoundary (188→40 lines), simplified NotFound (238→70 lines), section backgrounds → CSS gradients
+
+### 🧪 Testing & Quality
+- **Unit Tests**: Vitest + Testing Library for component tests
+- **Error Tracking**: Client-side error tracking with context capture
+- **Environment Validation**: Zod schema validates all `VITE_*` env vars at startup
+- **Content Validation**: Build-time frontmatter schema checks catch missing fields before deploy
+- **CI/CD**: GitHub Actions runs type-check → test → build on every push
+- **Bundle Analysis**: `pnpm build:analyze` produces interactive bundle visualization
 
 ---
 
@@ -114,18 +128,19 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 | Layer | Technology |
 | :--- | :--- |
 | **Framework** | [React 19](https://react.dev/) |
-| **Bundler** | [Vite 8](https://vitejs.dev/) |
+| **Bundler** | [Vite 8](https://vitejs.dev/) (Rolldown-powered) |
 | **Content** | [MDX v3](https://mdxjs.com/) with `remark-gfm`, `remark-math`, and `rehype-katex` |
 | **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) (CSS-first architecture, OKLCH color spaces) |
-| **Routing** | [React Router v8](https://reactrouter.com/) |
+| **Routing** | [React Router v8](https://reactrouter.com/) (framework mode, SSG) |
 | **State Management** | [Zustand v5](https://zustand-demo.pmnd.rs/) with persistence middleware (`localStorage`) |
-| **Animation** | [Framer Motion 12](https://www.framer.com/motion/) |
 | **Syntax Highlighting** | [Shiki v4](https://shiki.style/) (dual-theme, diff/highlight/focus transformers) |
 | **Math Rendering** | [KaTeX](https://katex.org/) |
 | **Icons** | [Lucide React](https://lucide.dev/) + [Simple Icons](https://simpleicons.org/) |
-| **Search** | [Fuse.js](https://fusejs.io/) (fuzzy search) |
-| **UI Components** | [shadcn/ui](https://ui.shadcn.com/) + [Base UI](https://base-ui.com/) |
+| **Search** | Native `.filter()` (replaced Fuse.js stdlib) |
+| **SEO** | React 19 auto-hoisted `<title>`/`<meta>` (replaced `react-helmet-async`) |
 | **Image Processing** | [Sharp](https://sharp.pixelplumbing.com/) |
+| **Testing** | [Vitest 4](https://vitest.dev/) + [Testing Library](https://testing-library.com/) |
+| **Env Validation** | [Zod 4](https://zod.dev/) |
 | **Language** | [TypeScript 6](https://www.typescriptlang.org/) |
 
 ---
@@ -161,20 +176,33 @@ pnpm run dev
 # Terminal 2 — content file watcher (auto-regenerates content-index.json on every save)
 pnpm run dev:watch
 ```
-
 ### Production Build
 
 ```bash
 pnpm run build
 ```
 
-The build pipeline:
-1. Generates the content index (`public/content-index.json`) — extracting frontmatter fields including `tags`, `featured`, `series`, `seriesOrder`, `cc` — covering 59+ posts and 13+ docs pages
-2. Generates the RSS feed (`public/rss.xml`)
-3. Generates the sitemap (`public/sitemap.xml`) and `robots.txt`
-4. Generates WebP/AVIF image variants from source images via Sharp
-5. Type-checks the project with TypeScript
-6. Bundles everything with Vite into `dist/`
+The build pipeline (orchestrated by `scripts/build.mjs` + `react-router build`):
+1. Validates frontmatter schema on all content files (required fields: `title`, `date`, `author`, `category`, `tags`, `description` for blog posts)
+2. Generates the content index (`public/content-index.json`) — extracting frontmatter fields including `tags`, `featured`, `series`, `seriesOrder`, `cc` — covering 59+ posts and 13+ docs pages
+3. Generates the RSS feed (`public/rss.xml`)
+4. Generates the sitemap (`public/sitemap.xml`) and `robots.txt`
+5. Generates WebP/AVIF image variants from source images via Sharp
+6. Type-checks the project with TypeScript
+7. Bundles everything with Vite and pre-renders all routes to static HTML via React Router framework mode into `build/client/`
+
+### Run Tests
+
+```bash
+pnpm test          # Run once
+pnpm test:watch    # Watch mode
+```
+
+### Analyze Bundle
+
+```bash
+pnpm build:analyze
+```
 
 Preview the build locally:
 
@@ -187,6 +215,10 @@ pnpm run preview
 ## 📂 Project Structure
 
 ```text
+├── app/                       # React Router framework mode app entry
+│   ├── entry.client.tsx       # Client-side hydration entry
+│   ├── root.tsx               # Root layout (document shell, providers, HydrateFallback)
+│   └── routes.ts              # Route definitions (flat file convention)
 ├── content/                    # Your Markdown/MDX content lives here
 │   ├── blog/                  # Blog posts (auto-routed to /blog/*)
 │   │   ├── react-19-complete-*/   # 30-part React 19 series
@@ -210,33 +242,42 @@ pnpm run preview
 │   ├── robots.txt             # Auto-generated robots.txt (generated at build time)
 │   └── ...                    # Images, icons, etc.
 ├── scripts/
-│   ├── generate-content-index.cjs    # Builds content-index.json from frontmatter
+│   ├── build.mjs                     # Build orchestrator (index → RSS → sitemap → images)
+│   ├── build-analyze.cjs             # Bundle analysis wrapper
+│   ├── generate-content-index.cjs    # Builds content-index.json from frontmatter (+ validation)
 │   ├── generate-image-variants.cjs   # WebP/AVIF generation
 │   ├── generate-rss.cjs              # RSS feed generation
 │   ├── generate-sitemap.cjs          # Sitemap + robots.txt generation
+│   ├── helpers.cjs                   # Shared walk() + escapeXml() for build scripts
 │   └── watch-content.cjs             # Dev file watcher (auto-regenerates on save)
 ├── src/
 │   ├── components/
 │   │   ├── blog/             # Blog-specific components (PostCard, PostListView, CategoryFilter, TOC, Breadcrumbs, etc.)
 │   │   ├── docs/             # Docs-specific components (Sidebar, PrevNextNav, etc.)
 │   │   ├── mdx/              # Global MDX components (Callout, VideoEmbed, Badge, Timeline, etc.)
-│   │   ├── common/           # Shared components (Navbar, Footer, SEO, ThemeToggle)
-│   │   ├── search/           # Search command palette (Cmd+K)
-│   │   └── transitions/      # Page transition wrapper
+│   │   ├── common/           # Shared components (Navbar, Footer, SEO, ThemeToggle, ErrorBoundary, NotFound)
+│   │   └── search/           # Search command palette (Cmd+K)
 │   ├── hooks/                # Shared React hooks (useBlogPosts, useActiveHeading, useContentHeadings)
-│   ├── layouts/              # RootLayout, BlogLayout, DocsLayout
+│   ├── layouts/              # BlogLayout, DocsLayout
 │   ├── routes/               # React Router page definitions
-│   ├── lib/                  # Utilities, content types, remark plugins
+│   ├── lib/                  # Utilities, content types, remark plugins, analytics, error tracking
 │   ├── store/                # Zustand stores (blogPrefs, content, navigation, theme)
+│   ├── config/               # Environment validation (env.ts, Zod schema)
+│   ├── test/                 # Vitest setup and test files
 │   └── styles/               # Blog and docs theme overrides
+├── react-router.config.ts    # React Router framework config (SPA mode + prerender routes)
 ├── site.config.json          # GitHub URL configuration
-├── vercel.json               # Vercel SPA rewrites + static file overrides
+├── vercel.json               # Vercel SSG rewrites + static file overrides
 └── package.json              # Project dependencies and scripts
 ```
 
 ---
 
-## 🧭 Routing Rules
+## 🧭 Routing (React Router v8 Framework Mode)
+
+Routes are defined in `app/routes.ts` using flat file conventions. The route loader in `react-router.config.ts` pre-renders all known content paths at build time.
+
+### Content-to-Route Mapping
 
 - `content/about.mdx` → `/about`
 - `content/docs/**/*.{md,mdx}` → `/docs/*`
@@ -317,16 +358,15 @@ The following vendor chunks are created at build time:
 
 | Chunk Name | Contents | Rationale |
 | :--- | :--- | :--- |
-| `vendor-react` | `react`, `react-dom`, `react-router`, `react-helmet-async`, `scheduler` | Core framework — always loaded, always cached |
-| `vendor-framer` | `framer-motion` | ~150KB+ animation library, loaded only on pages with animations |
-| `vendor-mdx` | `@mdx-js/react` | MDX runtime — loaded when rendering MDX content |
-| `vendor-shiki` | `shiki`, `@shikijs/*` | Syntax highlighting grammars and themes (large) — only when showing code blocks |
+| `vendor-react` | `react`, `react-dom`, `react-router`, `scheduler` | Core framework — always loaded, always cached |
+| `vendor-framer` | `framer-motion` | ~130KB animation library — only on pages with animations |
+| `vendor-shiki` | `shiki`, `@shikijs/*` | Syntax highlighting grammars and themes — only when showing code blocks |
 | `vendor-katex` | `katex` | Math rendering engine (includes CSS + fonts) — only on posts with LaTeX |
-| `vendor-icons` | `lucide-react` | Icon library — accumulates size across many icon imports |
-| `vendor-state` | `zustand`, `fuse.js` | State management + full-text search — loaded for search functionality |
-| `vendor-date` | `date-fns` | Date formatting utilities — imported across many components |
-| `vendor-ui` | `clsx`, `tailwind-merge`, `class-variance-authority`, `cmdk` | UI utility libraries used by search palette and components |
-| `vendor-sandpack` | `@codesandbox/sandpack-react`, `@codesandbox/sandpack-client` | In-browser code sandbox (bundler, editor, preview) — only on pages that embed live code examples |
+| `vendor-icons` | `lucide-react` | Icon library — accumulates across many icon imports |
+| `vendor-sandpack` | `@codesandbox/sandpack-react`, `@codesandbox/sandpack-client` | In-browser code sandbox (bundler, editor, preview) — lazy-loaded, only on pages with live code examples |
+| `vendor-misc` | `zustand` | Persisted state management |
+
+Additionally, `Mermaid` and `CodeSandbox` are `React.lazy()` loaded — their heavy dependencies only download when a content page actually uses them.
 
 ### How to add a new chunk
 
@@ -347,21 +387,25 @@ The order matters — the first matching `if` wins. Place more-specific matches 
 
 | Command | Description |
 | :--- | :--- |
-| `pnpm run dev` | Start dev server (generates content-index + RSS + sitemap on startup) |
-| `pnpm run dev:watch` | Watch `content/` for changes — auto-regenerates content-index.json, RSS feed, and sitemap on every file save |
-| `pnpm run build` | Content-index → RSS → sitemap → image variants → type-check → production build |
+| `pnpm run dev` | Start dev server (runs prebuild steps then Vite) |
+| `pnpm run dev:watch` | Watch `content/` for changes — auto-regenerates content-index, RSS, sitemap on save |
+| `pnpm run build` | Prebuild steps → type-check → production build |
+| `pnpm run build:analyze` | Build with interactive bundle visualization |
 | `pnpm run preview` | Serve the production build locally |
+| `pnpm run test` | Run tests once (Vitest) |
+| `pnpm run test:watch` | Run tests in watch mode |
 | `pnpm run lint` | Run ESLint on all source files |
-| `pnpm run generate:content-index` | Manually regenerate `public/content-index.json` only |
+| `pnpm run generate:content-index` | Regenerate content-index only (via `scripts/build.mjs`) |
 
 ### Build Pipeline
 
-The following scripts run as part of `npm run build`, before type-checking and Vite bundling:
+The build pipeline runs `scripts/build.mjs` (prebuild steps) then `react-router build` (Vite bundling + route prerendering):
 
-1. **`scripts/generate-content-index.cjs`** — Scans all `.md`/`.mdx` files, extracts YAML frontmatter (including `tags`, `featured`, `series`, `seriesOrder`, `cc`), and outputs `public/content-index.json` and `public/content-slug-map.json`
+1. **`scripts/generate-content-index.cjs`** — Validates frontmatter schema, scans all `.md`/`.mdx` files, extracts YAML frontmatter (including `tags`, `featured`, `series`, `seriesOrder`, `cc`), and outputs `public/content-index.json` and `public/content-slug-map.json`
 2. **`scripts/generate-rss.cjs`** — Generates `public/rss.xml` from all published blog posts
 3. **`scripts/generate-sitemap.cjs`** — Generates `public/sitemap.xml` and `public/robots.txt`
 4. **`scripts/generate-image-variants.cjs`** — Generates WebP and AVIF variants of all content images using Sharp
+5. **`react-router build`** — Bundles with Vite (via `@react-router/dev`), pre-renders all routes to static HTML using `react-router.config.ts`'s `prerender()` function
 
 ---
 
@@ -394,63 +438,30 @@ Register authors in `content/authors/authors.yaml`:
 
 SEO metadata (site URL, title, description, Open Graph defaults) is configured in `src/components/common/SEO.tsx`. The site URL is currently set to `https://mdxhub.vercel.app` — update this before deploying to a custom domain.
 
+### Environment Variables
+
+Required variables are validated at startup via a Zod schema in `src/config/env.ts`. Copy `.env.example` to `.env.local` and fill in:
+
+| Variable | Required | Description |
+| :--- | :---: | :--- |
+| `VITE_SITE_URL` | Yes | Canonical site URL |
+| `VITE_DISQUS_SHORTNAME` | No | Disqus forum shortname for comments |
+| `VITE_ANALYTICS_ID` | No | Analytics tracking ID |
+| `VITE_GITHUB_TOKEN` | No | GitHub API token for issue creation |
+| `VITE_ERROR_TRACKING_DSN` | No | Error reporting endpoint |
+
 ---
 
 ## 🚢 Deployment
 
-This project is a fully static SPA. Deploy to any static host:
+This project uses **React Router v8 framework mode** with **SPA mode + SSG prerendering**. All routes are pre-rendered to static HTML at build time, then hydrated client-side. Deploy to any static host:
 
 ### Vercel (Recommended)
 
-The included `vercel.json` handles SPA routing with explicit static file overrides and Content-Type headers to ensure `sitemap.xml`, `robots.txt`, `rss.xml`, and other static assets are served directly and with the correct MIME types:
+The included `vercel.json` handles SSG routing with explicit static file overrides and Content-Type headers. The React Router build generates a `__spa-fallback.html` for unmatched routes (deep links, bookmarks).
 
-```json
-{
-  "headers": [
-    {
-      "source": "/sitemap.xml",
-      "headers": [
-        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
-      ]
-    },
-    {
-      "source": "/robots.txt",
-      "headers": [
-        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
-      ]
-    },
-    {
-      "source": "/rss.xml",
-      "headers": [
-        { "key": "Content-Type", "value": "application/rss+xml; charset=utf-8" }
-      ]
-    },
-    {
-      "source": "/content-index.json",
-      "headers": [
-        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
-      ]
-    },
-    {
-      "source": "/content-slug-map.json",
-      "headers": [
-        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
-      ]
-    }
-  ],
-  "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
-    { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/rss.xml", "destination": "/rss.xml" },
-    { "source": "/content-index.json", "destination": "/content-index.json" },
-    { "source": "/content-slug-map.json", "destination": "/content-slug-map.json" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
-```
-
-1. Push to GitHub
-2. Import to Vercel (auto-detects Vite)
+1. Push to GitHub (CI runs type-check → test → build automatically via GitHub Actions)
+2. Import to Vercel (framework preset: `Vite`, output directory: `build/client`)
 3. Done
 
 ### Netlify
@@ -458,7 +469,7 @@ The included `vercel.json` handles SPA routing with explicit static file overrid
 Add a `public/_redirects` file or `netlify.toml` with:
 
 ```
-/*    /index.html   200
+/*    /__spa-fallback.html   200
 ```
 
 ---

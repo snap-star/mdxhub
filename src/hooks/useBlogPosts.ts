@@ -2,8 +2,6 @@ import React from 'react'
 import { useBlogPrefsStore } from '@/store/blogPrefsStore'
 import type { PostIndexEntry } from '@/lib/content/contentIndex'
 
-export type { SortMode, SortOrder, BlogViewMode } from '@/store/blogPrefsStore'
-
 const INITIAL_VISIBLE = 6
 
 interface UseBlogPostsReturn {

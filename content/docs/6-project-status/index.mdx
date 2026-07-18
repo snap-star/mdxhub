@@ -2,54 +2,151 @@
 title: "Project Status"
 section: "6. Project Status"
 order: 60
-description: "Current project limitations, newly implemented features, and known bugs."
+description: "Current project status, recent changes, project limitations, and known behavior notes."
 ---
 
 Welcome to the **Project Status** page. Here you'll find an up-to-date log of newly implemented features, project limitations, and known behavior notes for this MDX platform.
 
+## 📋 Changelog
+
+### v1.5.7 (2026-07-19)
+- **SSG Migration**: Migrated to React Router framework mode with `ssr: false` + `prerender()` for static site generation
+- **Testing**: Added Vitest + Testing Library with ErrorBoundary tests
+- **CI/CD**: GitHub Actions workflow (type-check → test → build)
+- **Bundle Analysis**: `rollup-plugin-visualizer` with `pnpm build:analyze`
+- **Dependency Slimdown**: Removed `clsx`, `tailwind-merge`, `date-fns`, `fuse.js`, `react-helmet-async`, `@base-ui/react`
+- **Stdlib Replacements**: `date-fns` → `toLocaleDateString`, `fuse.js` → `.filter()`, `react-helmet-async` → React 19 auto-hoisting, `@base-ui/react` Tooltip → CSS tooltip
+- **Over-engineering Cleanup**: Simplified NotFound (238→70 lines), ErrorBoundary (188→40 lines), SectionBackground → CSS gradients, removed Framer Motion page transitions
+- **Dead Code Removal**: Removed `cn`, `timeAgo`, `groupBy`, `pathToSlug` from utils; 4 dead selectors from contentStore
+- **Duplication Reduction**: Extracted `walk` + `escapeXml` to `scripts/helpers.cjs`
+- **Error Tracking**: Client-side `ErrorTracker` with `componentDidCatch` integration
+- **Environment Validation**: Zod schema for `VITE_*` env vars in `src/config/env.ts`
+- **Content Validation**: Build-time frontmatter schema checks (fixed 6 missing `description` fields)
+- **Web Vitals**: CLS, FCP, LCP, TTFB tracking via `web-vitals`
+
+### v1.5.6 (2026-07-17)
+- Removed `highlight.js` (fully replaced by Shiki)
+- Fixed newsletter component styling
+- Refactored dead code and optimized vendor chunks
+- Updated documentation for v1.5.6
+
+### v1.5.5 (2026-07-14)
+- Updated dependencies: `@shikijs/rehype` v4.3.1, `framer-motion` v12.42.2, `react` v19.2.7, `react-router` v8.2.0, `shiki` v4.3.1, `tailwindcss` v4.3.2, `typescript` v6.0.3, `vite` v8.1.4
+- Added GitHub Actions workflow for release process
+
+### v1.5.4 (2026-07-05)
+- Fixed deprecated `import.meta.glob` query syntax; set eager to false for content globs
+- Enhanced CardGrid with link handling
+- Improved text styling with `clamp()` and mobile support
+- Removed unused shadcn components
+
+### v1.5.3 (2026-07-04)
+- Version bump
+
+### v1.5.2 (2026-07-04)
+- Added Google site verification meta tag
+- Enhanced `vercel.json` with Content-Type headers for SEO assets
+- Updated timestamps and category names in content index and RSS feed
+- Documentation updates for SEO
+
+### v1.5.1 (2026-07-04)
+- Fixed `generatedAt` and `lastBuildDate` timestamps
+- Updated loading skeleton heights
+- Added Google site verification tag
+
+### v1.5.0 (2026-07-03)
+- Added CardGrid and Card components for categorized content
+
+### v1.4.x (2026-07-01 — 2026-07-02)
+- Content indexing and slug mapping for blog and docs
+- Pull request and issue templates
+- Contributing guide, code of conduct, security policy
+- Dynamic footer copyright from site config
+
+### v1.3.0 (2026-06-28)
+- Enhanced CodeBlock with line diff detection
+- Added Tabs, Steps, and Mermaid diagram components
+- RSS feed and sitemap generation with `robots.txt`
+- Comprehensive code blocks guide
+- Updated js-yaml to v4.3.0
+
+### v1.2.5 (2026-06-27)
+- Build-time image compression (WebP/AVIF via Sharp)
+- Optimized build chunks
+- Zustand complete guide posts
+- Fixed Disqus comment count
+
+### v1.2.2 (2026-06-25)
+- Blog series with part navigation and series badge
+- Disqus comment system
+- Enhanced TOC accuracy
+- Previous/next post navigation
+- Share buttons
+- Social media icon pack integration
+
+### v1.0.0 – v1.2.1 (2026-06-22 — 2026-06-25)
+- Initial project setup with Vite + React
+- MDX integration with `@mdx-js/rollup`
+- Tailwind CSS v4 styling
+- Blog and docs routing
+- Author schema and content management
+- SEO configuration with Open Graph
+- Lightbox, Tooltip, Badge MDX components
+- Nested content folder routing
+- Image support and relative path resolution
+- MIT License
+
 ## ✨ Newly Implemented Features
 
-This project now includes several content and routing improvements based on the current codebase:
+### Latest Optimization
+
+- **Ponytail Audit — Dead Code Removal**: Removed 7 unused utility functions (`cn`, `timeAgo`, `groupBy`, `pathToSlug`, and 4 dead Zustand selectors). Dropped `clsx`, `tailwind-merge`, and `isbot` from dependencies (isbot later restored as React Router peer dep).
+- **Ponytail Audit — Stdlib Replacements**: Replaced `date-fns` → native `toLocaleDateString`, `fuse.js` → native `.filter()`, `react-helmet-async` → React 19 auto-hoisted `<title>`/`<meta>`, `@base-ui/react` Tooltip → pure CSS tooltip. Removed 5 dependencies.
+- **Ponytail Audit — Over-engineering Cleanup**: Simplified `NotFound.tsx` (238→70 lines, no framer-motion). Simplified `ErrorBoundary` (188→40 lines, class component). Replaced `SectionBackground.tsx` with pure CSS gradients. Removed Framer Motion `AnimatePresence`/`PageTransition` from root.tsx (CSS `@view-transition` handles transitions natively).
+- **Ponytail Audit — Duplication Reduction**: Extracted shared `walk()` and `escapeXml()` into `scripts/helpers.cjs`, reused by 3 build scripts.
+- **Testing Infrastructure**: Vitest + Testing Library set up. ErrorBoundary component test with 2 passing tests. Run with `pnpm test` or `pnpm test:watch`.
+- **Error Tracking**: Client-side `ErrorTracker` class in `src/lib/errorTracking.ts` captures error context (message, stack, URL, timestamp). ErrorBoundary auto-reports via `componentDidCatch`. Supports optional remote endpoint via `VITE_ERROR_TRACKING_DSN`.
+- **Environment Validation**: Zod schema at `src/config/env.ts` validates all `VITE_*` env vars at startup with type coercion and defaults. `.env.example` documents all available variables.
+- **Web Vitals Monitoring**: tracks CLS, FCP, LCP, and TTFB via `web-vitals` — reports to analytics endpoint if `VITE_ANALYTICS_ID` is configured.
+- **Content Validation**: Build-time frontmatter schema checks in `generate-content-index.cjs`. Required fields validated: `title`, `date`, `author`, `category`, `tags`, `description` for blog posts; `title`, `section`, `order`, `description` for docs. Catches missing fields early — fixed 6 content files during initial validation.
+- **CI/CD Pipeline**: GitHub Actions workflow (`.github/workflows/test-and-build.yml`) runs type-check → test → build on every push to `main`/`develop` and PRs.
+- **Bundle Analysis**: `rollup-plugin-visualizer` integrated, gated behind `ANALYZE` env var. Run `pnpm build:analyze` to generate an interactive bundle visualization at `dist/stats.html`.
+- **Deployment Checklist**: `DEPLOYMENT_CHECKLIST.md` with pre-deployment checks for code quality, content, environment, performance, and security.
+
+### Previous Features
 
 - **Nested content routing**: Blog posts under `content/blog/**` and docs pages under `content/docs/**` both support nested folders. `index.mdx` inside a folder resolves to the parent folder slug.
 - **Filename fallback matching**: Blog routes can resolve posts by their file name when the current route uses the plain filename slug.
 - **Relative image resolution**: MDX image sources that use relative paths are resolved against the current content folder and the built content asset map.
-- **`.md` + `.mdx` discovery**: Both Markdown and MDX content files are discovered automatically with the Vite glob patterns.
-- **Explicit post sorting**: Blog posts now support an `order` field for manual sorting before default date-based sorting.
+- **`.md` + `.mdx` discovery**: Both Markdown and MDX content files are discovered automatically with Vite glob patterns.
+- **Explicit post sorting**: Blog posts support an `order` field for manual sorting before default date-based sorting.
 - **Improved author schema**: The author registry supports an extended set of social links and profile fields.
-- **Custom home page** (`/`): A brand-themed landing page with animated gradient hero, stat counters, tech stack badges, features showcase, component demos, latest posts, decorative floating orbs, and parallax scroll effects with bidirectional fade animations.
-- **Badge component**: Colorful inline pill component (`<Badge variant="tip" icon="check">Done</Badge>`) with 22+ colors, admonition variants, and 40+ icon names — globally available in MDX.
-- **Tooltip component**: Accessible hover/focus tooltip (`<Tooltip content="...">text</Tooltip>`) using `@base-ui/react` primitives — globally available in MDX.
-- **Image lightbox viewer**: Any image in MDX content is now clickable and opens a full-screen overlay with zoom, rotate, and keyboard navigation.
-- **CodeSandbox component**: Live, editable code sandboxes using Sandpack — supports React, TypeScript, Vanilla JS, and Static HTML templates with external dependencies and console output.
-- **Accordion component**: Expandable/collapsible sections with `bordered` and `ghost` variants, `allowMultiple` mode, keyboard navigation, and animated height transitions via Framer Motion.
-- **CardGrid component**: Responsive card grid (1–4 columns) with icons, titles, descriptions, optional links, and rich content children — perfect for feature listings and landing pages.
-- **Parallax scroll effects**: Hero section on the home page features multi-layer parallax with different scroll speeds, using `requestAnimationFrame` and passive scroll listeners.
-- **Bidirectional fade animations**: All sections on the home page fade in when scrolling down and fade out when scrolling up, using Framer Motion's `useInView` with `once: false`.
-- **Dedicated search page**: Full-page search at `/search` with grouped results, recent searches in localStorage, and Fuse.js integration.
-- **Logo hover animation**: The navbar logo transitions from a document icon to a home icon on hover with smooth Framer Motion fade/scale transitions.
-- **Featured posts**: Set `featured: true` in frontmatter to highlight posts in a Featured widget on the blog homepage.
-- **Series grouping**: Use `series` and `seriesOrder` frontmatter fields to group related posts into navigable series with prev/next links and progress indicators.
-- **CC License badges**: Set `cc` in frontmatter (e.g., `cc: "CC-BY-4.0"`) to automatically render a Creative Commons license badge in the post footer.
-- **Inline YAML array parsing**: Tags can use inline array syntax (`tags: ["react", "mdx"]`) in addition to the indented list format. Both work correctly.
-- **Dev watch script**: Run `npm run dev:watch` alongside the dev server to auto-regenerate `content-index.json`, RSS, and sitemap on every content file save — no full rebuild needed.
-- **Lazy-loaded Disqus comments**: The Disqus comment section uses a lazy-loading pattern with `IntersectionObserver` — the embed script is only loaded when the user scrolls near the comments, keeping initial page load fast.
-- **Blog Sort & View Controls**: Blog posts can now be sorted by Recent or Date Posted with Ascending/Descending toggle, and displayed as Cards or a new horizontal List view. Controls are synced across the main blog index, category pages, and tag pages.
-- **Blog List View**: A new horizontal list layout for blog posts with a 70/30 text-to-thumbnail split, segmented pill metadata badges (category, tags, date, reading time, comments), an active hover indicator, and a dedicated chevron block for posts without cover images.
-- **Persisted Blog Preferences**: Sort mode, sort order, and view mode preferences are saved to `localStorage` via Zustand's `persist` middleware. Settings survive page reloads and browser restarts under the `mdx-blog-prefs` storage key.
-- **Timeline Component**: New `<Timeline>` and `<TimelineItem>` MDX components for creating chronological timelines with date labels, icons, and color variants (brand, success, warning, danger, info).
-- **Shared `useBlogPosts` Hook**: Extracted duplicate sort/view/pagination logic from three blog route files into a single `useBlogPosts(posts)` hook in `src/hooks/`. Reduces code duplication and centralizes sorting, slicing, and reset behavior.
-- **Featured Badge Redesign**: The featured post badge now uses a frosted glass style with a red flame icon. On hover, the background fills with solid red and text turns white — replacing the previous gradient and glow effects.
-- **Soft Hover Fill on List Items**: The post list view's hover effect changed from a blue gradient vertical bar to a soft primary-tinted background fill that scales in from the left — matching the sidebar category hover pattern.
-- **Newsletter Subscribe Card**: A premium subscription card (`<NewsletterSubscribe />`) rendered automatically in blog post footers with gradient design, email input, and animated success feedback.
-- **Newsletter Configuration via site.config.json**: The newsletter endpoint is configured centrally in `site.config.json` under the `newsletter.actionUrl` field — no code changes needed.
-- **Animated Subscription Success**: After submitting the newsletter form, a Framer Motion animated success state replaces the form with a green checkmark and the subscribed email address, plus a "Change email" reset option.
+- **Custom home page** (`/`): A brand-themed landing page with hero, features showcase, component demos, and latest posts.
+- **Rich MDX Components**: Badge (22+ colors, 40+ icons), Tooltip (CSS-based, accessible), Callout (5 variants), Tabs (2 variants), Accordion, CardGrid, Timeline, VideoEmbed, Mermaid, CodeSandbox, and more — globally available in MDX.
+- **Image lightbox**: Click any image to open a full-screen viewer with zoom (25%–400%), rotate, and keyboard controls.
+- **CodeSandbox component**: Live, editable code sandboxes using Sandpack — React, TypeScript, Vanilla JS, and Static HTML templates.
+- **Featured posts**: Set `featured: true` in frontmatter to highlight posts in a Featured widget.
+- **Series grouping**: Use `series` and `seriesOrder` frontmatter to group related posts with prev/next links and progress bars.
+- **CC License badges**: Set `cc` field in frontmatter to auto-render a Creative Commons badge in the post footer.
+- **Blog Sort & View Controls**: Sort by Recent or Date Posted, toggle Ascending/Descending, switch between Card and List views. Preferences persisted to localStorage.
+- **Blog List View**: Horizontal list layout with 70/30 text-to-thumbnail split, segmented pill badges, and active hover indicators.
+- **Newsletter subscribe card**: Premium subscription card with gradient design and animated success feedback, configured via `site.config.json`.
+- **Persisted blog preferences**: Sort mode, sort order, and view mode saved to localStorage via Zustand persist.
+- **Shared `useBlogPosts` Hook**: Centralized hook for sort/view/pagination logic across blog routes.
+- **Draft system**: Set `draft: true` in frontmatter to exclude posts from the published feed.
+- **Dev watch script**: `pnpm run dev:watch` auto-regenerates content-index, RSS, and sitemap on content file changes.
+- **Lazy-loaded Disqus comments**: IntersectionObserver-based lazy loading — embed script loads only when user scrolls near comments.
+- **Build orchestrator**: `scripts/build.mjs` serves as single entry point for all prebuild steps. `package.json` scripts use clean commands instead of long `&&` chains.
+- **Consolidated vendor chunks**: Manual chunk splitting via `rollupOptions.output.manualChunks` in `vite.config.ts`.
+- **Lazy-loaded heavy components**: `Mermaid` and `CodeSandbox` use `React.lazy()` — heavy deps download only when content uses them.
+- **Build-time image optimization**: WebP and AVIF variants generated via Sharp.
+- **Dual-theme syntax highlighting**: Shiki with Monokai (dark) and GitHub Light (light) themes, plus diff/highlight/focus transformers.
 
 ## 🚧 Project Limitations
 
 Because this is a static, file-based content platform, there are some inherent tradeoffs:
 
-1. **Client-side search scaling**: The Fuse.js index is built in the browser from loaded content. Very large libraries may increase initial page load memory usage.
+1. **Client-side search scaling**: The search index is built in the browser from loaded content. Very large libraries may increase initial page load memory usage.
 2. **Content is Git-based**: All posts and docs are managed as files in the repository. There is no CMS admin panel or database-backed content editor.
 3. **No built-in auth or comments**: Comments and authentication need to be added using third-party services like Giscus, Disqus, Supabase, or similar.
 
@@ -58,11 +155,12 @@ Because this is a static, file-based content platform, there are some inherent t
 - **Reading time fallback**: When `readingTime` is not provided in frontmatter, the site estimates reading time from the available content metadata. For exact control, set `readingTime` manually.
 - **Author lookup**: If `author` in blog frontmatter does not match any `id` in `content/authors/authors.yaml`, the post still renders but author details are omitted.
 - **Link updates after rename**: Renaming content files or folders changes the resulting slug. Update links in other pages when you move or rename a post or docs page.
-- **Tags parser**: The custom YAML parser in `scripts/generate-content-index.cjs` handles both inline array (`tags: ["a", "b"]`) and indented list (`tags:\n  - a`) syntax. However, the parser runs before the MDX processor — fields that look like arrays but are quoted strings (e.g., `title: "[something]"`) are safely interpreted as strings.
-- **Sitemap served via explicit Vercel rewrites**: The `vercel.json` now includes explicit 1:1 pass-through rewrites for `sitemap.xml`, `robots.txt`, and `rss.xml` before the catch-all SPA rule. This ensures Google Search Console receives the correct XML/plain-text content instead of the SPA's `index.html` — a common SEO pitfall for client-rendered apps on Vercel.
-- **Build script consolidated**: The `prebuild` lifecycle hook has been removed and all content-generation scripts (content-index, RSS, sitemap, image variants) now run directly inside the `build` script. This guarantees they execute regardless of whether Vercel triggers `npm run build` or uses framework detection to run `vite build` directly.
-- **content-index.json regeneration**: After adding or modifying content, the content-index, RSS, and sitemap must be regenerated. Use the `dev:watch` script during development, or run `node scripts/generate-content-index.cjs` manually if you see missing posts, tags, or series data.
-- **Post fields are flat, not nested**: `PostIndexEntry` uses flat fields (`featured`, `series`, `cc`, etc.) rather than a nested `frontmatter` object. All code accessing post properties should use `post.featured`, not `post.frontmatter.featured`.
+- **Tags parser**: The custom YAML parser in `scripts/generate-content-index.cjs` handles both inline array (`tags: ["a", "b"]`) and indented list (`tags:\n  - a`) syntax. Fields that look like arrays but are quoted strings are safely interpreted as strings.
+- **Sitemap served via explicit Vercel rewrites**: The `vercel.json` includes explicit pass-through rewrites for `sitemap.xml`, `robots.txt`, and `rss.xml` before the catch-all SPA rule — ensuring Google Search Console receives the correct content.
+- **content-index.json regeneration**: After adding or modifying content, the content-index, RSS, and sitemap must be regenerated. Use `pnpm run build` or the `dev:watch` script during development.
+- **Post fields are flat, not nested**: `PostIndexEntry` uses flat fields (`featured`, `series`, `cc`, etc.) rather than a nested `frontmatter` object. Use `post.featured`, not `post.frontmatter.featured`.
+- **Content validation enforces required frontmatter fields**: Build-time validation checks for `title`, `date`, `author`, `category`, `tags`, and `description` on blog posts, and `title`, `section`, `order`, `description` on docs. Missing fields cause a build error with the file path and field name.
+- **Environment validation at startup**: Zod schema validates all `VITE_*` env vars on module import. Invalid or missing required values throw an error with field details. Run with valid `.env.local` or rely on schema defaults.
 
 <Callout type="info">
 If you discover a bug or have a feature request, please open an issue or contribute a pull request to the repository.

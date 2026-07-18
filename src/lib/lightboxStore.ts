@@ -1,6 +1,4 @@
-import React from 'react'
-
-// ─── Lightbox state (simple module-level store, no Zustand needed) ─────
+import { createStore } from './createStore'
 
 interface LightboxState {
   open: boolean
@@ -8,33 +6,21 @@ interface LightboxState {
   alt: string
 }
 
-let currentState: LightboxState = { open: false, src: '', alt: '' }
-const listeners = new Set<React.DispatchWithoutAction>()
-
-function subscribe(fn: () => void) {
-  listeners.add(fn)
-  return () => listeners.delete(fn)
-}
-
-function getSnapshot(): LightboxState {
-  return currentState
-}
-
-function emitChange() {
-  listeners.forEach((fn) => fn())
-}
+const { setState, useStore } = createStore<LightboxState>({
+  open: false,
+  src: '',
+  alt: '',
+})
 
 /** Call this from any component to open the lightbox */
 export function openLightbox(src: string, alt: string = '') {
-  currentState = { open: true, src, alt }
-  emitChange()
+  setState({ open: true, src, alt })
 }
 
 export function closeLightbox() {
-  currentState = { ...currentState, open: false }
-  emitChange()
+  setState({ open: false })
 }
 
 export function useLightboxStore(): LightboxState {
-  return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+  return useStore()
 }

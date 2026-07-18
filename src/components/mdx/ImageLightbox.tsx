@@ -137,6 +137,9 @@ export function ImageLightbox() {
     setDragging(false)
   }
 
+  // Guard against SSR/prerender where document doesn't exist
+  if (typeof document === 'undefined') return null
+
   return createPortal(
     <AnimatePresence>
       {open && (

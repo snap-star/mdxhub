@@ -9,7 +9,6 @@ interface ThemeStore {
   resolvedTheme: ResolvedTheme
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
-  _applyTheme: (resolved: ResolvedTheme) => void
 }
 
 function getSystemTheme(): ResolvedTheme {
@@ -34,21 +33,18 @@ export const useThemeStore = create<ThemeStore>()(
       theme: 'system',
       resolvedTheme: getSystemTheme(),
 
-      _applyTheme: (resolved: ResolvedTheme) => {
-        set({ resolvedTheme: resolved })
+      setTheme: (theme: Theme) => {
+        const resolved = resolveTheme(theme)
+        set({ theme, resolvedTheme: resolved })
         applyThemeToDom(resolved)
       },
 
-      setTheme: (theme: Theme) => {
-        const resolved = resolveTheme(theme)
-        set({ theme })
-        get()._applyTheme(resolved)
-      },
-
       toggleTheme: () => {
-        const current = get().resolvedTheme
-        const next: Theme = current === 'dark' ? 'light' : 'dark'
-        get().setTheme(next)
+        const { resolvedTheme } = get()
+        const next: Theme = resolvedTheme === 'dark' ? 'light' : 'dark'
+        const resolved = resolveTheme(next)
+        set({ theme: next, resolvedTheme: resolved })
+        applyThemeToDom(resolved)
       },
     }),
     {
@@ -71,7 +67,7 @@ if (typeof window !== 'undefined') {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const store = useThemeStore.getState()
     if (store.theme === 'system') {
-      store._applyTheme(getSystemTheme())
+      store.setTheme('system')
     }
   })
 }
