@@ -61,7 +61,7 @@ The object is `{ key: value }`
 
 **Cause:** The `@mdx-js/rollup` plugin is not correctly configured in `vite.config.ts`, or it is missing the `enforce: 'pre'` directive.
 
-**Fix:** Verify your `vite.config.ts` includes the plugin in the correct order:
+**Fix:** Verify your `vite.config.ts` includes the MDX plugin before `reactRouter()`:
 
 ```ts
 // vite.config.ts
@@ -72,14 +72,13 @@ export default defineConfig({
       enforce: 'pre', // ← This is required!
       ...mdx({ /* ... */ }),
     },
-    react({
-      include: /\.(md|mdx|js|jsx|ts|tsx)$/,
-    }),
+    reactRouter(),
+    yaml(),
   ],
 })
 ```
 
-This project supports both `.md` and `.mdx` files inside the content glob patterns. If you are using `.md` files for blog or docs content, make sure the React plugin include list contains `md` as shown above.
+This project supports both `.md` and `.mdx` files inside the content glob patterns. The `reactRouter()` plugin handles React transformation natively.
 
 ---
 

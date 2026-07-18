@@ -20,23 +20,24 @@ prev: "troubleshooting/styling-dark-mode"
 
 | Chunk | What It Contains |
 | :--- | :--- |
-| `index-[hash].js` | React, React Router, Framer Motion, Fuse.js, Zustand |
+| `vendor-react-[hash].js` | React, React Router, react-helmet-async |
+| `root-[hash].js` | Root layout, providers, shared components |
 | `[slug]-[hash].js` | Individual MDX post or doc page (code-split automatically) |
 | `authors-[hash].js` | The authors YAML data |
 
 **Fix:** The MDX content chunks are already optimally split — each post compiles to its own file. If the main bundle is the concern, you can defer large libraries:
 
 ```ts
-// vite.config.ts — split Framer Motion into its own vendor chunk
+// vite.config.ts — split libraries into dedicated vendor chunks
 build: {
-  rolldownOptions: {
+  rollupOptions: {
     output: {
-      manualChunks: {
-        'vendor-motion': ['framer-motion'],
-        'vendor-search': ['fuse.js'],
-      }
-    }
-  }
+      manualChunks(id: string) {
+        if (id.includes('node_modules/framer-motion')) return 'vendor-framer'
+        if (id.includes('node_modules/fuse.js')) return 'vendor-misc'
+      },
+    },
+  },
 }
 ```
 
@@ -97,7 +98,7 @@ build: {
    ```yaml
    image: "/images/my-post-cover.jpg"
    ```
-   Then place the file at `public/images/my-post-cover.jpg`. Vite copies the `public/` folder verbatim into `dist/`.
+   Then place the file at `public/images/my-post-cover.jpg`. Vite copies the `public/` folder verbatim into the build output.
 
 3. **Use a CDN** — deploy your images to Cloudflare R2, AWS S3, or similar for persistent global caching.
 
@@ -124,17 +125,17 @@ Or add it permanently to the `package.json` build script:
 ```json
 {
   "scripts": {
-    "build": "NODE_OPTIONS=--max-old-space-size=4096 tsc -b && vite build"
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 node scripts/build.mjs build && react-router build"
   }
 }
 ```
 
 <Callout type="tip" title="Profiling the Build">
-To identify which MDX file is causing the slowdown, add `--profile` to the Vite build command:
+To identify which MDX file is causing the slowdown, run the Vite build directly with `--profile`:
 
 ```bash
 npx vite build --profile
 ```
 
-This generates a `dist/.vite/` folder with detailed timing information for each plugin and file.
+This generates a `build/client/.vite/` folder with detailed timing information for each plugin and file.
 </Callout>

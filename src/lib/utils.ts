@@ -1,27 +1,9 @@
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
-
-// ─── Tailwind class merge utility ──────────────────────────────────────────
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
-// ─── Slug utilities ────────────────────────────────────────────────────────
 export function slugify(str: string): string {
   return str
     .toLowerCase()
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '')
-}
-
-export function pathToSlug(filePath: string, base: string): string {
-  return filePath
-    .replace(base, '')
-    .replace(/\/index\.mdx?$/, '')
-    .replace(/\.mdx?$/, '')
-    .replace(/^\//, '')
 }
 
 export function getSlugFilename(slug: string): string {
@@ -82,7 +64,7 @@ export function resolveContentAssetUrl(currentPath: string, src: string): string
 // ─── Date utilities ────────────────────────────────────────────────────────
 export function formatDate(dateStr: string): string {
   try {
-    return format(parseISO(dateStr), 'MMMM d, yyyy')
+    return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   } catch {
     return dateStr
   }
@@ -90,15 +72,7 @@ export function formatDate(dateStr: string): string {
 
 export function formatDateShort(dateStr: string): string {
   try {
-    return format(parseISO(dateStr), 'MMM d, yyyy')
-  } catch {
-    return dateStr
-  }
-}
-
-export function timeAgo(dateStr: string): string {
-  try {
-    return formatDistanceToNow(parseISO(dateStr), { addSuffix: true })
+    return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
   } catch {
     return dateStr
   }
@@ -163,15 +137,4 @@ export function extractHeadingsFromHtml(html: string): HeadingItem[] {
   return items
 }
 
-// ─── Group array by key ────────────────────────────────────────────────────
-export function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
-  return arr.reduce(
-    (acc, item) => {
-      const k = key(item)
-      if (!acc[k]) acc[k] = []
-      acc[k].push(item)
-      return acc
-    },
-    {} as Record<string, T[]>,
-  )
-}
+

@@ -1,16 +1,14 @@
 import React, { Suspense } from 'react'
-import { Outlet, useLocation } from 'react-router'
+import { Outlet } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
-import { PageTransition } from '@/components/transitions/PageTransition'
 import { DocsSidebar } from '@/components/docs/DocsSidebar'
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton'
 import { useNavigationStore } from '@/store/navigationStore'
 import { X } from 'lucide-react'
 import '@/styles/docs.css'
 
-export function DocsLayout() {
-  const location = useLocation()
+export default function DocsLayout() {
   const isMobileSidebarOpen = useNavigationStore((s) => s.isMobileSidebarOpen)
   const closeMobileSidebar = useNavigationStore((s) => s.closeMobileSidebar)
 
@@ -44,14 +42,12 @@ export function DocsLayout() {
           <DocsSidebar />
         </aside>
 
-        {/* Main content via Outlet */}
-        <AnimatePresence mode="wait" initial={false}>
-          <PageTransition key={location.pathname} className="docs-content-wrapper">
-            <Suspense fallback={<LoadingSkeleton text="Loading docs…" minHeight="90vh" />}>
-              <Outlet />
-            </Suspense>
-          </PageTransition>
-        </AnimatePresence>
+        {/* Main content via Outlet — page transitions handled by root */}
+        <div className="docs-content-wrapper">
+          <Suspense fallback={<LoadingSkeleton text="Loading docs…" minHeight="90vh" />}>
+            <Outlet />
+          </Suspense>
+        </div>
       </div>
 
       {/* Mobile sidebar backdrop + drawer — portaled to document.body for reliable fixed positioning */}

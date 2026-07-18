@@ -15,25 +15,27 @@ next: "troubleshooting/performance"
 
 ### The page briefly shows light mode before switching to dark
 
-**Cause:** The theme is stored in `localStorage` and applied by a Zustand store after the React app hydrates. This creates a flash of the default (light) theme.
+**Cause:** The theme is stored in `localStorage` and applied by a Zustand store after the React app hydrates. During SSR/prerender, the store defaults to light mode, creating a potential flash before JS loads and applies the correct theme.
 
-**Fix:** Add an inline `<script>` block to `index.html` that applies the theme class **before** React renders. Place it inside `<head>`:
+**Fix:** The `HydrateFallback` component in `app/root.tsx` renders a minimal unstyled shell with inline styles while the JS bundle loads. After hydration, the `useThemeStore` reads `localStorage` and applies the correct `dark` class on `<html>`. To further reduce flicker, you can add an inline theme script in the `<head>` section of `app/root.tsx`:
 
-```html
-<!-- index.html -->
-<head>
-  <script>
-    try {
-      const theme = localStorage.getItem('theme') || 'system';
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const isDark = theme === 'dark' || (theme === 'system' && prefersDark);
-      if (isDark) document.documentElement.classList.add('dark');
-    } catch (_) {}
-  </script>
-</head>
+```tsx
+// In app/root.tsx, inside <head>:
+<script
+  dangerouslySetInnerHTML={{
+    __html: `
+      try {
+        const theme = localStorage.getItem('theme') || 'system';
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+        if (isDark) document.documentElement.classList.add('dark');
+      } catch (_) {}
+    `,
+  }}
+/>
 ```
 
-This script runs synchronously before the browser paints, eliminating the flash.
+Because the root layout is rendered server-side during prerendering, this inline script becomes part of every pre-rendered HTML page, running synchronously before the browser paints.
 
 ---
 

@@ -17,7 +17,7 @@ export function SearchCommand() {
   const docResults = results.filter((r) => r.type === 'doc')
 
   const openRef = React.useRef(open)
-  openRef.current = open
+  React.useEffect(() => { openRef.current = open }, [open])
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {

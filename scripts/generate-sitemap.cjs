@@ -26,19 +26,7 @@ try {
 
 const SITE_URL = siteConfig.siteUrl || 'https://mdxhub.vercel.app'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
-
-async function* walk(dir) {
-  const entries = await fs.promises.readdir(dir, { withFileTypes: true })
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name)
-    if (entry.isDirectory()) {
-      yield* walk(fullPath)
-    } else {
-      yield fullPath
-    }
-  }
-}
+const { walk, escapeXml } = require('./helpers.cjs')
 
 /** Parse YAML frontmatter from a .md or .mdx file */
 function parseFrontmatter(content) {
@@ -59,17 +47,6 @@ function pathToUrl(filePath, baseDir) {
     .replace(/\/index\.mdx?$/, '')
     .replace(/\.mdx?$/, '')
   return slug ? `/${slug}` : '/'
-}
-
-/** Escape XML special characters */
-function escapeXml(str) {
-  if (typeof str !== 'string') return ''
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
 }
 
 /** Format a Date to ISO 8601 (YYYY-MM-DD) for sitemap lastmod */

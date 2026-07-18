@@ -6,7 +6,7 @@
     <description>A blazingly fast documentation and blog platform built with React, Vite, and MDX.</description>
     <language>en</language>
     <atom:link href="https://mdxhub.vercel.app/rss.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Thu, 16 Jul 2026 17:02:22 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 18 Jul 2026 18:43:36 GMT</lastBuildDate>
     
     <item>
       <title>Timeline Component — Full Showcase &amp; Documentation</title>
@@ -197,7 +197,7 @@
       <link>https://mdxhub.vercel.app/blog/trpc-zod/part-3/architecture-productions</link>
       <guid isPermaLink="true">https://mdxhub.vercel.app/blog/trpc-zod/part-3/architecture-productions</guid>
       <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
-      <description></description>
+      <description>A guide to advanced tRPC architecture patterns and production-ready best practices.</description>
       <category>React</category>
       <category>tRPC</category>
       <category>Zod</category>
@@ -236,7 +236,7 @@
       <link>https://mdxhub.vercel.app/blog/zustand/part-1/foundations</link>
       <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/part-1/foundations</guid>
       <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
-      <description></description>
+      <description>Getting started with Zustand state management for React applications.</description>
       <category>React</category>
       <category>Zustand</category>
       <category>React</category>
@@ -248,7 +248,7 @@
       <link>https://mdxhub.vercel.app/blog/zustand/part-2/pattern-architecture</link>
       <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/part-2/pattern-architecture</guid>
       <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
-      <description></description>
+      <description>Zustand patterns and architecture for intermediate-level React applications.</description>
       <category>React</category>
       <category>Zustand</category>
       <category>React</category>
@@ -260,7 +260,7 @@
       <link>https://mdxhub.vercel.app/blog/zustand/part-3/advanced-architecture</link>
       <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/part-3/advanced-architecture</guid>
       <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
-      <description></description>
+      <description>Advanced Zustand architecture patterns for expert-level React developers.</description>
       <category>React</category>
       <category>Zustand</category>
       <category>React</category>
@@ -272,7 +272,7 @@
       <link>https://mdxhub.vercel.app/blog/zustand/quick-reference/zustand-react-correlations</link>
       <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/quick-reference/zustand-react-correlations</guid>
       <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
-      <description></description>
+      <description>Quick-reference for Zustand and React 19 state management correlations.</description>
       <category>React</category>
       <category>Zustand</category>
       <category>React</category>
@@ -284,7 +284,7 @@
       <link>https://mdxhub.vercel.app/blog/zustand/zustand-complete-guide</link>
       <guid isPermaLink="true">https://mdxhub.vercel.app/blog/zustand/zustand-complete-guide</guid>
       <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
-      <description></description>
+      <description>A complete guide to Zustand v5.x, covering the fundamentals to advanced topics.</description>
       <category>React</category>
       <category>Zustand</category>
       <category>React</category>

@@ -141,7 +141,7 @@ npm run build
 pnpm run build
 ```
 
-This runs the TypeScript compiler (`tsc`) and then Vite's production bundler. All MDX content is compiled at build time into optimized JavaScript. The output is placed in the `dist/` directory and is fully static — no server required.
+This runs the TypeScript compiler (`tsc`) and then React Router's framework build (`react-router build`) which bundles with Vite and pre-renders all routes to static HTML. All MDX content is compiled at build time into optimized JavaScript. The output is placed in the `build/client/` directory and is fully static — no server required.
 
 ```bash
 npm run preview
@@ -150,7 +150,7 @@ pnpm run preview
 ```
 
 <Callout type="warning">
-Because this is a Single Page Application (SPA), certain hosting providers need special configuration to handle client-side routing. See the [Deployment Guide](/docs/deployment/hosting) for Vercel, Netlify, and GitHub Pages instructions.
+Because all routes are pre-rendered as static HTML and hydrated client-side, certain hosting providers need special configuration to handle deep links. See the [Deployment Guide](/docs/3-deployment/hosting) for Vercel, Netlify, and GitHub Pages instructions.
 </Callout>
 
 ## Key Scripts
@@ -159,7 +159,7 @@ Because this is a Single Page Application (SPA), certain hosting providers need 
 | :--- | :--- |
 | `npm run dev` | Start the Vite dev server with HMR (also generates content-index.json, RSS, and sitemap) |
 | `npm run build` | Content-index → RSS → sitemap → image variants → type-check → production build |
-| `npm run preview` | Serve the `dist/` output locally |
+| `npm run preview` | Serve the `build/client/` output locally |
 | `npm run lint` | Run ESLint on all source files |
 | `npm run dev:watch` | Watch `content/` for changes and auto-regenerate content-index.json, RSS, and sitemap |
 

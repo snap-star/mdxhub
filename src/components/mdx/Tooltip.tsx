@@ -1,44 +1,32 @@
 import React from 'react'
-import { Tooltip as BaseTooltip } from '@base-ui/react'
 
 interface TooltipProps {
-  /** The text shown inside the tooltip popup */
   content: string
-  /** Preferred placement relative to the trigger */
   side?: 'top' | 'bottom' | 'left' | 'right'
-  /** The hover/focus target element */
   children: React.ReactNode
 }
 
-/**
- * Inline tooltip for MDX content.
- *
- * Usage in MDX (no import needed):
- *   <Tooltip content="React Server Components">RSC</Tooltip>
- *
- * Styled with the project's dark-friendly design tokens.
- */
 export function Tooltip({ content, side = 'top', children }: TooltipProps) {
+  const sideClasses: Record<string, string> = {
+    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+  }
+
   return (
-    <BaseTooltip.Provider delay={200} closeDelay={300}>
-    <BaseTooltip.Root>
-      <BaseTooltip.Trigger className="underline decoration-dotted underline-offset-2 decoration-brand-400/60 hover:decoration-brand-400 cursor-help transition-colors">
+    <span className="group relative inline-flex cursor-help">
+      <span className="underline decoration-dotted underline-offset-2 decoration-brand-400/60 hover:decoration-brand-400 transition-colors">
         {children}
-      </BaseTooltip.Trigger>
-      <BaseTooltip.Portal>
-        <BaseTooltip.Positioner side={side} sideOffset={6}>
-          <BaseTooltip.Popup className="z-50 rounded-lg px-3 py-1.5 text-xs font-medium leading-relaxed shadow-lg
-            bg-slate-800 text-slate-100
-            dark:bg-slate-100 dark:text-slate-800
-            motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95
-            origin-[var(--transform-origin)]
-            [--transform-origin:var(--tooltip-transform-origin)]
-          ">
-            {content}
-            <BaseTooltip.Arrow className="fill-slate-800 dark:fill-slate-100" />        </BaseTooltip.Popup>
-          </BaseTooltip.Positioner>
-        </BaseTooltip.Portal>
-      </BaseTooltip.Root>
-    </BaseTooltip.Provider>
+      </span>
+      <span
+        className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg opacity-0 group-hover:opacity-100 transition-opacity
+          bg-slate-800 text-slate-100
+          dark:bg-slate-100 dark:text-slate-800
+          ${sideClasses[side]}`}
+      >
+        {content}
+      </span>
+    </span>
   )
 }

@@ -23,17 +23,7 @@ const VARIANTS = [
   { ext: '.avif', encoder: 'avif', options: { quality: 50, effort: 7 } },
 ]
 
-async function* walk(dir) {
-  const entries = await fs.promises.readdir(dir, { withFileTypes: true })
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name)
-    if (entry.isDirectory()) {
-      yield* walk(fullPath)
-    } else {
-      yield fullPath
-    }
-  }
-}
+const { walk } = require('./helpers.cjs')
 
 ;(async () => {
   let generated = 0
