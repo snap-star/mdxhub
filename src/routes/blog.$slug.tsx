@@ -49,10 +49,14 @@ export default function BlogPost() {
     setMdxLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
 
     async function load() {
-      const Component = await useContentStore.getState().loadPostComponent(currentSlug)
-      if (!cancelled) {
-        setMdxComponent(() => Component || null)
-        setMdxLoading(false)
+      try {
+        const Component = await useContentStore.getState().loadPostComponent(currentSlug)
+        if (!cancelled) {
+          setMdxComponent(() => Component || null)
+          setMdxLoading(false)
+        }
+      } catch {
+        if (!cancelled) setMdxLoading(false)
       }
     }
     load()

@@ -1,177 +1,128 @@
 import React from 'react'
 import { Check, Copy } from 'lucide-react'
-import { extractTextContent } from '@/lib/react-utils'
 
-// ─── Types ────────────────────────────────────────────────────────────────
+type LineDiffType = 'add' | 'remove' | null
 
-/** Props carried by a CodeBlock instantiated from an MDX `<pre>` mapping */
-type CodeBlockPrefabProps = {
-  className?: string
-  children?: React.ReactNode
-  style?: React.CSSProperties
+function getLineElements(children: React.ReactNode): React.ReactElement[] {
+  if (!React.isValidElement<{ children?: React.ReactNode }>(children)) return []
+  const lineNodes = children.props.children
+  if (!lineNodes) return []
+  const nodes = Array.isArray(lineNodes) ? lineNodes : [lineNodes]
+  return nodes.filter((n): n is React.ReactElement => React.isValidElement(n))
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
+function getLineDiffTypes(lines: React.ReactElement[]): LineDiffType[] {
+  return lines.map((line) => {
+    const p = line.props as Record<string, unknown>
+    if (p['data-diff-add'] !== undefined) return 'add'
+    if (p['data-diff-remove'] !== undefined) return 'remove'
+    return null
+  })
+}
 
-/** Get language from a pre element's className */
-function getLanguage(className: string | undefined): string {
+function getLang(className: string | undefined): string {
   if (!className) return 'code'
   const match = className.match(/language-([\w\-+#]+)/)
   return match ? match[1] : 'code'
 }
 
-// ─── CodeGroup Component ──────────────────────────────────────────────────
-
-interface CodeGroupProps {
-  children: React.ReactNode
+interface Block {
+  lang: string
+  element: React.ReactElement
 }
 
-/**
- * Multi-language code tab switcher.
- *
- * Wraps multiple fenced code blocks (` ``` ``` `) from MDX and shows a
- * single terminal-style header with language tabs. Each individual code
- * block is rendered via `React.cloneElement` with `variant="tab"`, which
- * tells `CodeBlock` to skip its own terminal header — only the shared
- * CodeGroup header appears.
- *
- * @example
- * ```mdx
- * <CodeGroup>
- *
- * ```javascript
- * function greet(name) {
- *   return `Hello, ${name}!`;
- * }
- * ```
- *
- * ```typescript
- * function greet(name: string): string {
- *   return `Hello, ${name}!`;
- * }
- * ```
- *
- * </CodeGroup>
- * ```
- */
-export function CodeGroup({ children }: CodeGroupProps) {
-  const [activeIndex, setActiveIndex] = React.useState(0)
+export function CodeGroup({ children }: { children: React.ReactNode }) {
+  const [active, setActive] = React.useState(0)
   const [copied, setCopied] = React.useState(false)
-  const tablistRef = React.useRef<HTMLDivElement>(null)
+  const preRef = React.useRef<HTMLPreElement>(null)
+  const tabRef = React.useRef<HTMLDivElement>(null)
 
-  // Extract code blocks from children — each child is a CodeBlock
-  // component (created by the MDX `pre` → `CodeBlock` mapping).
   const blocks = React.useMemo(() => {
-    const items: { lang: string; element: React.ReactElement<CodeBlockPrefabProps> }[] = []
+    const items: Block[] = []
     React.Children.forEach(children, (child) => {
-      if (React.isValidElement<CodeBlockPrefabProps>(child)) {
-        items.push({
-          lang: getLanguage(child.props.className),
-          element: child as React.ReactElement<CodeBlockPrefabProps>,
-        })
+      if (React.isValidElement(child)) {
+        items.push({ lang: getLang(child.props.className), element: child })
       }
     })
     return items
   }, [children])
 
-  // ── Copy active code ──────────────────────────────────────────────────
+  const idx = Math.min(active, blocks.length - 1)
+  const block = blocks[idx]
+  const code = block?.element?.props?.children
+  const lines = React.useMemo(() => getLineElements(code), [code])
+  const count = lines.length
+  const diffs = React.useMemo(() => getLineDiffTypes(lines), [lines])
+  const nums = React.useMemo(() => Array.from({ length: Math.max(count, 1) }, (_, i) => i + 1), [count])
+
   const handleCopy = () => {
-    if (blocks[activeIndex]) {
-      const text = extractTextContent(blocks[activeIndex].element.props.children)
-      if (text) {
-        navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      }
-    }
+    if (!preRef.current) return
+    navigator.clipboard.writeText(preRef.current.textContent || '')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
-  // ── Keyboard navigation ────────────────────────────────────────────────
-  const focusTab = (index: number) => {
-    document.getElementById(`codegroup-tab-${index}`)?.focus()
-  }
+  const focusTab = (i: number) => document.getElementById(`cgt-${i}`)?.focus()
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
       e.preventDefault()
-      const next = activeIndex > 0 ? activeIndex - 1 : blocks.length - 1
-      setActiveIndex(next)
+      const next = idx > 0 ? idx - 1 : blocks.length - 1
+      setActive(next)
       focusTab(next)
     }
     if (e.key === 'ArrowRight') {
       e.preventDefault()
-      const next = activeIndex < blocks.length - 1 ? activeIndex + 1 : 0
-      setActiveIndex(next)
+      const next = idx < blocks.length - 1 ? idx + 1 : 0
+      setActive(next)
       focusTab(next)
     }
   }
 
-  // ── Guard clauses ──────────────────────────────────────────────────────
   if (blocks.length === 0) return null
-  if (blocks.length === 1) {
-    // Single block: render as a normal CodeBlock (no variant override)
-    return <>{children}</>
-  }
-
-  const safeIndex = Math.min(activeIndex, blocks.length - 1)
-  const activeBlock = blocks[safeIndex]
-
-  // Clone the active child with variant="tab" so CodeBlock skips its header
-  // We use a double cast because the child's exact prop type is unknown
-  const tabChild = React.cloneElement(
-    activeBlock.element as React.ReactElement<{ variant?: 'default' | 'tab' }>,
-    { variant: 'tab' },
-  )
+  if (blocks.length === 1) return <>{children}</>
+  if (!block || !code) return null
 
   return (
     <div className="my-6 rounded-xl overflow-hidden border border-border shadow-sm bg-card code-block-wrapper flex flex-col">
-      {/* ── Single terminal-style header (traffic lights + tabs + copy) ── */}
       <div
-        ref={tablistRef}
-        className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30"
+        ref={tabRef}
+        className="flex items-center justify-between px-4 py-2 bg-muted/30 border-b border-border"
         role="tablist"
         aria-orientation="horizontal"
         onKeyDown={handleKeyDown}
       >
         <div className="flex items-center gap-2 min-w-0">
-          {/* Traffic light dots */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="w-3 h-3 rounded-full bg-red-400/90 shadow-sm" />
             <div className="w-3 h-3 rounded-full bg-amber-400/90 shadow-sm" />
             <div className="w-3 h-3 rounded-full bg-green-400/90 shadow-sm" />
           </div>
-
-          {/* Language tabs */}
           <div className="flex overflow-x-auto">
-            {blocks.map((block, i) => {
-              const isActive = i === safeIndex
-              return (
-                <button
-                  key={`${block.lang}-${i}`}
-                  role="tab"
-                  aria-selected={isActive}
-                  aria-controls={`codegroup-panel-${i}`}
-                  id={`codegroup-tab-${i}`}
-                  tabIndex={isActive ? 0 : -1}
-                  onClick={() => setActiveIndex(i)}
-                  className={`
-                    text-[0.7rem] font-mono uppercase tracking-wider font-semibold
-                    px-2 py-0.5 rounded border-0 bg-transparent cursor-pointer
-                    transition-all duration-150 whitespace-nowrap
-                    ${isActive
-                      ? 'text-foreground bg-card shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
-                    }
-                  `}
-                >
-                  {block.lang}
-                </button>
-              )
-            })}
+            {blocks.map((b, i) => (
+              <button
+                key={`${b.lang}-${i}`}
+                role="tab"
+                aria-selected={i === idx}
+                aria-controls={`cgp-${i}`}
+                id={`cgt-${i}`}
+                tabIndex={i === idx ? 0 : -1}
+                onClick={() => setActive(i)}
+                className={`
+                  text-[0.7rem] font-mono uppercase tracking-wider font-semibold
+                  px-2 py-0.5 rounded border-0 bg-transparent cursor-pointer
+                  transition-all duration-150 whitespace-nowrap
+                  ${i === idx
+                    ? 'text-foreground bg-card shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                  }
+                `}
+              >
+                {b.lang}
+              </button>
+            ))}
           </div>
         </div>
-
-        {/* Copy button */}
         <button
           onClick={handleCopy}
           title="Copy code"
@@ -181,15 +132,35 @@ export function CodeGroup({ children }: CodeGroupProps) {
         </button>
       </div>
 
-      {/* ── Code area (CodeBlock with variant="tab" — no header, own line numbers) ── */}
       <div
-        key={safeIndex}
-        id={`codegroup-panel-${safeIndex}`}
+        key={idx}
+        id={`cgp-${idx}`}
         role="tabpanel"
-        aria-labelledby={`codegroup-tab-${safeIndex}`}
+        aria-labelledby={`cgt-${idx}`}
+        className="relative flex w-full"
       >
-        {/* CodeBlock with variant="tab" renders only the code area + its own line numbers */}
-        {tabChild}
+        <div className="code-line-gutter" aria-hidden="true">
+          {nums.map((n, i) => {
+            const d = i < diffs.length ? diffs[i] : null
+            const isAdd = d === 'add'
+            const isRemove = d === 'remove'
+            return (
+              <div
+                key={n}
+                className={`code-line-number${isAdd ? ' diff-add' : ''}${isRemove ? ' diff-remove' : ''}`}
+              >
+                {isAdd ? '+' : isRemove ? '-' : n}
+              </div>
+            )
+          })}
+        </div>
+        <pre
+          ref={preRef}
+          className={`${block.element.props.className ?? ''} code-pre`}
+          style={block.element.props.style}
+        >
+          {code}
+        </pre>
       </div>
     </div>
   )

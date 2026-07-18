@@ -1,38 +1,35 @@
 import React from 'react'
 import { Check, Copy } from 'lucide-react'
-import { extractTextContent } from '@/lib/react-utils'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
 type LineDiffType = 'add' | 'remove' | null
 
+/** Get the `<span class="line">` elements from the Shiki `<code>` block. */
+function getLineElements(children: React.ReactNode): React.ReactElement[] {
+  if (!React.isValidElement<{ children?: React.ReactNode }>(children)) return []
+  const lineNodes = children.props.children
+  if (!lineNodes) return []
+  const nodes = Array.isArray(lineNodes) ? lineNodes : [lineNodes]
+  return nodes.filter((n): n is React.ReactElement => React.isValidElement(n))
+}
+
 /**
  * Check Shiki <span> elements for `data-diff-add` / `data-diff-remove`
  * attributes set by transformerNotationDiff, instead of parsing classNames.
  */
-function getLineDiffTypes(children: React.ReactNode): LineDiffType[] {
-  if (!React.isValidElement<{ children?: React.ReactNode }>(children)) return []
-
-  const lineNodes = children.props.children
-  if (!lineNodes) return []
-
-  const nodes = Array.isArray(lineNodes) ? lineNodes : [lineNodes]
-
-  return nodes.map((line) => {
-    if (React.isValidElement(line)) {
-      const p = line.props as Record<string, unknown>
-      if (p['data-diff-add'] !== undefined) return 'add'
-      if (p['data-diff-remove'] !== undefined) return 'remove'
-    }
+function getLineDiffTypes(lines: React.ReactElement[]): LineDiffType[] {
+  return lines.map((line) => {
+    const p = line.props as Record<string, unknown>
+    if (p['data-diff-add'] !== undefined) return 'add'
+    if (p['data-diff-remove'] !== undefined) return 'remove'
     return null
   })
 }
 
 // ─── CodeBlock Component ──────────────────────────────────────────────────
 
-export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { className?: string; children?: React.ReactElement; style?: React.CSSProperties; variant?: 'default' | 'tab' }) {
-  // Destructure variant out so it doesn't leak to the DOM via {...props}
-  const { variant, ...rest } = props
+export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { className?: string; children?: React.ReactElement; style?: React.CSSProperties }) {
 
   const [copied, setCopied] = React.useState(false)
   const codeRef = React.useRef<HTMLPreElement>(null)
@@ -58,91 +55,17 @@ export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { classN
   const lang = langMatch ? langMatch[1] : 'text'
 
   // ── Count lines & detect diff types ─────────────────────────────────────
-  const text = extractTextContent(props.children)
-  const rawLines = text ? text.split('\n') : []
-  // Shiki always appends a trailing newline — drop the last empty segment
-  const linesCount =
-    rawLines.length > 0 && rawLines[rawLines.length - 1] === ''
-      ? rawLines.length - 1
-      : rawLines.length
+  const lineElements = React.useMemo(() => getLineElements(props.children), [props.children])
+  const linesCount = lineElements.length
+  const lineDiffTypes = React.useMemo(() => getLineDiffTypes(lineElements), [lineElements])
 
-  // Detect which lines have diff.add / diff.remove classes
-  const lineDiffTypes = getLineDiffTypes(props.children)
-  const hasDiffs = lineDiffTypes.some((t) => t !== null)
-
-  // Show gutter for code blocks with 3+ lines — always show if diffs are present
-  const showLineNumbers = linesCount >= 3 || hasDiffs
   const lineNumbers = React.useMemo(
     () => Array.from({ length: Math.max(linesCount, 1) }, (_, i) => i + 1),
     [linesCount],
   )
 
-  const isTab = variant === 'tab'
+  const gutterWidth = 'calc(3ch + 1.25rem)'
 
-  const codeContent = (
-    <div className="relative flex w-full">
-      {/* Line number gutter */}
-      {showLineNumbers && (
-        <div
-          className="code-line-gutter select-none flex-shrink-0 text-right border-r border-border bg-muted/20"
-          style={{
-            padding: '1.25rem 0.75rem 1.25rem 1rem',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.8rem',
-            lineHeight: 1.7,
-            color: 'var(--color-base-muted)',
-            minWidth: hasDiffs ? '4ch' : '3.2ch',
-          }}
-          aria-hidden="true"
-        >
-          {lineNumbers.map((n, i) => {
-            const diffType = i < lineDiffTypes.length ? lineDiffTypes[i] : null
-            const isAdd = diffType === 'add'
-            const isRemove = diffType === 'remove'
-
-            return (
-              <div
-                key={n}
-                className="code-line-number"
-                style={{
-                  ...(isAdd && {
-                    color: 'oklch(62% 0.18 145)',
-                    background: 'oklch(62% 0.18 145 / 0.12)',
-                  }),
-                  ...(isRemove && {
-                    color: 'oklch(58% 0.22 20)',
-                    background: 'oklch(58% 0.22 20 / 0.12)',
-                  }),
-                  margin: isAdd || isRemove ? '0 -0.75rem 0 -1rem' : undefined,
-                  padding: isAdd || isRemove ? '0 0.75rem 0 1rem' : undefined,
-                }}
-              >
-                {isAdd ? '+' : isRemove ? '-' : n}
-              </div>
-            )
-          })}
-        </div>
-      )}
-      {/* Code */}
-      <pre
-        {...rest}
-        ref={codeRef}
-        className={`${preClassName} m-0 overflow-x-auto text-[0.875rem] leading-[1.7] flex-1 min-w-0`}
-        style={{
-          ...rest.style,
-          margin: 0,
-          padding: '1.25rem 1.5rem',
-          borderRadius: 0,
-          border: 'none',
-        }}
-      />
-    </div>
-  )
-
-  // Tab mode: render the code content directly, no outer wrapper
-  if (isTab) return codeContent
-
-  // Default mode: full wrapper with terminal header
   return (
     <div className="my-6 rounded-xl overflow-hidden border border-border shadow-sm bg-card code-block-wrapper flex flex-col">
       <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-b border-border">
@@ -162,7 +85,35 @@ export function CodeBlock(props: React.HTMLAttributes<HTMLPreElement> & { classN
           {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
         </button>
       </div>
-      {codeContent}
+      <div className="relative flex w-full">
+        <div
+          className="code-line-gutter"
+          style={{ minWidth: gutterWidth }}
+          aria-hidden="true"
+        >
+          {lineNumbers.map((n, i) => {
+            const diffType = i < lineDiffTypes.length ? lineDiffTypes[i] : null
+            const isAdd = diffType === 'add'
+            const isRemove = diffType === 'remove'
+
+            return (
+              <div
+                key={n}
+                className={`code-line-number${isAdd ? ' diff-add' : ''}${isRemove ? ' diff-remove' : ''}`}
+              >
+                {isAdd ? '+' : isRemove ? '-' : n}
+              </div>
+            )
+          })}
+        </div>
+        <pre
+          ref={codeRef}
+          className={`${preClassName} code-pre`}
+          style={props.style}
+        >
+          {props.children}
+        </pre>
+      </div>
     </div>
   )
 }

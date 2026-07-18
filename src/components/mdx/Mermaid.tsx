@@ -1,5 +1,6 @@
 import React from 'react'
 import { useThemeStore } from '@/store/themeStore'
+import { ViewportMount } from '@/components/common/ViewportMount'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -141,7 +142,7 @@ function nextId(): string {
 
 // ─── Component ─────────────────────────────────────────────────────────────
 
-export function Mermaid({ chart, caption, title }: MermaidProps) {
+function MermaidInner({ chart, caption, title }: MermaidProps) {
   const resolvedTheme = useThemeStore((s) => s.resolvedTheme)
   const [svg, setSvg] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
@@ -233,5 +234,19 @@ export function Mermaid({ chart, caption, title }: MermaidProps) {
         </figcaption>
       )}
     </figure>
+  )
+}
+
+export function Mermaid(props: MermaidProps) {
+  return (
+    <ViewportMount rootMargin={400} minHeight={200} fallback={
+      <figure className="my-8 w-full">
+        <div className="rounded-xl border border-border bg-card p-10 flex items-center justify-center">
+          <p className="text-xs text-muted-foreground">Diagram…</p>
+        </div>
+      </figure>
+    }>
+      <MermaidInner {...props} />
+    </ViewportMount>
   )
 }
