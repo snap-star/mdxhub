@@ -16,7 +16,7 @@ dist-ssr
 build
 
 # React Router generated types
-.react-router
+.react-router/**
 
 # TypeScript
 *.tsbuildinfo
