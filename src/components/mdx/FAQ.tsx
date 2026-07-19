@@ -148,14 +148,12 @@ export function FAQ({ defaultOpen, allowMultiple = true, children }: FAQProps) {
                 id={panelId}
                 role="region"
                 aria-labelledby={triggerId}
-                className={`grid transition-all duration-200 ease-in-out ${
-                  isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                }`}
+className={`overflow-hidden transition-all duration-300 ease-in-out ${
+  isOpen ? 'max-h-[5000px] opacity-100' : 'max-h-0 opacity-0'
+}`}
               >
-                <div className="overflow-hidden">
-                  <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-0 text-sm sm:text-base text-foreground/80 leading-relaxed [&>:first-child]:mt-0 [&>p]:mb-3 [&>p:last-child]:mb-0 [&_pre]:my-3 [&_code]:text-sm">
-                    {item.content}
-                  </div>
+                <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-3 text-sm sm:text-base text-foreground/80 leading-relaxed [&>:first-child]:mt-0 [&>p]:mb-3 [&>p:last-child]:mb-0 [&_pre]:my-3 [&_code]:text-sm">
+                  {item.content}
                 </div>
               </div>
             </div>
