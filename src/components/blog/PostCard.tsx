@@ -105,6 +105,7 @@ export function PostCard({ post, index = 0 }: PostCardProps) {
                 src={post.authorAvatar}
                 alt={post.authorName}
                 className="w-7 h-7 rounded-full object-cover shrink-0"
+                decoding="async"
                 onError={(e) => { e.currentTarget.style.display = 'none' }}
               />
             ) : null}

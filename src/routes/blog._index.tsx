@@ -80,6 +80,7 @@ export default function BlogIndex() {
           src={siteConfig.hero.image || '/hero.png'}
           alt={siteConfig.hero.alt || 'Chigusa Asuha'}
           className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+          width="1200" height="384" decoding="async"
         />
 
         {/* Transparent Gray Overlay */}
@@ -176,19 +177,6 @@ export default function BlogIndex() {
         </aside>
       </div>
 
-      <style>{`
-        .blog-index-grid {
-          grid-template-columns: 1fr 300px;
-        }
-        @media (max-width: 1024px) {
-          .blog-index-grid {
-            grid-template-columns: 1fr;
-          }
-          .blog-index-aside {
-            display: none;
-          }
-        }
-      `}</style>
     </div>
   );
 }

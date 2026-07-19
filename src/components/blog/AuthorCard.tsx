@@ -45,6 +45,7 @@ export function AuthorCard({ author, compact = false }: AuthorCardProps) {
           src={author.avatar}
           alt={author.name}
           className="author-avatar w-9 h-9 object-cover shrink-0 rounded-full"
+          decoding="async" loading="lazy"
         />
         <div>
           <p className="text-sm font-semibold leading-tight">{author.name}</p>
@@ -64,6 +65,7 @@ export function AuthorCard({ author, compact = false }: AuthorCardProps) {
         src={author.avatar}
         alt={author.name}
         className="author-avatar w-16 h-16 object-cover shrink-0 rounded-full"
+        decoding="async" loading="lazy"
       />
       <div className="flex-1 min-w-0">
         <p className="text-[0.7rem] font-bold tracking-widest uppercase text-muted-foreground mb-1">
