@@ -1,0 +1,26 @@
+---
+title: "AuthorCard"
+section: "2. Guides"
+order: 41
+version: "v1.2"
+description: "Display an author's avatar, bio, and social links. Used automatically in blog post footers."
+---
+
+The `<AuthorCard>` component displays an author's avatar, bio, and social links. Used automatically in blog post footers.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `author` | Author | — | Author object from `authors.yaml` |
+| `compact` | boolean | `false` | If true, renders a compact inline version |
+
+### Usage
+
+```mdx
+{/* The full card shown in post footers */}
+<AuthorCard author={author} />
+
+{/* Compact version for the post header metadata area */}
+<AuthorCard author={author} compact />
+```

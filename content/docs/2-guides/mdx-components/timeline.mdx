@@ -1,0 +1,98 @@
+---
+title: "Timeline"
+section: "2. Guides"
+order: 47
+version: "v1.2"
+description: "Chronological vertical timeline with styled milestone markers for roadmaps and project histories."
+---
+
+The `<Timeline>` component renders a chronological vertical timeline with styled milestone markers. Each entry can include a title, date label, icon, and color variant. Ideal for project roadmaps, learning paths, and historical overviews.
+
+### Props
+
+#### `<Timeline>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `children` | TimelineItem[] | — | One or more `<TimelineItem>` components |
+
+#### `<TimelineItem>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `title` | string | — | Milestone heading displayed in bold |
+| `time` | string | — | Optional date/time label shown below the title |
+| `icon` | string | — | Optional icon name (see Badge icon table for available icons) |
+| `color` | string | `"brand"` | Dot color: `brand`, `success`, `warning`, `danger`, `info` |
+| `children` | ReactNode | — | Timeline item body content |
+
+### Usage
+
+````mdx
+<Timeline>
+<TimelineItem title="Project Kickoff" time="Jan 2026" icon="rocket" color="brand">
+<div>
+
+Initial planning and requirements gathering session.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Alpha Release" time="Mar 2026" icon="sparkles" color="warning">
+<div>
+
+First internal preview with core features.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Public Launch" time="Jun 2026" icon="flag" color="success">
+<div>
+
+Full release to all users with production infrastructure.
+
+</div>
+</TimelineItem>
+</Timeline>
+````
+
+### Live Example
+
+<Timeline>
+<TimelineItem title="Project Kickoff" time="Jan 2026" icon="rocket" color="brand">
+<div>
+
+Initial planning and requirements gathering session.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Alpha Release" time="Mar 2026" icon="sparkles" color="warning">
+<div>
+
+First internal preview with core features.
+
+</div>
+</TimelineItem>
+<TimelineItem title="Public Launch" time="Jun 2026" icon="flag" color="success">
+<div>
+
+Full release to all users.
+
+</div>
+</TimelineItem>
+</Timeline>
+
+### Color Variants
+
+| Color | Usage |
+| :--- | :--- |
+| `brand` | Default — blue brand accent |
+| `success` | Completed milestones |
+| `warning` | In-progress or pending items |
+| `danger` | Blockers or delayed items |
+| `info` | Informational milestones |
+
+### Notes
+
+- Items are connected by a vertical line with animated dot transitions on hover
+- The `icon` prop replaces the default marker with any icon from the Badge icon table
+- Wrap block-level content (code blocks, lists) inside a `<div>` to ensure proper MDX rendering
+- Non-`TimelineItem` children are passed through and rendered as plain content nodes

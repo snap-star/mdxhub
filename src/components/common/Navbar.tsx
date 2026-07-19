@@ -1,7 +1,9 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router'
 import { useNavigationStore } from '@/store/navigationStore'
+import { useTranslation } from '@/hooks/useTranslation'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher'
 import { Logo } from '@/components/common/Logo'
 import { Menu, X, Search, BookOpen, Rss, Info } from 'lucide-react'
 import siteConfig from '../../../site.config.json'
@@ -24,18 +26,18 @@ const GithubIcon = ({ size = 24 }: { size?: number }) => (
   </svg>
 )
 
-// Global Cmd+K search opener event
 function openSearch() {
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }))
 }
 
 const NAV_LINKS = [
-  { href: '/blog', label: 'Blog', icon: Rss },
-  { href: '/docs', label: 'Docs', icon: BookOpen },
-  { href: '/about', label: 'About', icon: Info },
+  { href: '/blog', key: 'nav.blog', icon: Rss },
+  { href: '/docs', key: 'nav.docs', icon: BookOpen },
+  { href: '/about', key: 'nav.about', icon: Info },
 ]
 
 export function Navbar() {
+  const { t } = useTranslation()
   const toggleMobileSidebar = useNavigationStore((s) => s.toggleMobileSidebar)
   const isMobileSidebarOpen = useNavigationStore((s) => s.isMobileSidebarOpen)
   const [scrolled, setScrolled] = React.useState(false)
@@ -50,9 +52,8 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
-  // Close mobile menu on navigation
   React.useEffect(() => {
-    setMobileMenuOpen(false) // eslint-disable-line react-hooks/set-state-in-effect
+    setMobileMenuOpen(false)
   }, [location.pathname])
 
   const isDocsPage = location.pathname.startsWith('/docs')
@@ -69,9 +70,8 @@ export function Navbar() {
         <div className="mx-auto w-full max-w-[1400px] flex items-center gap-4 sm:gap-6">
           <Logo />
 
-          {/* Desktop nav links */}
           <nav className="hidden md:flex ml-4 flex-1 gap-1">
-            {NAV_LINKS.map(({ href, label, icon: Icon }) => {
+            {NAV_LINKS.map(({ href, key, icon: Icon }) => {
               const isActive = location.pathname === href ||
                 (href !== '/' && location.pathname.startsWith(href))
               return (
@@ -95,21 +95,19 @@ export function Navbar() {
                         : 'group-hover:scale-110 group-hover:text-brand-500'
                     }`}
                   />
-                  {label}
+                  {t(key)}
                 </Link>
               )
             })}
           </nav>
 
-          {/* Right side: github + search + theme toggle + hamburger */}
           <div className="ml-auto flex items-center gap-2">
-            {/* GitHub badge */}
             <a
               href={siteConfig.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden md:flex items-center gap-0 rounded-md overflow-hidden border border-border text-[0.75rem] font-mono font-semibold hover:border-brand-400 transition-colors group"
-              title="GitHub Repository"
+              title={t('nav.github')}
             >
               <span className="flex items-center gap-1.5 px-2.5 py-1.5 bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
                 <GithubIcon size={14} />
@@ -119,31 +117,30 @@ export function Navbar() {
               </span>
             </a>
 
-            {/* Search trigger (desktop) */}
             <button
               onClick={openSearch}
-              title="Search (Ctrl+K)"
+              title={t('nav.searchAria')}
               className="hidden md:flex items-center gap-2 px-3.5 py-1.5 min-w-[140px] border border-border rounded-md bg-muted text-muted-foreground text-sm hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
             >
               <Search size={14} />
-              <span>Search…</span>
+              <span>{t('nav.search')}</span>
               <kbd className="ml-auto text-[0.7rem] bg-background px-1.5 py-0.5 rounded-[3px] font-mono border border-border">
                 ⌘K
               </kbd>
             </button>
 
-            {/* Mobile search icon */}
             <button
               onClick={openSearch}
-              title="Search"
+              title={t('nav.searchShort')}
               className="md:hidden p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
             >
               <Search size={20} />
             </button>
 
+            <LanguageSwitcher />
+
             <ThemeToggle />
 
-            {/* Mobile hamburger — opens docs sidebar on docs pages, or mobile nav on others */}
             <button
               onClick={() => {
                 if (isDocsPage) {
@@ -152,7 +149,7 @@ export function Navbar() {
                   setMobileMenuOpen((o) => !o)
                 }
               }}
-              aria-label="Toggle menu"
+              aria-label={t('nav.toggleMenu')}
               className="md:hidden p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
             >
               {(isDocsPage ? isMobileSidebarOpen : mobileMenuOpen)
@@ -163,22 +160,19 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Nav Drawer (blog / non-docs pages) */}
       <>
-        {/* Backdrop */}
         {mobileMenuOpen && (
           <div
             className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
-        {/* Drawer */}
         <div
           className="fixed top-16 left-0 right-0 z-50 md:hidden border-b border-[oklch(30%_0.055_245/0.5)] bg-brand-50/98 dark:bg-[oklch(20.5%_0.042_245/0.98)] backdrop-blur-md transition-all duration-300 overflow-hidden"
           style={{ maxHeight: mobileMenuOpen ? '400px' : '0', opacity: mobileMenuOpen ? 1 : 0 }}
         >
           <nav className="flex flex-col p-4 gap-1">
-            {NAV_LINKS.map(({ href, label, icon: Icon }) => (
+            {NAV_LINKS.map(({ href, key, icon: Icon }) => (
               <Link
                 key={href}
                 to={href}
@@ -197,7 +191,7 @@ export function Navbar() {
                       : 'group-hover:scale-110 group-hover:text-brand-500'
                   }`}
                 />
-                {label}
+                {t(key)}
               </Link>
             ))}
             <a
@@ -207,7 +201,7 @@ export function Navbar() {
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-[0.95rem] font-medium text-foreground hover:bg-accent transition-colors"
             >
               <GithubIcon size={18} />
-              GitHub
+              {t('nav.github')}
             </a>
             <div className="mt-2 pt-3 border-t border-border">
               <button
@@ -215,7 +209,7 @@ export function Navbar() {
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[0.95rem] font-medium text-foreground hover:bg-accent transition-colors"
               >
                 <Search size={18} />
-                Search…
+                {t('nav.search')}
               </button>
             </div>
           </nav>

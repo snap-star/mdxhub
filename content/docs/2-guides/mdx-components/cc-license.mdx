@@ -1,0 +1,24 @@
+---
+title: "CCLicense"
+section: "2. Guides"
+order: 40
+version: "v1.2"
+description: "Creative Commons license badge for blog posts. Supports CC-BY, CC-BY-SA, CC-BY-NC, and CC0."
+---
+
+The `<CCLicense>` component renders a Creative Commons license badge for a blog post.
+
+### Props
+
+| Prop | Type | Description |
+| :--- | :--- | :--- |
+| `code` | string | License code: `CC-BY-4.0`, `CC-BY-SA-4.0`, `CC-BY-NC-4.0`, `CC0-1.0` |
+| `author` | string | The author name displayed in the license text |
+
+Inline usage:
+
+```mdx
+<CCLicense code="CC-BY-SA-4.0" author="Chigusa Asuha" />
+```
+
+You can also set `cc` in the frontmatter of a blog post to have it rendered automatically in the post footer.

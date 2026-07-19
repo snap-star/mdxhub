@@ -1,0 +1,108 @@
+---
+title: "FAQ"
+section: "2. Guides"
+order: 51
+version: "v1.2"
+description: "SEO-friendly accordion with FAQPage schema.org structured data — no extra configuration needed."
+---
+
+The `<FAQ>` component renders an expandable question-and-answer accordion and automatically injects [FAQPage](https://schema.org/FAQPage) structured data (JSON-LD) for search engine optimization.
+
+It shares the same interface and keyboard navigation as [`<Accordion>`](/docs/2-guides/mdx-components/accordion), but defaults to `allowMultiple={true}` and auto-injects [FAQPage](https://schema.org/FAQPage) structured data.
+
+### Props
+
+#### `<FAQ>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `defaultOpen` | number[] | — | Array of indices to open by default (0-based) |
+| `allowMultiple` | boolean | `true` | Whether multiple items can be open at once |
+
+#### `<FAQItem>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `question` | string | — | The FAQ question text (required) |
+| `defaultOpen` | boolean | — | Override to start this item open |
+| `children` | ReactNode | — | The FAQ answer content |
+
+### Usage
+
+```mdx
+<FAQ>
+<FAQItem question="What is MDX?">
+MDX is a format that lets you use JSX components directly inside Markdown.
+It combines the readability of Markdown with the power of React components.
+</FAQItem>
+<FAQItem question="How do I add a new component?">
+Create a component file in `src/components/mdx/`, then register it in `MDXComponents.tsx`.
+No imports are needed in your MDX files.
+</FAQItem>
+<FAQItem question="Can I use custom themes?">
+Yes. The project uses Tailwind CSS v4 with OKLCH color spaces.
+Customize `src/index.css` to define your own color palette.
+</FAQItem>
+</FAQ>
+```
+
+This renders as:
+
+<FAQ>
+<FAQItem question="What is MDX?">
+MDX is a format that lets you use JSX components directly inside Markdown.
+It combines the readability of Markdown with the power of React components.
+</FAQItem>
+<FAQItem question="How do I add a new component?">
+Create a component file in `src/components/mdx/`, then register it in `MDXComponents.tsx`.
+No imports are needed in your MDX files.
+</FAQItem>
+<FAQItem question="Can I use custom themes?">
+Yes. The project uses Tailwind CSS v4 with OKLCH color spaces.
+Customize `src/index.css` to define your own color palette.
+</FAQItem>
+</FAQ>
+
+### Structured Data
+
+The component automatically injects a `<script type="application/ld+json">` tag with [FAQPage schema.org](https://schema.org/FAQPage) markup. This helps search engines display your FAQs directly in search results as rich snippets.
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is MDX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "MDX is a format..."
+      }
+    }
+  ]
+}
+```
+
+No configuration needed — the structured data is generated automatically from your `question` and `children` props.
+
+### Variants
+
+For a borderless FAQ section, use the standard `Accordion` component with `variant="ghost"` instead:
+
+```mdx
+<FAQ>
+<FAQItem question="Still works the same?">
+Yes — FAQ always renders with the bordered accordion style.
+For a ghost variant, use `<Accordion variant="ghost">` directly.
+</FAQItem>
+</FAQ>
+```
+
+### Keyboard Navigation
+
+Same as Accordion:
+
+- **Enter / Space** — toggle the focused item
+- **Arrow Down / Arrow Up** — move between FAQ items
+- **Home / End** — jump to first/last item

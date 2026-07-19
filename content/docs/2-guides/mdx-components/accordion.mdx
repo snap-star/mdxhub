@@ -1,0 +1,76 @@
+---
+title: "Accordion"
+section: "2. Guides"
+order: 44
+version: "v1.2"
+description: "Expandable/collapsible sections for FAQs, troubleshooting, and progressive disclosure."
+---
+
+The `<Accordion>` component creates expandable/collapsible sections — perfect for FAQs, troubleshooting, or progressive disclosure in long articles.
+
+### Props
+
+#### `<Accordion>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `defaultOpen` | number[] | `[]` | Array of indices to open by default (0-based) |
+| `allowMultiple` | boolean | `false` | Whether multiple items can be open at once |
+| `variant` | string | `"bordered"` | Visual style: `bordered` or `ghost` |
+| `children` | AccordionItem[] | — | One or more `<AccordionItem>` components |
+
+#### `<AccordionItem>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `title` | string | — | Heading shown in the clickable header |
+| `defaultOpen` | boolean | — | Override to start this item open |
+| `children` | ReactNode | — | Content revealed when expanded |
+
+### Usage
+
+```mdx
+<Accordion>
+<AccordionItem title="What is MDX?">
+<div>
+
+MDX is a format that lets you use JSX components directly inside Markdown.
+
+</div>
+</AccordionItem>
+<AccordionItem title="How do I add new components?">
+<div>
+
+Create a component in `src/components/mdx/`, then register it in `MDXComponents.tsx`.
+
+</div>
+</AccordionItem>
+</Accordion>
+```
+
+### Multi-Open Variant
+
+Use `allowMultiple={true}` to allow opening several sections at once:
+
+```mdx
+<Accordion allowMultiple={true}>
+<AccordionItem title="First Section">...</AccordionItem>
+<AccordionItem title="Second Section">...</AccordionItem>
+</Accordion>
+```
+
+### Ghost Variant
+
+Use `variant="ghost"` for a minimal, borderless look — great for compact FAQs:
+
+```mdx
+<Accordion variant="ghost">
+<AccordionItem title="Keyboard shortcuts">...</AccordionItem>
+</Accordion>
+```
+
+### Keyboard Navigation
+
+- **Enter / Space** — toggle the focused item
+- **Arrow Down / Arrow Up** — move between accordion triggers
+- **Home / End** — jump to first/last item

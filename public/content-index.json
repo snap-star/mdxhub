@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-19T10:41:00.142Z",
+  "generatedAt": "2026-07-19T13:56:03.244Z",
   "posts": [
     {
       "slug": "news/2026-07-19-a-600-mile-road-trip-shows-ev-fast-charging-has-turned-a-corner",
@@ -123,6 +123,35 @@
       "featured": false,
       "coverImage": "https://techcrunch.com/wp-content/uploads/2026/01/GettyImages-2254580342.jpg?w=1024",
       "readingTime": 2,
+      "comments": true,
+      "series": "",
+      "seriesOrder": 0,
+      "cc": "",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "showcase/demo-faq-component",
+      "title": "FAQ Component — Full Showcase & Usage Guide",
+      "description": "A complete guide to the new FAQ MDX component — covering basic usage, SEO structured data, multi-open mode, code-heavy answers, and combining with other built-in components.",
+      "date": "2026-07-19",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Showcase",
+      "tags": [
+        "faq",
+        "accordion",
+        "components",
+        "mdx",
+        "seo",
+        "structured-data",
+        "demo"
+      ],
+      "draft": false,
+      "featured": true,
+      "coverImage": "",
+      "readingTime": 4.5,
       "comments": true,
       "series": "",
       "seriesOrder": 0,
@@ -1974,6 +2003,18 @@
       "readingTime": 9
     },
     {
+      "slug": "2-guides/translations",
+      "title": "Translations & i18n",
+      "description": "How to add a new language, write translation files, wire up components with the useTranslation hook, and contribute translations to the project.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 23,
+      "draft": false,
+      "toc": true,
+      "version": "v1.5.8",
+      "readingTime": 4
+    },
+    {
       "slug": "2-guides/code-blocks",
       "title": "Code Blocks Guide",
       "description": "Comprehensive guide to using fenced code blocks with Shiki syntax highlighting, line numbers, diff annotations, highlights, and focus mode.",
@@ -1983,19 +2024,19 @@
       "draft": false,
       "toc": true,
       "version": "v1.0",
-      "readingTime": 4
+      "readingTime": 5.5
     },
     {
       "slug": "2-guides/mdx-components",
       "title": "MDX Components Reference",
-      "description": "Complete reference for all globally available MDX components — Tabs, Steps, Mermaid, Callout, VideoEmbed, Badge, Tooltip, ProfileBadge, CCLicense, AuthorCard, CodeSandbox, Accordion, CardGrid, CodeGroup, Timeline, and NewsletterSubscribe.",
+      "description": "Complete reference for all globally available MDX components. Select a component below for its full documentation.",
       "section": "2. Guides",
       "sectionSlug": "2-guides",
       "order": 30,
       "draft": false,
       "toc": true,
       "version": "v1.2",
-      "readingTime": 17.5
+      "readingTime": 1
     },
     {
       "slug": "3-deployment/hosting",
@@ -2010,6 +2051,126 @@
       "readingTime": 3.5
     },
     {
+      "slug": "2-guides/mdx-components/tabs",
+      "title": "Tabs",
+      "description": "Tabbed interface for switching between content panels. Supports underline and pills variants with keyboard navigation.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 31,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/steps",
+      "title": "Steps",
+      "description": "Numbered step-by-step guide with connecting lines and styled step indicators.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 32,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1.5
+    },
+    {
+      "slug": "2-guides/mdx-components/mermaid",
+      "title": "Mermaid",
+      "description": "Render diagrams from plain text — flowcharts, sequence diagrams, pie charts, class diagrams, and more.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 33,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 2
+    },
+    {
+      "slug": "2-guides/mdx-components/callout",
+      "title": "Callout",
+      "description": "Styled callout boxes with matching icons for tips, warnings, notes, info, and danger messages.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 34,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/video-embed",
+      "title": "VideoEmbed",
+      "description": "Embed YouTube videos, Shorts, and iframe URLs with responsive aspect ratios.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 35,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/badge",
+      "title": "Badge",
+      "description": "Small, colorful pill labels for tags, status indicators, and inline metadata. Supports 22+ colors and 40+ icons.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 36,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1.5
+    },
+    {
+      "slug": "2-guides/mdx-components/tooltip",
+      "title": "Tooltip",
+      "description": "Floating labels on hover or focus. Uses @base-ui/react for accessible, performant interactions.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 37,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/image-lightbox",
+      "title": "Image Lightbox",
+      "description": "Click-to-zoom full-screen lightbox for images. Built-in behavior for the standard MDX img tag.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 38,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/profile-badge",
+      "title": "ProfileBadge",
+      "description": "Author profile card with avatar, bio, and social links. Reads from site.config.json.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 39,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/cc-license",
+      "title": "CCLicense",
+      "description": "Creative Commons license badge for blog posts. Supports CC-BY, CC-BY-SA, CC-BY-NC, and CC0.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 40,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
       "slug": "4-troubleshooting",
       "title": "Troubleshooting Overview",
       "description": "An index of common problems and how to resolve them in this MDX platform.",
@@ -2019,6 +2180,18 @@
       "draft": false,
       "toc": true,
       "version": "",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/author-card",
+      "title": "AuthorCard",
+      "description": "Display an author's avatar, bio, and social links. Used automatically in blog post footers.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 41,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
       "readingTime": 1
     },
     {
@@ -2034,6 +2207,18 @@
       "readingTime": 2
     },
     {
+      "slug": "2-guides/mdx-components/code-block",
+      "title": "Code Block",
+      "description": "Syntax-highlighted fenced code blocks with language labels, copy buttons, and line numbers. Powered by Shiki.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 42,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
       "slug": "4-troubleshooting/content-routing",
       "title": "Content & Routing",
       "description": "Fix posts that don't appear, 404 errors, slug mismatches, and author not found issues.",
@@ -2044,6 +2229,30 @@
       "toc": true,
       "version": "",
       "readingTime": 3
+    },
+    {
+      "slug": "2-guides/mdx-components/code-sandbox",
+      "title": "CodeSandbox",
+      "description": "Live, editable code sandbox using Sandpack — the same engine powering the React docs.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 43,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/accordion",
+      "title": "Accordion",
+      "description": "Expandable/collapsible sections for FAQs, troubleshooting, and progressive disclosure.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 44,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
     },
     {
       "slug": "4-troubleshooting/styling-dark-mode",
@@ -2058,6 +2267,18 @@
       "readingTime": 3
     },
     {
+      "slug": "2-guides/mdx-components/card-grid",
+      "title": "CardGrid",
+      "description": "Responsive grid of cards for feature comparisons, resource listings, and landing page sections.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 45,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
       "slug": "4-troubleshooting/performance",
       "title": "Performance",
       "description": "Diagnose and fix large bundle sizes, slow dev server HMR, and build time issues.",
@@ -2068,6 +2289,66 @@
       "toc": true,
       "version": "",
       "readingTime": 2.5
+    },
+    {
+      "slug": "2-guides/mdx-components/code-group",
+      "title": "CodeGroup",
+      "description": "Display the same code snippet in multiple languages using a tabbed interface with Shiki syntax highlighting.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 46,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
+    },
+    {
+      "slug": "2-guides/mdx-components/timeline",
+      "title": "Timeline",
+      "description": "Chronological vertical timeline with styled milestone markers for roadmaps and project histories.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 47,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1.5
+    },
+    {
+      "slug": "2-guides/mdx-components/chart",
+      "title": "Chart",
+      "description": "Lightweight SVG charts — bar, line, area, and pie/donut. Zero external dependencies.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 48,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 2
+    },
+    {
+      "slug": "2-guides/mdx-components/newsletter",
+      "title": "NewsletterSubscribe",
+      "description": "Email subscription card with animated success feedback. Used automatically in blog post footers.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 49,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 2.5
+    },
+    {
+      "slug": "2-guides/mdx-components/file-tree",
+      "title": "FileTree",
+      "description": "Recursive directory tree with expand/collapse — perfect for showing project structures in docs.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 50,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1
     },
     {
       "slug": "5-author/author-schema",
@@ -2082,6 +2363,18 @@
       "readingTime": 1
     },
     {
+      "slug": "2-guides/mdx-components/faq",
+      "title": "FAQ",
+      "description": "SEO-friendly accordion with FAQPage schema.org structured data — no extra configuration needed.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 51,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1.5
+    },
+    {
       "slug": "6-project-status",
       "title": "Project Status",
       "description": "Current project status, recent changes, project limitations, and known behavior notes.",
@@ -2091,7 +2384,7 @@
       "draft": false,
       "toc": true,
       "version": "",
-      "readingTime": 7.5
+      "readingTime": 8
     }
   ]
 }

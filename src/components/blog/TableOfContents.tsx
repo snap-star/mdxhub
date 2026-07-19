@@ -19,15 +19,18 @@ export function TableOfContents({ items, activeId }: TableOfContentsProps) {
   }
 
   return (
-    <nav aria-label="Table of contents">
-      <p className="toc-title">On this page</p>
-      <ol className="list-none p-0 m-0 flex flex-col gap-0.5">
+    <nav aria-label="Table of contents" className="toc-nav">
+      <div className="toc-header">
+        <p className="toc-title">On this page</p>
+        <span className="toc-badge">{items.length}</span>
+      </div>
+      <ol className="toc-list">
         {items.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} className={item.level === 3 ? 'toc-li-h3' : 'toc-li-h2'}>
             <a
               href={`#${item.id}`}
               onClick={(e) => handleClick(e, item.id)}
-              className={`toc-link ${item.level === 3 ? 'toc-link-h3' : ''} ${activeId === item.id ? 'active' : ''}`}
+              className={`toc-link${item.level === 3 ? ' toc-link-h3' : ''}${activeId === item.id ? ' active' : ''}`}
             >
               {item.text}
             </a>

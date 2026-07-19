@@ -1,0 +1,160 @@
+---
+title: "Chart"
+section: "2. Guides"
+order: 48
+version: "v1.2"
+description: "Lightweight SVG charts — bar, line, area, and pie/donut. Zero external dependencies."
+---
+
+The `<Chart>` component renders lightweight SVG charts directly from data — no external dependencies. Supports bar, line, area, and pie/donut chart types. Colors cycle through the site's `--chart-1` through `--chart-5` CSS variables and adapt to light/dark mode automatically.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `type` | string | `"bar"` | Chart type: `bar`, `line`, `area`, or `pie` |
+| `data` | array | — | Array of `{ label, value }` objects (required) |
+| `title` | string | — | Optional heading displayed above the chart |
+| `height` | number | `300` | Chart height in pixels |
+| `donut` | boolean | `false` | When `true` and `type="pie"`, renders a donut chart with a center hole |
+| `className` | string | `""` | Additional CSS classes |
+
+### Usage
+
+#### Bar Chart
+
+```mdx
+<Chart
+  type="bar"
+  data={[
+    { label: "React", value: 42 },
+    { label: "Vue", value: 28 },
+    { label: "Svelte", value: 18 },
+    { label: "Solid", value: 12 },
+  ]}
+  title="Framework Popularity (2026)"
+/>
+```
+
+<Chart
+  type="bar"
+  data={[
+    { label: "React", value: 42 },
+    { label: "Vue", value: 28 },
+    { label: "Svelte", value: 18 },
+    { label: "Solid", value: 12 },
+  ]}
+  title="Framework Popularity (2026)"
+/>
+
+#### Line Chart
+
+```mdx
+<Chart
+  type="line"
+  data={[
+    { label: "Jan", value: 12 },
+    { label: "Feb", value: 19 },
+    { label: "Mar", value: 35 },
+    { label: "Apr", value: 28 },
+    { label: "May", value: 42 },
+  ]}
+  title="Monthly Active Users"
+/>
+```
+
+<Chart
+  type="line"
+  data={[
+    { label: "Jan", value: 12 },
+    { label: "Feb", value: 19 },
+    { label: "Mar", value: 35 },
+    { label: "Apr", value: 28 },
+    { label: "May", value: 42 },
+  ]}
+  title="Monthly Active Users"
+/>
+
+#### Area Chart
+
+```mdx
+<Chart
+  type="area"
+  data={[
+    { label: "Q1", value: 100 },
+    { label: "Q2", value: 250 },
+    { label: "Q3", value: 180 },
+    { label: "Q4", value: 320 },
+  ]}
+  title="Quarterly Revenue"
+/>
+```
+
+<Chart
+  type="area"
+  data={[
+    { label: "Q1", value: 100 },
+    { label: "Q2", value: 250 },
+    { label: "Q3", value: 180 },
+    { label: "Q4", value: 320 },
+  ]}
+  title="Quarterly Revenue"
+/>
+
+#### Pie Chart
+
+```mdx
+<Chart
+  type="pie"
+  data={[
+    { label: "TypeScript", value: 45 },
+    { label: "JavaScript", value: 30 },
+    { label: "Python", value: 15 },
+    { label: "Rust", value: 10 },
+  ]}
+  title="Language Usage"
+/>
+```
+
+<Chart
+  type="pie"
+  data={[
+    { label: "TypeScript", value: 45 },
+    { label: "JavaScript", value: 30 },
+    { label: "Python", value: 15 },
+    { label: "Rust", value: 10 },
+  ]}
+  title="Language Usage"
+/>
+
+#### Donut Chart
+
+```mdx
+<Chart
+  type="pie"
+  donut
+  data={[
+    { label: "Completed", value: 75 },
+    { label: "In Progress", value: 15 },
+    { label: "Planned", value: 10 },
+  ]}
+  title="Project Status"
+/>
+```
+
+<Chart
+  type="pie"
+  donut
+  data={[
+    { label: "Completed", value: 75 },
+    { label: "In Progress", value: 15 },
+    { label: "Planned", value: 10 },
+  ]}
+  title="Project Status"
+/>
+
+### Notes
+
+- Charts are **pure SVG** — no external rendering libraries required
+- Colors use `--chart-1` through `--chart-5` CSS variables, matching the site's light and dark themes automatically
+- For complex diagrams (flowcharts, sequence diagrams, class diagrams), use the [`<Mermaid>`](/docs/2-guides/mdx-components/mermaid) component instead

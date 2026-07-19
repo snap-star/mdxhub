@@ -359,6 +359,18 @@ body {
 .dark .shiki .focused         { opacity: 0.25 !important; }
 .dark .shiki .focused.highlighted { opacity: 1 !important; }
 
+/* ── DiffView inline token colors ────────────────────────────────────── */
+
+.token.keyword   { color: oklch(45% 0.22 280); }
+.token.string    { color: oklch(50% 0.18 145); }
+.token.number    { color: oklch(45% 0.16 35); }
+.token.comment   { color: oklch(55% 0.02 260); font-style: italic; }
+
+.dark .token.keyword   { color: oklch(72% 0.18 285); }
+.dark .token.string    { color: oklch(72% 0.15 145); }
+.dark .token.number    { color: oklch(72% 0.14 45); }
+.dark .token.comment   { color: oklch(60% 0.02 260); }
+
 /* ── Code block line number gutter ────────────────────────────────────── */
 
 .code-line-gutter {

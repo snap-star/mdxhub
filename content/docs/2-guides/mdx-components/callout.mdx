@@ -1,0 +1,29 @@
+---
+title: "Callout"
+section: "2. Guides"
+order: 34
+version: "v1.2"
+description: "Styled callout boxes with matching icons for tips, warnings, notes, info, and danger messages."
+---
+
+The `<Callout>` component creates a styled callout box with a matching icon. Ideal for tips, warnings, and contextual notes.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `type` | string | `"note"` | One of: `note`, `tip`, `info`, `warning`, `danger` |
+| `title` | string | *(auto)* | Override the default title |
+| `children` | ReactNode | — | Callout body content |
+
+### Usage
+
+```mdx
+<Callout type="note" title="Custom Title">
+  Body text here.
+</Callout>
+
+<Callout type="tip">Quick tip without a custom title.</Callout>
+<Callout type="warning">Something to be careful about.</Callout>
+<Callout type="danger">Critical warning about data loss or security.</Callout>
+```

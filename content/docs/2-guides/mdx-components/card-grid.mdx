@@ -1,0 +1,80 @@
+---
+title: "CardGrid"
+section: "2. Guides"
+order: 45
+version: "v1.2"
+description: "Responsive grid of cards for feature comparisons, resource listings, and landing page sections."
+---
+
+The `<CardGrid>` component renders a responsive grid of cards, perfect for feature comparisons, resource listings, and landing page sections.
+
+### Props
+
+#### `<CardGrid>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `columns` | number | `3` | Number of columns: `1`, `2`, `3`, or `4` |
+| `children` | Card[] | — | One or more `<Card>` components |
+
+#### `<Card>`
+
+| Prop | Type | Description |
+| :--- | :--- | :--- |
+| `title` | string | Card heading |
+| `description` | string | Short description shown below the title |
+| `icon` | string | Optional icon name (see Badge for full icon list) |
+| `href` | string | Optional URL the card links to (internal or external) |
+| `linkText` | string | Text for the call-to-action link (default: "Learn more") |
+| `children` | ReactNode | Optional additional content inside the card |
+
+### Usage
+
+```mdx
+{/* 3-column grid (default) */}
+<CardGrid>
+<Card
+  title="Lightning Fast"
+  description="Built on Vite 8 with instant HMR and sub-second page loads."
+  icon="zap"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX-Powered"
+  description="Write content in Markdown with embedded React components."
+  icon="file"
+>
+<div></div>
+</Card>
+<Card
+  title="Type-Safe"
+  description="Full TypeScript support with strict type checking."
+  icon="shield"
+>
+<div></div>
+</Card>
+</CardGrid>
+
+{/* 2-column grid with links */}
+<CardGrid columns={2}>
+<Card
+  title="Getting Started"
+  description="New to MDXHub? Follow our step-by-step guide."
+  icon="rocket"
+  href="/docs/2-guides/installation"
+  linkText="View Guide"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX Components"
+  description="Explore all built-in MDX components."
+  icon="book"
+  href="/blog/showcase/demo-mdx-components"
+  linkText="See Components"
+>
+<div></div>
+</Card>
+</CardGrid>
+```

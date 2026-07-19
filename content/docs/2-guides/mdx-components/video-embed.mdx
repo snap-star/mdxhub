@@ -1,0 +1,26 @@
+---
+title: "VideoEmbed"
+section: "2. Guides"
+order: 35
+version: "v1.2"
+description: "Embed YouTube videos, Shorts, and iframe URLs with responsive aspect ratios."
+---
+
+The `<VideoEmbed>` component embeds YouTube videos, Shorts, and iframe URLs with responsive aspect ratios.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `src` | string | — | YouTube URL, `youtu.be` link, or raw embed URL |
+| `aspect` | string | `"16/9"` | Aspect ratio: `16/9`, `4/3`, `1/1`, `9/16` |
+| `caption` | string | — | Optional caption below the video |
+| `title` | string | `"Embedded video"` | Accessible title attribute |
+
+### Usage
+
+```mdx
+<VideoEmbed src="https://www.youtube.com/watch?v=VIDEO_ID" />
+<VideoEmbed src="https://youtu.be/VIDEO_ID" aspect="4/3" caption="A short demo" />
+<VideoEmbed src="https://www.youtube.com/shorts/VIDEO_ID" aspect="9/16" />
+```

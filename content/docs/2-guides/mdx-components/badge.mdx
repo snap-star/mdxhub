@@ -1,0 +1,72 @@
+---
+title: "Badge"
+section: "2. Guides"
+order: 36
+version: "v1.2"
+description: "Small, colorful pill labels for tags, status indicators, and inline metadata. Supports 22+ colors and 40+ icons."
+---
+
+The `<Badge>` component renders a small, colorful pill for tags, labels, status indicators, and inline metadata. Supports 22+ Tailwind color names and semantic admonition variants, plus 40+ built-in icon names.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `variant` | string | `"slate"` | Tailwind color name or admonition semantic name |
+| `icon` | string | — | Icon name (see table below) |
+| `children` | ReactNode | — | Badge text content |
+
+### Admonition Variants
+
+Use these semantic names for quick access:
+
+| Variant | Color | Use Case |
+| :--- | :--- | :--- |
+| `note` | Slate | General annotation |
+| `tip` | Emerald | Helpful suggestion |
+| `info` | Blue | Informational note |
+| `success` | Green | Success confirmation |
+| `warning` | Amber | Cautionary notice |
+| `danger` | Red | Critical warning |
+| `destructive` | Red | Destructive action |
+
+### Tailwind Color Variants
+
+Any standard Tailwind color name works directly: `red`, `orange`, `amber`, `yellow`, `lime`, `green`, `emerald`, `teal`, `cyan`, `sky`, `blue`, `indigo`, `violet`, `purple`, `fuchsia`, `pink`, `rose`, `slate`, `gray`, `zinc`, `neutral`, `stone`.
+
+### Available Icons
+
+| Key | Icon | | | |
+| :--- | :--- | :--- | :--- | :--- |
+| `check` | Check | `copy` | Copy | `info` | Info |
+| `warning` | AlertTriangle | `danger` | XCircle | `star` | Star |
+| `heart` | Heart | `zap` | Zap | `shield` | Shield |
+| `clock` | Clock | `calendar` | Calendar | `book` | BookOpen |
+| `file` | FileText | `tag` | Tag | `hash` | Hash |
+| `mail` | Mail | `link` | Link2 | `sun` | Sun |
+| `moon` | Moon | `cloud` | Cloud | `download` | Download |
+| `upload` | Upload | `refresh` | RefreshCw | `plus` | Plus |
+| `minus` | Minus | `close` | X | `search` | Search |
+| `settings` | Settings | `user` | User | `home` | Home |
+| `arrow` | ArrowRight | `external` | ExternalLink | `github` | GitHub |
+| `globe` | Globe | `bulb` | Lightbulb | `rocket` | Rocket |
+| `sparkles` | Sparkles | `target` | Target | `flag` | Flag |
+
+### Usage
+
+```mdx
+{/* Semantic variants */}
+<Badge variant="tip">Tip</Badge>
+<Badge variant="warning">Caution</Badge>
+
+{/* Tailwind colors */}
+<Badge variant="emerald">Emerald</Badge>
+<Badge variant="violet">Violet</Badge>
+
+{/* With icons */}
+<Badge variant="success" icon="check">Completed</Badge>
+<Badge variant="warning" icon="zap">Requires attention</Badge>
+
+{/* Inline with text */}
+Run <Badge variant="info">npm install</Badge> to install dependencies.
+```

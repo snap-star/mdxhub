@@ -5,6 +5,8 @@ import { Links, Outlet, Scripts, ScrollRestoration, useLoaderData, useRouteError
 import { MDXProvider } from '@mdx-js/react'
 import { useThemeStore } from '@/store/themeStore'
 import { useContentStore } from '@/store/contentStore'
+import { useTranslationStore } from '@/store/translationStore'
+import { t } from '@/store/translationStore'
 import { MDXComponents } from '@/components/mdx/MDXComponents'
 import { Navbar } from '@/components/common/Navbar'
 import { Footer } from '@/components/common/Footer'
@@ -71,26 +73,26 @@ export function ErrorBoundary() {
     <main className="flex-1 flex items-center justify-center p-6">
       <div className="flex flex-col items-center text-center max-w-lg" role="alert">
         <div className="mb-6 flex items-center justify-center w-16 h-16 rounded-2xl bg-danger/10 text-danger text-3xl font-bold">!</div>
-        <h1 className="text-2xl sm:text-3xl font-bold font-serif tracking-tight mb-3">Something went wrong</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold font-serif tracking-tight mb-3">{t('error.somethingWentWrong')}</h1>
         <p className="text-sm text-muted-foreground mb-6 max-w-md">
           {isRouteErrorResponse(error)
             ? error.statusText
             : error instanceof Error
               ? error.message
-              : 'An unexpected error occurred.'}
+              : t('error.unexpectedError')}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => window.history.back()}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card text-foreground font-medium text-sm hover:bg-muted hover:border-brand-300 transition-all"
           >
-            ← Go Back
+            ← {t('error.goBack')}
           </button>
           <a
             href="/"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-all"
           >
-            Home
+            {t('error.home')}
           </a>
         </div>
       </div>
@@ -103,7 +105,7 @@ export function ErrorBoundary() {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <Links />
       </head>
       <body className="min-h-screen bg-background text-foreground flex flex-col">
@@ -116,6 +118,7 @@ export function ErrorBoundary() {
 
 export default function Root() {
   const { resolvedTheme } = useThemeStore()
+  const locale = useTranslationStore((s) => s.locale)
   const contentData = useLoaderData() as ContentIndex
   const loadContent = useContentStore((s) => s.loadContent)
   const status = useContentStore((s) => s.status)
@@ -137,12 +140,12 @@ export default function Root() {
   ], [])
 
   return (
-    <html lang="en" className={resolvedTheme === 'dark' ? 'dark' : ''}>
+    <html lang={locale} className={resolvedTheme === 'dark' ? 'dark' : ''}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <Links />
       </head>
       <body className="min-h-screen bg-background text-foreground transition-colors duration-300">

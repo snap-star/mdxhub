@@ -117,36 +117,104 @@
 .dark .callout-warning { background: oklch(25.0% 0.06 72 / 0.50);   border-color: var(--color-warning);   color: oklch(90% 0.15 72); }
 .dark .callout-danger  { background: oklch(25.0% 0.06 20 / 0.50);   border-color: var(--color-danger);    color: oklch(85% 0.15 20); }
 
-/* Table of Contents (shared with blog posts) */
+/* ── Table of Contents ───────────────────────────────────────── */
+
+.toc-nav {
+  position: relative;
+}
+.toc-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
 .toc-title {
   font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-base-muted);
-  margin-bottom: 0.75rem;
+}
+.toc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.3rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  border-radius: 999px;
+  background: var(--color-surface-2);
+  color: var(--color-base-muted);
+  border: 1px solid var(--color-base-border);
+  line-height: 1;
+}
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.toc-li-h2,
+.toc-li-h3 {
+  position: relative;
 }
 .toc-link {
   display: block;
-  padding: 0.25rem 0.5rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
   color: var(--color-base-muted);
   text-decoration: none;
   border-left: 2px solid var(--color-base-border);
-  transition: color 0.12s, border-color 0.12s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
   line-height: 1.4;
-  margin-bottom: 2px;
   font-size: var(--text-sm);
+  border-radius: 0 4px 4px 0;
+  position: relative;
 }
-.toc-link:hover { color: var(--color-brand-600); border-color: var(--color-brand-300); }
+.toc-link:hover {
+  color: var(--color-brand-600);
+  border-color: var(--color-brand-300);
+  background: oklch(96% 0.020 245 / 0.4);
+}
 .toc-link.active {
   color: var(--color-brand-600);
   border-color: var(--color-brand-500);
   font-weight: 500;
+  background: oklch(93% 0.035 245 / 0.35);
+  border-left-width: 3px;
 }
-.dark .toc-link { color: var(--color-slate-500); border-color: var(--color-slate-700); }
-.dark .toc-link:hover { color: var(--color-brand-400); border-color: var(--color-brand-600); }
-.dark .toc-link.active { color: var(--color-brand-400); border-color: var(--color-brand-500); }
-.toc-link-h3 { padding-left: 1rem; font-size: 0.775rem; }
+.dark .toc-link { color: var(--color-slate-400); border-color: var(--color-slate-700); }
+.dark .toc-link:hover {
+  color: var(--color-brand-300);
+  border-color: var(--color-brand-600);
+  background: oklch(25% 0.040 245 / 0.2);
+}
+.dark .toc-link.active {
+  color: var(--color-brand-300);
+  border-color: var(--color-brand-500);
+  background: oklch(28.5% 0.045 245 / 0.2);
+}
+.toc-link-h3 {
+  padding-left: 1.5rem;
+  font-size: 0.775rem;
+}
+.toc-link-h3::before {
+  content: '';
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-base-border);
+}
+.dark .toc-link-h3::before {
+  background: var(--color-slate-600);
+}
 
 /* Author avatar ring */
 .author-avatar {
@@ -270,6 +338,45 @@
   .blog-index-aside {
     display: none;
   }
+}
+
+/* TOC card */
+.toc-card {
+  padding: 1.25rem 1rem;
+  border: 1px solid var(--color-base-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.blog-theme .toc-card {
+  border-color: var(--color-base-border);
+  background: oklch(98% 0.005 255);
+}
+.dark .toc-card {
+  background: oklch(22% 0.006 264);
+  border-color: oklch(27.8% 0.008 264);
+}
+.blog-theme.dark .toc-card {
+  background: oklch(16% 0.008 255);
+  border-color: oklch(25% 0.008 255);
+}
+.toc-badge-mobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.3rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  border-radius: 999px;
+  background: oklch(93% 0.035 245 / 0.5);
+  color: var(--color-brand-700);
+  line-height: 1;
+}
+.dark .toc-badge-mobile {
+  background: oklch(28.5% 0.045 245 / 0.4);
+  color: var(--color-brand-300);
 }
 
 /* Blog post grid TOC aside */

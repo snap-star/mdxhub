@@ -1,0 +1,90 @@
+---
+title: "Tabs"
+section: "2. Guides"
+order: 31
+version: "v1.2"
+description: "Tabbed interface for switching between content panels. Supports underline and pills variants with keyboard navigation."
+---
+
+The `<Tabs>` component creates a tabbed interface for switching between content panels. Ideal for showing the same code example across multiple package managers, languages, or environments without duplicating content.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `defaultIndex` | number | `0` | Which tab is active by default (0-based) |
+| `variant` | string | `"underline"` | Visual style: `underline` or `pills` |
+| `children` | Tab[] | — | One or more `<Tab>` components |
+
+Each `<Tab>` accepts:
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `label` | string | — | Label shown in the tab header |
+| `icon` | string | — | Optional icon name (see Badge icon table) |
+| `children` | ReactNode | — | Content shown when this tab is active |
+
+### Usage
+
+````mdx
+<Tabs>
+<Tab label="npm">
+  ```bash
+  npm install mermaid
+  ```
+</Tab>
+<Tab label="pnpm" icon="zap">
+  ```bash
+  pnpm add mermaid
+  ```
+</Tab>
+<Tab label="yarn">
+  ```bash
+  yarn add mermaid
+  ```
+</Tab>
+</Tabs>
+````
+
+### Live Example :
+
+<Tabs>
+<Tab label="npm">
+```bash
+npm install
+```
+</Tab>
+<Tab label="pnpm" icon="zap">
+```bash
+pnpm install
+```
+</Tab>
+<Tab label="bun">
+```bash
+bun install
+```
+</Tab>
+</Tabs>
+
+### Pills Variant
+
+Use `variant="pills"` for a filled button-style tab bar:
+
+```mdx
+<Tabs variant="pills">
+<Tab label="TypeScript">// TypeScript code here</Tab>
+<Tab label="JavaScript">// JavaScript code here</Tab>
+</Tabs>
+```
+
+### Live Example :
+
+<Tabs variant="pills">
+<Tab label="HTML">// some html</Tab>
+<Tab label="CSS">// some  css</Tab>
+</Tabs>
+
+### Keyboard Navigation
+
+- **Arrow Left / Arrow Right** — switch between tabs
+- Tabs use a **roving tab index** for proper accessibility

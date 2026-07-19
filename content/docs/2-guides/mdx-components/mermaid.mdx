@@ -1,0 +1,177 @@
+---
+title: "Mermaid"
+section: "2. Guides"
+order: 33
+version: "v1.2"
+description: "Render diagrams from plain text — flowcharts, sequence diagrams, pie charts, class diagrams, and more."
+---
+
+The `<Mermaid>` component renders diagrams from plain text using [Mermaid.js](https://mermaid.js.org/). Supports flowcharts, sequence diagrams, class diagrams, state diagrams, pie charts, mind maps, and more.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `chart` | string | — | Mermaid diagram definition string |
+| `caption` | string | — | Optional caption shown below the diagram |
+| `title` | string | — | Accessible title for the diagram |
+
+### Usage
+
+```mdx
+<Mermaid chart="
+graph TD
+  A[Content] --> B[MDX Pipeline]
+  B --> C[React Components]
+  C --> D[Vite Build]
+  D --> E[Static Site]
+" caption="High-level content pipeline" />
+```
+### Mermaid
+<Mermaid chart="
+graph TD
+  A[Content] --> B[MDX Pipeline]
+  B --> C[React Components]
+  C --> D[Vite Build]
+  D --> E[Static Site]
+" caption="High-level content pipeline" />
+
+### Flowchart
+
+```mdx
+<Mermaid chart="
+graph LR
+  A[Start] --> B{Is it working?}
+  B -->|Yes| C[Great!]
+  B -->|No| D[Debug]
+  D --> B
+" caption="A simple decision flowchart" />
+```
+### Some Flowchart
+<Mermaid chart="
+graph LR
+  A[Start] --> B{Is it working?}
+  B -->|Yes| C[Great!]
+  B -->|No| D[Debug]
+  D --> B
+" caption="A simple decision flowchart" />
+
+### Sequence Diagram
+
+```mdx
+<Mermaid chart="
+sequenceDiagram
+  participant User
+  participant Blog
+  participant API
+
+  User->>Blog: Click post
+  Blog->>API: Fetch content
+  API-->>Blog: Return MDX
+  Blog->>User: Render page
+" caption="Post loading sequence" />
+```
+<Mermaid chart="
+sequenceDiagram
+  participant User
+  participant Blog
+  participant API
+
+  User->>Blog: Click post
+  Blog->>API: Fetch content
+  API-->>Blog: Return MDX
+  Blog->>User: Render page
+" caption="Post loading sequence" />
+
+### Pie Chart
+
+```mdx
+<Mermaid chart='
+pie title My Tech Stack
+  "React" : 40
+  "TypeScript" : 25
+  "TailwindCSS" : 20
+  "Vite" : 15
+' />
+```
+### A Pie chart?
+
+<Mermaid chart='
+pie title My Tech Stack
+  "React" : 40
+  "TypeScript" : 25
+  "TailwindCSS" : 20
+  "Vite" : 15
+'/>
+
+### Class Diagram
+
+```mdx
+<Mermaid chart="
+classDiagram
+  class Component {
+    +render()
+    +props
+  }
+  class Button {
+    +variant
+    +onClick()
+  }
+  class Card {
+    +title
+    +children
+  }
+  Component <|-- Button
+  Component <|-- Card
+" caption="Component inheritance diagram" />
+```
+
+### Class Diagram
+
+<Mermaid chart="
+classDiagram
+  class Component {
+    +render()
+    +props
+  }
+  class Button {
+    +variant
+    +onClick()
+  }
+  class Card {
+    +title
+    +children
+  }
+  Component <|-- Button
+  Component <|-- Card
+" caption="Component inheritance diagram" />
+
+### Supported Diagram Types
+
+| Type | Syntax | Use Case |
+| :--- | :--- | :--- |
+| Flowchart | `graph TD` / `graph LR` | Process flows, architecture |
+| Sequence | `sequenceDiagram` | API interactions, workflows |
+| Class | `classDiagram` | Object-oriented structures |
+| State | `stateDiagram-v2` | State machines |
+| Pie | `pie` | Data proportions |
+| Gantt | `gantt` | Project timelines |
+| Mindmap | `mindmap` | Brainstorming, outlines |
+| Git | `gitGraph` | Git branch visualization |
+| Timeline | `timeline` | Chronological events |
+| ER Diagram | `erDiagram` | Database relationships |
+
+### Dark Mode
+
+The `<Mermaid>` component automatically detects the current theme and switches between light and dark color palettes. No additional configuration needed — toggle the site theme and diagrams follow along.
+
+### Error Handling
+
+If the diagram syntax is invalid, the component shows a **friendly error message** with:
+
+- The specific error details
+- A **collapsible source viewer** showing the chart definition so you can debug it
+
+<Callout type="tip">
+Use the [Mermaid Live Editor](https://mermaid.live/) to preview and debug your diagrams before adding them to your MDX files.
+</Callout>
