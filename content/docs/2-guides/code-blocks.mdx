@@ -390,6 +390,93 @@ function UserProfile({ userId }: { userId: string }) {
 
 ---
 
+## Before/After Diff View (`<DiffView />`)
+
+For a dedicated before-and-after comparison, use the `<DiffView />` component. Unlike Shiki's inline diff annotations (`[!code ++]` / `[!code --]`), which mark changes within a single block, `<DiffView />` takes **two complete code strings** and renders a unified diff with dual line numbers and color-coded additions/removals.
+
+No import is needed — `<DiffView />` is registered globally in MDXComponents.
+
+### Usage
+
+```mdx
+<DiffView
+  before={`import React from 'react';
+
+function Button(props) {
+  return React.createElement('button', {
+    className: 'btn',
+    onClick: props.onClick
+  }, props.label);
+}`}
+  after={`import React from 'react';
+
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+}
+
+function Button({ label, onClick }: ButtonProps) {
+  return (
+    <button className="btn" onClick={onClick}>
+      {label}
+    </button>
+  );
+}`}
+  language="tsx"
+/>
+```
+
+This renders as:
+
+<DiffView
+  before={`import React from 'react';
+
+function Button(props) {
+  return React.createElement('button', {
+    className: 'btn',
+    onClick: props.onClick
+  }, props.label);
+}`}
+  after={`import React from 'react';
+
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+}
+
+function Button({ label, onClick }: ButtonProps) {
+  return (
+    <button className="btn" onClick={onClick}>
+      {label}
+    </button>
+  );
+}`}
+  language="tsx"
+/>
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `before` | `string` | — | Original code (required) |
+| `after` | `string` | — | Modified code (required) |
+| `language` | `string` | `"text"` | Language label shown in the header |
+
+### When to use which
+
+| Approach | Best for |
+| :--- | :--- |
+| Shiki `[!code ++]` / `[!code --]` | Highlighting a few changed lines within a larger block, combining with focus/highlight annotations |
+| `<DiffView />` | Showing a complete before/after refactor where both versions are meaningful on their own |
+
+### Limitations
+
+- The component uses a sliding-window LCS algorithm (lookahead of 10 lines) — very large diffs may show suboptimal alignment
+- Inline syntax highlighting uses regex-based tokenization (keywords, strings, numbers, comments) and is not as accurate as Shiki's AST-based highlighting
+- Copy button copies both before and after sides together
+
+---
+
 ## Tips & Best Practices
 
 1. **Always specify a language** — without a language tag, the block renders as plain text with no highlighting

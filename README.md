@@ -27,6 +27,9 @@
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=flat&logo=typescript" alt="TypeScript 6" /></a>
   <a href="https://vitest.dev/"><img src="https://img.shields.io/badge/Vitest-4-6E9F18?style=flat&logo=vitest" alt="Vitest 4" /></a>
   <a href="https://zod.dev/"><img src="https://img.shields.io/badge/Zod-4-3068B7?style=flat&logo=zod" alt="Zod 4" /></a>
+  <a href="https://www.framer.com/motion/"><img src="https://img.shields.io/badge/Framer_Motion-12-0055FF?style=flat&logo=framer" alt="Framer Motion 12" /></a>
+  <a href="https://katex.org/"><img src="https://img.shields.io/badge/KaTeX-0.16-008080?style=flat" alt="KaTeX" /></a>
+  <a href="https://lucide.dev/"><img src="https://img.shields.io/badge/Icons-Lucide-38BDF8?style=flat" alt="Lucide Icons" /></a>
 </p>
 
 A blazingly fast, highly interactive, and beautiful MDX-powered platform for building blogs and documentation sites. Built from the ground up to provide a world-class developer and authoring experience.
@@ -38,6 +41,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 ## ✨ Features
 
 ### 📝 Content Authoring
+
 - **Git-Backed CMS**: Write content as Markdown/MDX files right in your editor. Automatically discovered and routed using Vite's `import.meta.glob`. A build-time `content-index.json` powers the blog index, category/tag filters, series navigation, and search — no database needed.
 - **Nested Content Routing**: Supports nested folders in `content/blog/**` and `content/docs/**`, with `index.mdx` folder slug support.
 - **Relative MDX Assets**: Resolve image sources relative to the current content folder, or use static `/public` assets.
@@ -48,6 +52,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Draft System**: Set `draft: true` in frontmatter to exclude posts from the published feed.
 
 ### 🔍 Blog Browsing & Discovery
+
 - **Sort & View Controls**: Sort blog posts by Recent or Date Posted, toggle between Ascending/Descending order, and switch between Card and List views — all persisted to localStorage.
 - **Blog List View**: A modern horizontal list layout with 70/30 text-to-thumbnail split, segmented pill metadata badges, active hover indicators, and a dedicated chevron block for posts without cover images.
 - **Category & Tag Filtering**: Filter blog posts by category or tag, with sidebar widgets, interactive tag clouds, and category filter pills on all blog pages.
@@ -55,24 +60,26 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Shareable Blog Controls**: Sort/view/order controls are synced across the main blog index, category pages, and tag pages via a shared `useBlogPosts` hook.
 
 ### 🧩 Built-in MDX Components
-| Component | Description |
-| :--- | :--- |
-| `<VideoEmbed />` | YouTube, Shorts, Vimeo — custom aspect ratios (`16/9`, `4/3`, `1/1`, `9/16`) |
-| `<Callout />` | Admonitions: `note`, `tip`, `info`, `warning`, `danger` — with themed icons |
-| `<Badge />` | Colorful inline pill — 22+ colors, 40+ icons, admonition variants |
-| `<Tooltip />` | Accessible hover/focus tooltip with placement control (`top`, `bottom`, `left`, `right`) |
-| `<Tabs />` | Tabbed content panels — `underline` and `pills` variants, keyboard navigable |
-| `<Steps />` + `<Step />` | Numbered step-by-step guides with connecting lines and optional icons |
-| `<Mermaid />` | Diagram renderer — flowcharts, sequence diagrams, pie charts, class diagrams, and more |
-| `<CodeSandbox />` | Live, editable code sandboxes using Sandpack (React, TypeScript, Vanilla, Static) |
-| `<Accordion />` + `<AccordionItem />` | Expandable/collapsible sections with `bordered` / `ghost` variants |
-| `<CardGrid />` + `<Card />` | Responsive card grid (1–4 columns) with icons, links, and rich content |
-| `<Timeline />` + `<TimelineItem />` | Chronological timeline with date labels, icons, and color variants (brand, success, warning, danger, info) |
-| `<ProfileBadge />` | Author profile card for About pages |
-| `<CCLicense />` | One-line Creative Commons badge for any post |
-| `<AuthorCard />` | Full author card with avatar, bio, and social links |
+
+| Component                                 | Description                                                                                                |
+| :---------------------------------------- | :--------------------------------------------------------------------------------------------------------- |
+| `<VideoEmbed />`                        | YouTube, Shorts, Vimeo — custom aspect ratios (`16/9`, `4/3`, `1/1`, `9/16`)                      |
+| `<Callout />`                           | Admonitions:`note`, `tip`, `info`, `warning`, `danger` — with themed icons                      |
+| `<Badge />`                             | Colorful inline pill — 22+ colors, 40+ icons, admonition variants                                         |
+| `<Tooltip />`                           | Accessible hover/focus tooltip with placement control (`top`, `bottom`, `left`, `right`)           |
+| `<Tabs />`                              | Tabbed content panels —`underline` and `pills` variants, keyboard navigable                           |
+| `<Steps />` + `<Step />`              | Numbered step-by-step guides with connecting lines and optional icons                                      |
+| `<Mermaid />`                           | Diagram renderer — flowcharts, sequence diagrams, pie charts, class diagrams, and more                    |
+| `<CodeSandbox />`                       | Live, editable code sandboxes using Sandpack (React, TypeScript, Vanilla, Static)                          |
+| `<Accordion />` + `<AccordionItem />` | Expandable/collapsible sections with `bordered` / `ghost` variants                                     |
+| `<CardGrid />` + `<Card />`           | Responsive card grid (1–4 columns) with icons, links, and rich content                                    |
+| `<Timeline />` + `<TimelineItem />`   | Chronological timeline with date labels, icons, and color variants (brand, success, warning, danger, info) |
+| `<ProfileBadge />`                      | Author profile card for About pages                                                                        |
+| `<CCLicense />`                         | One-line Creative Commons badge for any post                                                               |
+| `<AuthorCard />`                        | Full author card with avatar, bio, and social links                                                        |
 
 ### 🖼️ Media & Rich Content
+
 - **Image Lightbox**: Every image is clickable — opens a full-screen viewer with zoom (25%–400%), rotate, and keyboard (Escape) controls
 - **Video Embeds**: YouTube, Shorts, Vimeo — auto-detected and lazy-loaded
 - **Mathematical Equations**: Native LaTeX rendering using `remark-math` and KaTeX (inline `$...$` and block `$$...$$`)
@@ -80,6 +87,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Optimized Images**: `<picture>` elements with automatic format fallbacks
 
 ### 🎨 Visual & UX
+
 - **True Syntax Highlighting**: High-fidelity code blocks using [Shiki.js](https://shiki.style/) — Monokai (dark mode), GitHub Light (light mode)
 - **Code Block Enhancements**: macOS-style window controls, language label, copy button with checkmark feedback
 - **Line Highlighting**: Shiki transformers for diff, highlight, word highlight, and focus annotations
@@ -87,7 +95,15 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Page Transitions**: Fluid Framer Motion `AnimatePresence` transitions with scroll-to-top on navigation
 - **Responsive Design**: Mobile-first with dedicated mobile sidebar drawer and bottom TOC sheet
 
+### 🌐 Internationalization (i18n)
+
+- **Multi-Language UI**: Built-in translation system with language switcher in the navbar. Switch between English, Japanese, Bahasa Indonesia — or add your own locale by dropping a JSON file into `src/translations/`.
+- **Zustand-Persisted Preference**: Chosen language is saved to localStorage — survives reloads.
+- **`useTranslation` Hook**: Simple `t(key, params?)` with `{placeholder}` interpolation and English fallback. Auto-re-renders on locale change.
+- **Locale-Aware `<html>`**: The root `lang` attribute updates automatically with the selected language.
+
 ### 🔍 Search & Navigation
+
 - **Full-Text Search**: Press `Ctrl+K`/`Cmd+K` anywhere — native `.filter()` search across all blog posts and docs (replaced Fuse.js with zero-cost stdlib alternative)
 - **Table of Contents**: Scroll-spy powered by IntersectionObserver, with mobile slide-out sheet
 - **Breadcrumbs**: Contextual navigation in blog posts and docs pages
@@ -95,6 +111,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Series Navigation**: Inline series badge and prev/next navigation with progress indicator between parts
 
 ### 🔗 SEO & Discovery
+
 - **Automatic SEO**: Per-page `og:image`, `twitter:card`, canonical URLs, and meta tags — React 19 auto-hoists `<title>` and `<meta>` to `<head>` (no `react-helmet-async` needed)
 - **Sitemap**: Auto-generated `sitemap.xml` with `lastmod` dates from file modification times — served via explicit Vercel rewrite to ensure Google Search Console can read it
 - **Robots.txt**: Auto-generated with `Allow: /` and `Sitemap:` directive
@@ -103,6 +120,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Share Buttons**: Social sharing for every blog post
 
 ### ⚡ Performance
+
 - **Lazy-Loaded Heavy Components**: `Mermaid` diagrams and `CodeSandbox` live editors use `React.lazy()` — only download when content actually uses them
 - **Dependency Slimdown**: Removed 8 unused/over-engineered deps: `cmdk`, `class-variance-authority`, `gray-matter`, `date-fns`, `fuse.js`, `react-helmet-async`, `@base-ui/react`, `tailwind-merge`, `clsx`
 - **Stdlib Replacements**: Replaced `date-fns` → `toLocaleDateString`, `fuse.js` → native `.filter()`, `react-helmet-async` → React 19 auto-hoisting, `@base-ui/react` Tooltip → pure CSS tooltip
@@ -114,6 +132,7 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 - **Over-engineering Cleanup**: Removed Framer Motion page transitions (replaced by CSS `@view-transition`), simplified ErrorBoundary (188→40 lines), simplified NotFound (238→70 lines), section backgrounds → CSS gradients
 
 ### 🧪 Testing & Quality
+
 - **Unit Tests**: Vitest + Testing Library for component tests
 - **Error Tracking**: Client-side error tracking with context capture
 - **Environment Validation**: Zod schema validates all `VITE_*` env vars at startup
@@ -125,23 +144,23 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 
 ## 🚀 Tech Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Framework** | [React 19](https://react.dev/) |
-| **Bundler** | [Vite 8](https://vitejs.dev/) (Rolldown-powered) |
-| **Content** | [MDX v3](https://mdxjs.com/) with `remark-gfm`, `remark-math`, and `rehype-katex` |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) (CSS-first architecture, OKLCH color spaces) |
-| **Routing** | [React Router v8](https://reactrouter.com/) (framework mode, SSG) |
-| **State Management** | [Zustand v5](https://zustand-demo.pmnd.rs/) with persistence middleware (`localStorage`) |
-| **Syntax Highlighting** | [Shiki v4](https://shiki.style/) (dual-theme, diff/highlight/focus transformers) |
-| **Math Rendering** | [KaTeX](https://katex.org/) |
-| **Icons** | [Lucide React](https://lucide.dev/) + [Simple Icons](https://simpleicons.org/) |
-| **Search** | Native `.filter()` (replaced Fuse.js stdlib) |
-| **SEO** | React 19 auto-hoisted `<title>`/`<meta>` (replaced `react-helmet-async`) |
-| **Image Processing** | [Sharp](https://sharp.pixelplumbing.com/) |
-| **Testing** | [Vitest 4](https://vitest.dev/) + [Testing Library](https://testing-library.com/) |
-| **Env Validation** | [Zod 4](https://zod.dev/) |
-| **Language** | [TypeScript 6](https://www.typescriptlang.org/) |
+| Layer                         | Technology                                                                              |
+| :---------------------------- | :-------------------------------------------------------------------------------------- |
+| **Framework**           | [React 19](https://react.dev/)                                                             |
+| **Bundler**             | [Vite 8](https://vitejs.dev/) (Rolldown-powered)                                           |
+| **Content**             | [MDX v3](https://mdxjs.com/) with `remark-gfm`, `remark-math`, and `rehype-katex`    |
+| **Styling**             | [Tailwind CSS v4](https://tailwindcss.com/) (CSS-first architecture, OKLCH color spaces)   |
+| **Routing**             | [React Router v8](https://reactrouter.com/) (framework mode, SSG)                          |
+| **State Management**    | [Zustand v5](https://zustand-demo.pmnd.rs/) with persistence middleware (`localStorage`) |
+| **Syntax Highlighting** | [Shiki v4](https://shiki.style/) (dual-theme, diff/highlight/focus transformers)           |
+| **Math Rendering**      | [KaTeX](https://katex.org/)                                                                |
+| **Icons**               | [Lucide React](https://lucide.dev/) + [Simple Icons](https://simpleicons.org/)                |
+| **Search**              | Native `.filter()` (replaced Fuse.js stdlib)                                          |
+| **SEO**                 | React 19 auto-hoisted `<title>`/`<meta>` (replaced `react-helmet-async`)          |
+| **Image Processing**    | [Sharp](https://sharp.pixelplumbing.com/)                                                  |
+| **Testing**             | [Vitest 4](https://vitest.dev/) + [Testing Library](https://testing-library.com/)             |
+| **Env Validation**      | [Zod 4](https://zod.dev/)                                                                  |
+| **Language**            | [TypeScript 6](https://www.typescriptlang.org/)                                            |
 
 ---
 
@@ -176,6 +195,7 @@ pnpm run dev
 # Terminal 2 — content file watcher (auto-regenerates content-index.json on every save)
 pnpm run dev:watch
 ```
+
 ### Production Build
 
 ```bash
@@ -183,6 +203,7 @@ pnpm run build
 ```
 
 The build pipeline (orchestrated by `scripts/build.mjs` + `react-router build`):
+
 1. Validates frontmatter schema on all content files (required fields: `title`, `date`, `author`, `category`, `tags`, `description` for blog posts)
 2. Generates the content index (`public/content-index.json`) — extracting frontmatter fields including `tags`, `featured`, `series`, `seriesOrder`, `cc` — covering 59+ posts and 13+ docs pages
 3. Generates the RSS feed (`public/rss.xml`)
@@ -255,13 +276,14 @@ pnpm run preview
 │   │   ├── blog/             # Blog-specific components (PostCard, PostListView, CategoryFilter, TOC, Breadcrumbs, etc.)
 │   │   ├── docs/             # Docs-specific components (Sidebar, PrevNextNav, etc.)
 │   │   ├── mdx/              # Global MDX components (Callout, VideoEmbed, Badge, Timeline, etc.)
-│   │   ├── common/           # Shared components (Navbar, Footer, SEO, ThemeToggle, ErrorBoundary, NotFound)
+│   │   ├── common/           # Shared components (Navbar, Footer, SEO, ThemeToggle, LanguageSwitcher, ErrorBoundary, NotFound)
 │   │   └── search/           # Search command palette (Cmd+K)
-│   ├── hooks/                # Shared React hooks (useBlogPosts, useActiveHeading, useContentHeadings)
+│   ├── hooks/                # Shared React hooks (useBlogPosts, useActiveHeading, useContentHeadings, useTranslation)
 │   ├── layouts/              # BlogLayout, DocsLayout
 │   ├── routes/               # React Router page definitions
 │   ├── lib/                  # Utilities, content types, remark plugins, analytics, error tracking
-│   ├── store/                # Zustand stores (blogPrefs, content, navigation, theme)
+│   ├── store/                # Zustand stores (blogPrefs, content, navigation, theme, translation)
+│   ├── translations/         # Translation JSON files (en.json, ja.json, id.json)
 │   ├── config/               # Environment validation (env.ts, Zod schema)
 │   ├── test/                 # Vitest setup and test files
 │   └── styles/               # Blog and docs theme overrides
@@ -287,17 +309,17 @@ Routes are defined in `app/routes.ts` using flat file conventions. The route loa
 
 ### Valid Routes
 
-| Path | Source |
-| :--- | :--- |
-| `/` | Home page (hero, features, component showcase, latest posts) |
-| `/about` | `content/about.mdx` |
-| `/blog` | Blog index (all posts) with sort/view/order controls |
-| `/blog/:slug` | Individual blog post |
-| `/blog/category/:name` | Filtered by category (with sort/view/order controls) |
-| `/blog/tag/:tag` | Filtered by tag (with sort/view/order controls) |
-| `/docs` | Docs landing page |
-| `/docs/:section/:slug` | Individual doc page |
-| `/search` | Full-text search page with grouped results |
+| Path                     | Source                                                       |
+| :----------------------- | :----------------------------------------------------------- |
+| `/`                    | Home page (hero, features, component showcase, latest posts) |
+| `/about`               | `content/about.mdx`                                        |
+| `/blog`                | Blog index (all posts) with sort/view/order controls         |
+| `/blog/:slug`          | Individual blog post                                         |
+| `/blog/category/:name` | Filtered by category (with sort/view/order controls)         |
+| `/blog/tag/:tag`       | Filtered by tag (with sort/view/order controls)              |
+| `/docs`                | Docs landing page                                            |
+| `/docs/:section/:slug` | Individual doc page                                          |
+| `/search`              | Full-text search page with grouped results                   |
 
 ### Invalid Routes
 
@@ -356,15 +378,15 @@ The Vite build configuration uses `manualChunks` to split large third-party depe
 
 The following vendor chunks are created at build time:
 
-| Chunk Name | Contents | Rationale |
-| :--- | :--- | :--- |
-| `vendor-react` | `react`, `react-dom`, `react-router`, `scheduler` | Core framework — always loaded, always cached |
-| `vendor-framer` | `framer-motion` | ~130KB animation library — only on pages with animations |
-| `vendor-shiki` | `shiki`, `@shikijs/*` | Syntax highlighting grammars and themes — only when showing code blocks |
-| `vendor-katex` | `katex` | Math rendering engine (includes CSS + fonts) — only on posts with LaTeX |
-| `vendor-icons` | `lucide-react` | Icon library — accumulates across many icon imports |
+| Chunk Name          | Contents                                                          | Rationale                                                                                                |
+| :------------------ | :---------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- |
+| `vendor-react`    | `react`, `react-dom`, `react-router`, `scheduler`         | Core framework — always loaded, always cached                                                           |
+| `vendor-framer`   | `framer-motion`                                                 | ~130KB animation library — only on pages with animations                                                |
+| `vendor-shiki`    | `shiki`, `@shikijs/*`                                         | Syntax highlighting grammars and themes — only when showing code blocks                                 |
+| `vendor-katex`    | `katex`                                                         | Math rendering engine (includes CSS + fonts) — only on posts with LaTeX                                 |
+| `vendor-icons`    | `lucide-react`                                                  | Icon library — accumulates across many icon imports                                                     |
 | `vendor-sandpack` | `@codesandbox/sandpack-react`, `@codesandbox/sandpack-client` | In-browser code sandbox (bundler, editor, preview) — lazy-loaded, only on pages with live code examples |
-| `vendor-misc` | `zustand` | Persisted state management |
+| `vendor-misc`     | `zustand`                                                       | Persisted state management                                                                               |
 
 Additionally, `Mermaid` and `CodeSandbox` are `React.lazy()` loaded — their heavy dependencies only download when a content page actually uses them.
 
@@ -385,17 +407,17 @@ The order matters — the first matching `if` wins. Place more-specific matches 
 
 ## 🔧 Scripts Reference
 
-| Command | Description |
-| :--- | :--- |
-| `pnpm run dev` | Start dev server (runs prebuild steps then Vite) |
-| `pnpm run dev:watch` | Watch `content/` for changes — auto-regenerates content-index, RSS, sitemap on save |
-| `pnpm run build` | Prebuild steps → type-check → production build |
-| `pnpm run build:analyze` | Build with interactive bundle visualization |
-| `pnpm run preview` | Serve the production build locally |
-| `pnpm run test` | Run tests once (Vitest) |
-| `pnpm run test:watch` | Run tests in watch mode |
-| `pnpm run lint` | Run ESLint on all source files |
-| `pnpm run generate:content-index` | Regenerate content-index only (via `scripts/build.mjs`) |
+| Command                             | Description                                                                            |
+| :---------------------------------- | :------------------------------------------------------------------------------------- |
+| `pnpm run dev`                    | Start dev server (runs prebuild steps then Vite)                                       |
+| `pnpm run dev:watch`              | Watch `content/` for changes — auto-regenerates content-index, RSS, sitemap on save |
+| `pnpm run build`                  | Prebuild steps → type-check → production build                                       |
+| `pnpm run build:analyze`          | Build with interactive bundle visualization                                            |
+| `pnpm run preview`                | Serve the production build locally                                                     |
+| `pnpm run test`                   | Run tests once (Vitest)                                                                |
+| `pnpm run test:watch`             | Run tests in watch mode                                                                |
+| `pnpm run lint`                   | Run ESLint on all source files                                                         |
+| `pnpm run generate:content-index` | Regenerate content-index only (via `scripts/build.mjs`)                              |
 
 ### Build Pipeline
 
@@ -442,13 +464,13 @@ SEO metadata (site URL, title, description, Open Graph defaults) is configured i
 
 Required variables are validated at startup via a Zod schema in `src/config/env.ts`. Copy `.env.example` to `.env.local` and fill in:
 
-| Variable | Required | Description |
-| :--- | :---: | :--- |
-| `VITE_SITE_URL` | Yes | Canonical site URL |
-| `VITE_DISQUS_SHORTNAME` | No | Disqus forum shortname for comments |
-| `VITE_ANALYTICS_ID` | No | Analytics tracking ID |
-| `VITE_GITHUB_TOKEN` | No | GitHub API token for issue creation |
-| `VITE_ERROR_TRACKING_DSN` | No | Error reporting endpoint |
+| Variable                    | Required | Description                         |
+| :-------------------------- | :------: | :---------------------------------- |
+| `VITE_SITE_URL`           |   Yes   | Canonical site URL                  |
+| `VITE_DISQUS_SHORTNAME`   |    No    | Disqus forum shortname for comments |
+| `VITE_ANALYTICS_ID`       |    No    | Analytics tracking ID               |
+| `VITE_GITHUB_TOKEN`       |    No    | GitHub API token for issue creation |
+| `VITE_ERROR_TRACKING_DSN` |    No    | Error reporting endpoint            |
 
 ---
 
@@ -477,4 +499,6 @@ Add a `public/_redirects` file or `netlify.toml` with:
 ## 📜 License
 
 MIT License. Created with ❤️ by [snap-star](https://github.com/snap-star).
+
+
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub.svg?type=large&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsnap-star%2Fmdxhub?ref=badge_large&issueType=license)

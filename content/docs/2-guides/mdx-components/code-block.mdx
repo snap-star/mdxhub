@@ -1,0 +1,29 @@
+---
+title: "Code Block"
+section: "2. Guides"
+order: 42
+version: "v1.2"
+description: "Syntax-highlighted fenced code blocks with language labels, copy buttons, and line numbers. Powered by Shiki."
+---
+
+Code blocks are automatically wrapped in a styled container with:
+
+- **Language label** (top-right corner) — auto-detected from the opening fence
+- **Copy button** (top-right) — copies code to clipboard
+- **Traffic light dots** — macOS-style decoration
+
+No component needed — just use standard fenced code blocks:
+
+````mdx
+```javascript
+const greeting = "Hello, world!";
+```
+
+```tsx
+export function Button() {
+  return <button>Click me</button>;
+}
+```
+````
+
+For advanced features like diff annotations, highlights, focus mode, and the `<DiffView />` component, see the [Code Blocks Guide](/docs/2-guides/code-blocks).

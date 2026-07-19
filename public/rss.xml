@@ -6,7 +6,7 @@
     <description>A blazingly fast documentation and blog platform built with React, Vite, and MDX.</description>
     <language>en</language>
     <atom:link href="https://mdxhub.vercel.app/rss.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Sun, 19 Jul 2026 10:41:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 19 Jul 2026 13:56:03 GMT</lastBuildDate>
     
     <item>
       <title>A 600-Mile Road Trip Shows EV Fast Charging Has Turned a Corner</title>
@@ -70,6 +70,22 @@
       <category>open-source</category>
       <category>china</category>
       <category>markets</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>FAQ Component — Full Showcase &amp; Usage Guide</title>
+      <link>https://mdxhub.vercel.app/blog/showcase/demo-faq-component</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/showcase/demo-faq-component</guid>
+      <pubDate>Sun, 19 Jul 2026 00:00:00 GMT</pubDate>
+      <description>A complete guide to the new FAQ MDX component — covering basic usage, SEO structured data, multi-open mode, code-heavy answers, and combining with other built-in components.</description>
+      <category>Showcase</category>
+      <category>faq</category>
+      <category>accordion</category>
+      <category>components</category>
+      <category>mdx</category>
+      <category>seo</category>
+      <category>structured-data</category>
+      <category>demo</category>
       <author>Chigusa Asuha</author>
     </item>
     <item>

@@ -1,0 +1,69 @@
+---
+title: "FileTree"
+section: "2. Guides"
+order: 50
+version: "v1.2"
+description: "Recursive directory tree with expand/collapse — perfect for showing project structures in docs."
+---
+
+The `<FileTree>` component renders a recursive directory tree with expand/collapse for folders. Ideal for documenting project structures, file layouts, and directory conventions.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `tree` | FileNode[] | — | Array of `{ name, children?, open? }` objects (required) |
+| `className` | string | `""` | Additional CSS classes |
+
+Each `FileNode` accepts:
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `name` | string | — | File or folder name (required) |
+| `children` | FileNode[] | — | If set, the node renders as a collapsible folder |
+| `open` | boolean | `true` | Whether the folder starts expanded |
+
+### Usage
+
+```mdx
+<FileTree tree={[
+  { name: "src", children: [
+    { name: "components", children: [
+      { name: "Button.tsx" },
+      { name: "Card.tsx" },
+      { name: "Navbar.tsx" },
+    ]},
+    { name: "hooks", children: [
+      { name: "useTheme.ts" },
+    ]},
+    { name: "index.ts" },
+  ]},
+  { name: "package.json" },
+  { name: "tsconfig.json" },
+]} />
+```
+
+This renders as:
+
+<FileTree tree={[
+  { name: "src", children: [
+    { name: "components", children: [
+      { name: "Button.tsx" },
+      { name: "Card.tsx" },
+      { name: "Navbar.tsx" },
+    ]},
+    { name: "hooks", children: [
+      { name: "useTheme.ts" },
+    ]},
+    { name: "index.ts" },
+  ]},
+  { name: "package.json" },
+  { name: "tsconfig.json" },
+]} />
+
+### Notes
+
+- Folders use `Folder` / `FolderOpen` icons from lucide-react, files use `FileText`
+- The chevron on the left rotates 90° when a folder is expanded
+- All nodes start expanded by default — set `open: false` on a node to start it collapsed
+- Font is monospace for alignment

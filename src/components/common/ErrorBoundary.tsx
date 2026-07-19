@@ -1,14 +1,10 @@
 import React from 'react'
 import { errorTracker } from '@/lib/errorTracking'
+import { t } from '@/store/translationStore'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
-  /** Custom fallback UI. Receives the error and a reset function. */
   fallback?: React.ReactNode | ((error: Error, reset: () => void) => React.ReactNode)
-  /**
-   * Unique key that changes on navigation — when it changes, the error
-   * state is automatically cleared so the next route renders normally.
-   */
   locationKey?: string
 }
 
@@ -59,9 +55,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           <div className="mb-6 flex items-center justify-center w-16 h-16 rounded-2xl bg-danger/10 text-danger text-3xl font-bold">
             !
           </div>
-          <h2 className="text-2xl font-bold font-serif tracking-tight mb-3">Something went wrong</h2>
+          <h2 className="text-2xl font-bold font-serif tracking-tight mb-3">{t('error.somethingWentWrong')}</h2>
           <p className="text-sm text-muted-foreground mb-2 max-w-md">
-            An unexpected error occurred while rendering this page.
+            {t('error.unexpectedError')}
           </p>
 
           {import.meta.env.DEV && (
@@ -80,19 +76,19 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               onClick={reset}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 active:scale-[0.97] transition-all"
             >
-              Try Again
+              {t('error.tryAgain')}
             </button>
             <button
               onClick={() => window.history.back()}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card text-foreground font-medium text-sm hover:bg-muted hover:border-brand-300 active:scale-[0.97] transition-all"
             >
-              ← Go Back
+              ← {t('error.goBack')}
             </button>
             <a
               href="/"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card text-foreground font-medium text-sm hover:bg-muted hover:border-brand-300 active:scale-[0.97] transition-all"
             >
-              Home
+              {t('error.home')}
             </a>
           </div>
         </div>
@@ -102,11 +98,6 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 }
 
-/**
- * Wraps ErrorBoundary with automatic reset on route change.
- * Use this in layouts instead of plain ErrorBoundary to prevent
- * a stale error from persisting across navigations.
- */
 export function ErrorBoundaryWithReset({ children, fallback }: ErrorBoundaryProps) {
   const locationKey = typeof window !== 'undefined'
     ? window.location.pathname + window.location.search

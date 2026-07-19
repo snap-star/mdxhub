@@ -1,0 +1,103 @@
+---
+title: "Steps"
+section: "2. Guides"
+order: 32
+version: "v1.2"
+description: "Numbered step-by-step guide with connecting lines and styled step indicators."
+---
+
+The `<Steps>` component renders a numbered step-by-step guide with connecting lines and styled step indicators. Use the `<Step>` sub-component for each step.
+
+### Props
+
+#### `<Steps>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `children` | Step[] | — | One or more `<Step>` components |
+
+#### `<Step>`
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `title` | string | — | Step heading displayed in bold |
+| `icon` | string | — | Optional icon name (see Badge icon table) |
+| `children` | ReactNode | — | Step body content (Markdown, code, etc.) |
+
+### Usage
+
+Use a `<Step>` for each step with a `title`. Wrap block-level Markdown (code blocks, lists) inside a `<div>`:
+
+````mdx
+<Steps>
+<Step title="Install Dependencies">
+<div>
+
+Run `pnpm install` to install all project dependencies.
+This includes React, Vite, MDX, and all plugins.
+
+</div>
+</Step>
+<Step title="Configure Your Theme" icon="settings">
+<div>
+
+Open `src/index.css` and customize the color palette
+to match your brand. The project uses OKLCH color
+spaces via TailwindCSS v4.
+
+</div>
+</Step>
+<Step title="Start the Dev Server">
+<div>
+
+```bash
+pnpm run dev
+```
+
+Navigate to `http://localhost:3000` to see your site.
+
+</div>
+</Step>
+</Steps>
+````
+
+### Live Example:
+
+<Steps>
+<Step title="Install Dependencies">
+<div>
+
+Run `pnpm install` to install all project dependencies.
+This includes React, Vite, MDX, and all plugins.
+
+</div>
+</Step>
+<Step title="Configure Your Theme" icon="settings">
+<div>
+
+Open `src/index.css` and customize the color palette
+to match your brand. The project uses OKLCH color
+spaces via TailwindCSS v4.
+
+</div>
+</Step>
+<Step title="Start the Dev Server">
+<div>
+
+```bash
+pnpm run dev
+```
+
+Navigate to `http://localhost:3000` to see your site.
+
+</div>
+</Step>
+</Steps>
+
+### How It Works
+
+- Each `<Step>` is rendered as a separate step with an auto-incrementing number
+- A **vertical connecting line** links steps together (hidden after the last step)
+- The numbered circle **highlights on hover** with the brand accent color — scaling up and filling with brand color
+- The `icon` prop replaces the number with a lucide icon for a more visual presentation
+- Steps work with any content — paragraphs, code blocks, images, or even other components

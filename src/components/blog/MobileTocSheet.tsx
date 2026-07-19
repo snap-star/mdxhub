@@ -79,12 +79,12 @@ export function MobileTocSheet() {
   // Portal to document.body so position:fixed works regardless of framer-motion ancestor transforms
   return createPortal(
     <>
-      {/* ── Floating action button — circular, icon-only, mid-right screen, fixed position ── */}
+      {/* ── Floating action button — circular, icon-only, mid-right screen ── */}
       <button
         className={`fixed top-1/2 -translate-y-1/2 right-3 z-[100] lg:hidden flex items-center justify-center
-          w-[44px] h-[44px] rounded-full
+          w-11 h-11 rounded-full
           bg-brand-500 text-white
-          shadow-lg shadow-brand-500/35
+          shadow-lg shadow-brand-500/30
           ring-2 ring-white/20 dark:ring-white/10
           hover:bg-brand-600 hover:shadow-brand-500/45 hover:ring-white/30 hover:scale-105
           active:scale-95 active:shadow-brand-500/25
@@ -102,7 +102,8 @@ export function MobileTocSheet() {
           {hasItems && (
             <span className="absolute -top-1.5 -right-1.5 w-[15px] h-[15px] rounded-full
               bg-amber-400 text-[9px] font-bold text-amber-900
-              flex items-center justify-center shadow-sm ring-1 ring-white/30">
+              flex items-center justify-center shadow-sm ring-1 ring-white/30
+              tabular-nums">
               {items.length > 9 ? '9+' : items.length}
             </span>
           )}
@@ -134,14 +135,17 @@ export function MobileTocSheet() {
               animate="visible"
               exit="exit"
             >
+              {/* ── Drag handle ── */}
+              <div className="flex justify-center pt-2 pb-1 shrink-0">
+                <div className="w-9 h-1 rounded-full bg-muted-foreground/20" />
+              </div>
+
               {/* ── Header ── */}
-              <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border shrink-0">
+              <div className="flex items-center justify-between px-5 pb-3 border-b border-border shrink-0">
                 <div className="flex items-center gap-2">
                   <List size={16} className="text-brand-500" />
                   <span className="text-sm font-semibold text-foreground">On this page</span>
-                  <span className="text-[11px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                    {items.length}
-                  </span>
+                  <span className="toc-badge-mobile">{items.length}</span>
                 </div>
                 <button
                   onClick={() => setOpen(false)}
@@ -159,14 +163,21 @@ export function MobileTocSheet() {
                     key={item.id}
                     data-toc-id={item.id}
                     onClick={() => handleNav(item.id)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
-                      ${item.level === 3 ? 'ml-4 text-[0.8rem]' : ''}
+                    className={`w-full text-left rounded-lg text-sm transition-colors relative
+                      ${item.level === 3
+                        ? 'ml-5 pl-4 text-[0.8rem] border-l-2 border-border'
+                        : 'pl-3'
+                      }
                       ${
                         activeId === item.id
-                          ? 'bg-brand-50 text-brand-700 font-medium dark:bg-brand-900/30 dark:text-brand-300'
+                          ? 'bg-brand-50 text-brand-700 font-medium dark:bg-brand-900/30 dark:text-brand-300 border-l-brand-500'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                      }`}
+                      }
+                      py-2.5`}
                   >
+                    {item.level === 3 && (
+                      <span className="absolute left-[5px] top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-muted-foreground/30" />
+                    )}
                     <span className="line-clamp-2">{item.text}</span>
                   </button>
                 ))}

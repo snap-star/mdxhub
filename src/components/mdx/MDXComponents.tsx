@@ -22,7 +22,11 @@ const Mermaid = React.lazy(() => import('./Mermaid').then((m) => ({ default: m.M
 const CodeSandbox = React.lazy(() => import('./CodeSandbox').then((m) => ({ default: m.CodeSandbox })))
 import { CardGrid, Card } from './CardGrid'
 import { CodeGroup } from './CodeGroup'
+import { DiffView } from './DiffView'
 import { Timeline, TimelineItem } from './Timeline'
+import { Chart } from './Chart'
+import { FileTree } from './FileTree'
+import { FAQ, FAQItem } from './FAQ'
 
 // ─── MDX Image Component (separate component so hooks aren't called in a render function) ──
 
@@ -112,6 +116,11 @@ export const MDXComponents = {
   CardGrid,
   Card,
   CodeGroup,
+  DiffView,
   Timeline,
   TimelineItem,
+  Chart,
+  FileTree,
+  FAQ,
+  FAQItem,
 }

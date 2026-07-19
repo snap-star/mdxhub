@@ -1,0 +1,102 @@
+---
+title: "NewsletterSubscribe"
+section: "2. Guides"
+order: 49
+version: "v1.2"
+description: "Email subscription card with animated success feedback. Used automatically in blog post footers."
+---
+
+The `<NewsletterSubscribe />` component renders a premium subscription card with an email input and animated success feedback. It's used automatically in blog post footers and configured via `site.config.json`.
+
+> **Note:** This component is **not** a globally available MDX component — it's imported and used in `src/routes/blog.$slug.tsx`. To add it to other pages, import it from `@/components/blog/NewsletterSubscribe`.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `actionUrl` | string | `"#"` | Form POST endpoint (Mailchimp, EmailOctopus, etc.). When `"#"`, the card silently hides. |
+| `heading` | string | `"Stay Updated"` | Card heading text |
+| `description` | string | *(see below)* | Descriptive text below the heading |
+| `placeholder` | string | `"you@example.com"` | Email input placeholder |
+| `buttonLabel` | string | `"Subscribe"` | Submit button label |
+| `onSubscribed` | (email: string) => void | — | Callback invoked after successful submission |
+| `compact` | boolean | `false` | Compact mode for narrow containers like sidebars — stacks vertically with full-width form and smaller spacing |
+
+### How It Works
+
+1. Configure `newsletter.actionUrl` in `site.config.json` with your newsletter endpoint
+2. The card renders automatically in the blog post footer (after Disqus comments, before post pagination)
+3. When the user enters their email and clicks **Subscribe**:
+   - The form POSTs to `actionUrl` in a new tab (so the user stays on your blog)
+   - An **animated success message** replaces the form with a green checkmark and the subscribed email
+   - The user can click **Change email** to reset and subscribe a different address
+
+### Success Feedback
+
+After submission, the form transitions smoothly to a success state via Framer Motion:
+
+- **CheckCircle icon** in green with "You're subscribed!" text
+- The **subscribed email** shown in muted text
+- A **"Change email"** link to reset the form
+- Updated privacy note: "Check your inbox to confirm your subscription"
+
+### Configuration
+
+```json
+{
+  "newsletter": {
+    "actionUrl": "https://your-list.us10.list-manage.com/subscribe/post?u=YOUR_USER_ID&id=YOUR_LIST_ID"
+  }
+}
+```
+
+### Newsletter Providers
+
+The component works with any email marketing service that accepts form POST submissions. Recommended free-tier providers:
+
+| Provider | Free Tier | Signup |
+| :--- | :--- | :--- |
+| **EmailOctopus** | Up to 2,500 subscribers, 10,000 emails/month | [emailoctopus.com](https://emailoctopus.com) |
+| **Mailchimp** | Up to 500 subscribers, 1,000 sends/month | [mailchimp.com](https://mailchimp.com) |
+| **Buttondown** | Up to 1,000 subscribers, unlimited emails | [buttondown.email](https://buttondown.email) |
+| **ConvertKit** | Up to 1,000 subscribers, unlimited sends | [convertkit.com](https://convertkit.com) |
+
+### Integration
+
+No code changes needed to display the card — it's already wired up in `blog.$slug.tsx`. To configure it:
+
+1. Sign up for a newsletter provider and create an audience/list
+2. Get the form action URL (usually found in the "Embedded forms" or "Signup forms" section)
+3. Update `site.config.json`:
+   ```json
+   {
+     "newsletter": {
+       "actionUrl": "YOUR_FORM_ACTION_URL"
+     }
+   }
+   ```
+4. The card will appear on every blog post automatically
+
+### Usage in MDX
+
+While it's not a global MDX component, you can still use it in MDX by importing it in a custom component or adding it to the MDX component registry:
+
+```tsx
+import { NewsletterSubscribe } from '@/components/blog/NewsletterSubscribe'
+```
+
+Then render it anywhere in your route or layout components:
+
+```tsx
+<NewsletterSubscribe actionUrl={config.newsletter?.actionUrl} />
+```
+
+### Sidebar Usage (Compact Mode)
+
+The newsletter card also appears in the **blog index sidebar** (`/blog`). Because the sidebar is only 300px wide, the component uses the `compact` prop to render a narrower, vertically-stacked version:
+
+```tsx
+<NewsletterSubscribe actionUrl={config.newsletter?.actionUrl} compact />
+```
+
+In compact mode, the card stacks vertically (instead of side-by-side), uses `w-full` for the form (no minimum width), and reduces padding, icon size, and text sizes to fit the narrow container.

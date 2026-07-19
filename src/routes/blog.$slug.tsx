@@ -334,8 +334,10 @@ export default function BlogPost() {
         </footer>
       </main>
 
-      <aside className="sticky top-16 self-start hidden lg:block blog-toc-aside max-h-[calc(100vh-64px)] overflow-y-auto pr-2">
-        <TableOfContents items={headings} activeId={activeId} />
+      <aside className="sticky top-16 self-start hidden lg:block blog-toc-aside max-h-[calc(100vh-64px)] overflow-y-auto">
+        <div className="toc-card">
+          <TableOfContents items={headings} activeId={activeId} />
+        </div>
       </aside>
 
       <MobileTocSheet />

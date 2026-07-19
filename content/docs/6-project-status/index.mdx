@@ -9,6 +9,16 @@ Welcome to the **Project Status** page. Here you'll find an up-to-date log of ne
 
 ## 📋 Changelog
 
+### v1.5.8 (2026-07-19)
+- **i18n Translation System**: Added `src/translations/` with English, Japanese, and Indonesian UI strings. New `translationStore` (Zustand, persisted to localStorage), `useTranslation` hook, and `LanguageSwitcher` component in navbar. The root `<html lang>` attribute updates dynamically. Add a new locale by dropping a JSON file into `src/translations/` and registering it in `translationStore.ts`.
+- **PageSpeed Optimization**: Self-hosted Google Fonts (`@fontsource/lora`, `@fontsource/jetbrains-mono`), font preconnects, hero image dimensions, `decoding="async"` on all images, inline `<style>` tags consolidated into `blog.css`, sticky position fixes (`top-[100px]` → `top-16`).
+- **React Router ErrorBoundary**: Proper full-document shell (`.dark` class, `<Links />`, `<Scripts />`) so Tailwind styles apply on route-level errors. 404 detection with `<NotFound />` render.
+- **ErrorBoundary rewrite**: Class component with `getDerivedStateFromError`, auto-reset on route change via `locationKey`, dev-mode stack trace, "Go Back" button.
+- **AbortError handling**: `try/catch` around lazy `load()` in blog/docs route loaders to suppress `AbortError: Transition was skipped` from React Router.
+- **ViewportMount**: Bidirectional IntersectionObserver — mounts children within viewport, unmounts when out — applied to CodeSandbox and Mermaid to fix memory/performance issues on long pages.
+- **CodeSandbox rewrite**: Inline styles (removed `<style>` hack), `activeFile`/`visibleFiles` props, `node` template defaults, `initMode="user-visible"`.
+- **`useContentHeadings` fix**: Removed early return and premature `observer.disconnect()` that prevented heading detection.
+
 ### v1.5.7 (2026-07-19)
 - **SSG Migration**: Migrated to React Router framework mode with `ssr: false` + `prerender()` for static site generation
 - **Testing**: Added Vitest + Testing Library with ErrorBoundary tests

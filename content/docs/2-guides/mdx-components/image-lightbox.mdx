@@ -1,0 +1,36 @@
+---
+title: "Image Lightbox"
+section: "2. Guides"
+order: 38
+version: "v1.2"
+description: "Click-to-zoom full-screen lightbox for images. Built-in behavior for the standard MDX img tag."
+---
+
+**No component needed** — this is a built-in behavior for the standard MDX `img` tag.
+
+Any image rendered through the default `img` component is clickable and opens in a full-screen lightbox viewer.
+
+### Interactions
+
+- **Click** any image → opens in a full-screen overlay
+- **Toolbar** at the bottom: zoom in, zoom out, rotate
+- **Escape** key or **click outside** the image to close
+- **Alt text** is displayed as a caption in the overlay
+
+### Zoom Levels
+
+| Action | Range |
+| :--- | :--- |
+| Zoom in | Up to 400% (click the + button) |
+| Zoom out | Down to 25% (click the − button) |
+| Rotate | 90° clockwise per click |
+| Reset | Auto-resets when opening a new image |
+
+### Usage
+
+No special syntax needed — every `<img>` in your MDX gets this behavior:
+
+```mdx
+![Descriptive alt text](./my-image.png)
+![A photo](https://images.unsplash.com/photo-1234)
+```

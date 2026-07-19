@@ -1,0 +1,296 @@
+---
+title: "Translations & i18n"
+section: "2. Guides"
+order: 23
+version: "v1.5.8"
+description: "How to add a new language, write translation files, wire up components with the useTranslation hook, and contribute translations to the project."
+next: "docs/guides/code-blocks"
+---
+
+MDXHub has a built-in internationalization (i18n) system for translating the **UI chrome** — navbar, footer, buttons, labels, error messages, and other interface text. Content (blog posts, docs pages) remains in its original language.
+
+The system currently ships with three locales:
+
+| Code | Language | Native Name |
+| :--- | :--- | :--- |
+| `en` | English | English |
+| `ja` | Japanese | 日本語 |
+| `id` | Indonesian | Bahasa Indonesia |
+
+---
+
+## Quick Start: Adding a New Language
+
+### 1. Create a translation JSON file
+
+Create `src/translations/{code}.json` — for example `src/translations/fr.json` for French:
+
+```json
+{
+  "locale": {
+    "code": "fr",
+    "name": "French",
+    "nativeName": "Français",
+    "dir": "ltr"
+  },
+  "nav": {
+    "blog": "Blog",
+    "docs": "Docs",
+    "about": "À propos",
+    ...
+  }
+}
+```
+
+Copy `src/translations/en.json` as a starting template — it contains every key the system looks for.
+
+### 2. Register it in the store
+
+Open `src/store/translationStore.ts` and add your locale to three places:
+
+```typescript
+import en from '@/translations/en.json'
+import ja from '@/translations/ja.json'
+import id from '@/translations/id.json'
+import fr from '@/translations/fr.json'          // ← 1. Import
+
+export const LOCALES = ['en', 'ja', 'id', 'fr'] as const  // ← 2. Add to array
+
+const TRANSLATIONS: Record<Locale, Record<string, unknown>> = {
+  en, ja, id, fr,                                  // ← 3. Add to map
+} as Record<Locale, Record<string, unknown>>
+```
+
+### 3. Add a display label
+
+Open `src/components/common/LanguageSwitcher.tsx` and add your locale label:
+
+```typescript
+const LOCALE_LABELS: Record<Locale, string> = {
+  en: 'EN',
+  ja: '日本語',
+  id: 'ID',
+  fr: 'FR',          // ← Add label
+}
+```
+
+That's it. The language switcher dropdown will now show the new option. When selected, all components using `useTranslation()` will render the French strings.
+
+---
+
+## Translation File Structure
+
+Translation files use a **nested JSON** structure. Keys are organized by feature area:
+
+```json
+{
+  "locale": { "code": "fr", "name": "French", "nativeName": "Français", "dir": "ltr" },
+  "nav":       { ... },   // Navbar links, search, GitHub, toggle menu
+  "theme":     { ... },   // Theme toggle tooltips
+  "footer":    { ... },   // Footer tagline, link groups, copyright
+  "home":      { ... },   // Homepage hero, features, stats, FAQ
+  "blog":      { ... },   // Post cards, reading time, share, sort controls, sidebar
+  "docs":      { ... },   // Doc page chrome
+  "search":    { ... },   // Search command palette
+  "common":    { ... },   // Generic UI words (loading, close, show more)
+  "error":     { ... },   // Error boundary, 404 page
+  "language":  { ... }    // Language switcher itself
+}
+```
+
+### Key rules
+
+- **Every locale must have the same keys** as `en.json`. Missing keys fall back to English automatically.
+- **Placeholders use `{curly braces}`** — e.g. `"minRead": "{min} min read"` and `t('blog.minRead', { min: 5 })` produces `"5 min read"`.
+- **Strings only** — translation values are plain strings. JSX (like an inline `<Heart />` icon) cannot be embedded in JSON; the component handles that separately.
+- **Nested objects are flattened** automatically at runtime. The key `footer.builtWith` resolves from `{ "footer": { "builtWith": "..." } }`.
+
+---
+
+## Using Translations in Components
+
+### The `useTranslation` hook
+
+Any function component can access translations:
+
+```tsx
+import { useTranslation } from '@/hooks/useTranslation'
+
+export function MyComponent() {
+  const { t, locale } = useTranslation()
+
+  return (
+    <div>
+      <p>{t('common.loading')}</p>
+      <p>{t('blog.minRead', { min: 5 })}</p>
+      <p>Current language: {locale}</p>
+    </div>
+  )
+}
+```
+
+The component **re-renders automatically** when the user switches languages.
+
+### Interpolation
+
+Pass dynamic values as the second argument:
+
+```tsx
+t('blog.postsTagged', { tag: 'react' })
+// en: Posts tagged with "react"
+// ja: "react" のタグが付いた記事
+```
+
+### Missed keys / fallback
+
+If a key is missing in the active locale, the system falls back to `en.json`. If it's missing there too, the raw key string is returned. This means English omissions show as missing key paths during development.
+
+### Class components (error boundaries)
+
+Class components cannot use hooks. Use the static `t()` function directly from the store:
+
+```tsx
+import { t } from '@/store/translationStore'
+
+class MyErrorBoundary extends React.Component {
+  render() {
+    return <div>{t('error.somethingWentWrong')}</div>
+  }
+}
+```
+
+**Note:** The static `t()` reads the current locale but won't re-render on change — acceptable for edge cases like error boundaries.
+
+---
+
+## Wiring a Component for Translation
+
+Here's the step-by-step pattern used to translate every component:
+
+### Before
+
+```tsx
+export function PostCard() {
+  return (
+    <button title="Read more">Read more</button>
+  )
+}
+```
+
+### After
+
+```tsx
+import { useTranslation } from '@/hooks/useTranslation'
+
+export function PostCard() {
+  const { t } = useTranslation()
+
+  return (
+    <button title={t('blog.readMore')}>{t('blog.readMore')}</button>
+  )
+}
+```
+
+### Strings that use JSX
+
+Some translations need to render alongside inline elements (icons, badges). For these, keep the translation as a **phrase fragment** and compose in JSX:
+
+```tsx
+// translation key: "builtWith": "Built with"
+// component:
+<p>
+  {t('footer.builtWith')} <Heart className="inline-block w-4 h-4" /> {t('footer.inThisChaoticWorld')}
+</p>
+```
+
+### Strings with variable data (reading time, author)
+
+Use interpolation for text that contains dynamic values:
+
+```tsx
+// translation key: "byAuthor": "by {author}"
+// component:
+<span>{t('blog.byAuthor', { author: post.author })}</span>
+```
+
+For reading time, two patterns are used depending on whether the value is computed or static:
+
+```tsx
+{readingTime < 1 ? t('blog.minRead', { min: '< 1' }) : t('blog.minRead', { min: Math.round(readingTime) })}
+```
+
+### Static arrays outside components
+
+If a component defines static data arrays (like `NAV_LINKS` in the Navbar), change the array to store a **translation key** instead of a label string:
+
+```tsx
+// Before
+const NAV_LINKS = [
+  { href: '/blog', label: 'Blog', icon: Rss },
+]
+
+// After
+const NAV_LINKS = [
+  { href: '/blog', key: 'nav.blog', icon: Rss },
+]
+```
+
+Then in the JSX, render the translated label:
+
+```tsx
+{NAV_LINKS.map(({ href, key, icon: Icon }) => (
+  <Link to={href}>{t(key)}</Link>
+))}
+```
+
+---
+
+## Architecture Overview
+
+```
+src/translations/
+├── en.json          ← English (canonical — every key must exist here)
+├── ja.json          ← Japanese
+└── id.json          ← Indonesian
+
+src/store/
+└── translationStore.ts   ← Zustand store (persisted to localStorage)
+
+src/hooks/
+└── useTranslation.ts     ← useSyncExternalStore hook
+
+src/components/common/
+└── LanguageSwitcher.tsx  ← Navbar dropdown
+```
+
+**Data flow:**
+
+1. **Build time** — Vite bundles the matching JSON file(s) into the JS chunk for the active locale. All three files are small (under 5KB each) and tree-shakeable — only the active locale's translations are actually evaluated.
+2. **Store initialization** — `translationStore` reads `localStorage` for a saved preference, then falls back to the browser's `navigator.language` (first two-letter segment), then defaults to `'en'`.
+3. **Locale switch** — `LanguageSwitcher` calls `setLocale(newLocale)`, which updates the Zustand state and persists to `localStorage`. All subscribed components re-render via `useSyncExternalStore`.
+4. **`t()` resolution** — The translation JSON is flattened into dot-notation key-value pairs at first access and cached. Missing keys fall through to English, then to the raw key string.
+5. **`<html lang>`** — The root component reads `locale` from the store and sets `<html lang={locale}>` automatically.
+
+---
+
+## Checklist: Adding Translation Support to a New Component
+
+1. Add keys to `src/translations/en.json` (and the other locale files)
+2. Import `useTranslation` from `@/hooks/useTranslation`
+3. Destructure `{ t }` in the component
+4. Replace every hardcoded UI string with `t('namespace.key')`
+5. Handle interpolation for dynamic values (`{min}`, `{author}`, etc.)
+6. Handle JSX fragments by splitting translation keys at natural boundaries
+7. Build and verify
+
+---
+
+## Best Practices
+
+- **Keep keys short but descriptive** — `nav.blog`, `blog.readMore`, `error.notFound`.
+- **Group by feature area** — all blog-related keys under `blog.*`, all nav under `nav.*`.
+- **One key per string** — don't concatenate translations in JSX (word order differs per language).
+- **Avoid embedding HTML/JSX in JSON** — use fragment keys and compose in JSX instead.
+- **Interpolate, don't concatenate** — `t('blog.minRead', { min: 5 })` not `t('blog.minRead') + 5`.
+- **Keep JSON flat** — only one level of nesting under each feature namespace. The flattener handles deeper nesting but prefer single-level for readability.
+- **Test with a right-to-left language** — if you add Arabic or Hebrew, set `"dir": "rtl"` in the locale metadata. Components can read `locale.dir` to apply `dir="rtl"` on the root element.

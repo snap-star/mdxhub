@@ -1,0 +1,38 @@
+---
+title: "Tooltip"
+section: "2. Guides"
+order: 37
+version: "v1.2"
+description: "Floating labels on hover or focus. Uses @base-ui/react for accessible, performant interactions."
+---
+
+The `<Tooltip>` component shows a floating label when the user hovers or focuses the wrapped element. Uses `@base-ui/react` for accessible, performant interactions.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `content` | string | — | The tooltip text shown on hover/focus |
+| `side` | string | `"top"` | Placement: `top`, `bottom`, `left`, `right` |
+| `children` | ReactNode | — | The trigger element |
+
+### Usage
+
+```mdx
+<Tooltip content="Server Components that run on the server">RSC</Tooltip>
+enables efficient data fetching.
+
+{/* With placement control */}
+<Tooltip content="Renders below" side="bottom">Hover me</Tooltip>
+
+{/* Combined with Badge */}
+<Badge variant="blue">
+  <Tooltip content="Application Programming Interface">API</Tooltip>
+</Badge>
+```
+
+### Notes
+
+- The trigger text appears with a **dotted underline** to indicate interactivity
+- Tooltips support all four sides with automatic collision detection
+- Fully keyboard accessible — hover **and** focus-triggered

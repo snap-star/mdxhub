@@ -1,0 +1,53 @@
+---
+title: "CodeSandbox"
+section: "2. Guides"
+order: 43
+version: "v1.2"
+description: "Live, editable code sandbox using Sandpack — the same engine powering the React docs."
+---
+
+The `<CodeSandbox>` component embeds a **live, editable code sandbox** using Sandpack — the same engine that powers the official React documentation. Readers can edit code and see results instantly.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `template` | string | `"react"` | Project template: `react`, `react-ts`, `vanilla`, `vanilla-ts`, `static`, `node` |
+| `files` | object | — | Record of file paths to code content (e.g. `{"/App.js": "..."}`) |
+| `dependencies` | object | — | External npm dependencies (e.g. `{"date-fns": "^4.0.0"}`) |
+| `showConsole` | boolean | `false` | Show the console panel below the preview |
+| `showNavigator` | boolean | `false` | Show the URL navigation bar |
+| `caption` | string | — | Optional caption below the sandbox |
+| `editorHeight` | number | `350` | Height of the code editor in pixels |
+| `previewHeight` | number | `400` | Height of the preview area in pixels |
+| `autorun` | boolean | `true` | Whether to auto-run the code on load |
+| `showLineNumbers` | boolean | `true` | Show line numbers in the editor |
+| `wrapContent` | boolean | `false` | Wrap long lines in the editor |
+
+### Usage
+
+```mdx
+<CodeSandbox
+  template="react"
+  files={{
+    "/App.js": `
+import React from 'react'
+
+export default function App() {
+  const [count, setCount] = React.useState(0)
+  return (
+    <div>
+      <h1>Count: {count}</h1>
+      <button onClick={() => setCount(c => c + 1)}>+</button>
+    </div>
+  )
+}
+    `.trim(),
+  }}
+  caption="A live counter component"
+/>
+```
+
+### Theme Awareness
+
+CodeSandbox automatically switches between GitHub Light (light mode) and Monokai Pro (dark mode) themes to match the current site theme — no configuration needed.

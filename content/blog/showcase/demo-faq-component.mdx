@@ -1,0 +1,331 @@
+---
+title: "FAQ Component — Full Showcase & Usage Guide"
+date: "2026-07-19"
+category: "Showcase"
+tags: ["faq", "accordion", "components", "mdx", "seo", "structured-data", "demo"]
+author: chigusa-asuha
+description: "A complete guide to the new FAQ MDX component — covering basic usage, SEO structured data, multi-open mode, code-heavy answers, and combining with other built-in components."
+featured: true
+---
+
+The `<FAQ>` component renders an expandable question-and-answer accordion and automatically injects [FAQPage](https://schema.org/FAQPage) structured data (JSON-LD) for search engine optimization.
+
+Every `<FAQItem>` is a data container — rendering and layout is handled by the parent `<FAQ>`.
+
+---
+
+## 1. Basic Usage
+
+A straightforward FAQ with single-line answers:
+
+<FAQ>
+<FAQItem question="What is MDX?">
+MDX is a format that lets you use JSX components directly inside Markdown. It combines the readability of Markdown with the power of React components.
+</FAQItem>
+<FAQItem question="Do I need to install anything to use these components?">
+No — every component documented in the MDX Components Reference is globally available. Just write the tag in your `.mdx` file and it works.
+</FAQItem>
+<FAQItem question="Can I use these components in regular Markdown (.md) files?">
+Yes. Both `.md` and `.mdx` files are processed through the same MDX pipeline, so all custom components work in both extensions.
+</FAQItem>
+</FAQ>
+
+```mdx
+<FAQ>
+<FAQItem question="What is MDX?">
+MDX is a format that lets you use JSX components directly inside Markdown.
+</FAQItem>
+<FAQItem question="Do I need to install anything?">
+No — every component is globally available.
+</FAQItem>
+<FAQItem question="Can I use these in .md files?">
+Yes — both .md and .mdx work.
+</FAQItem>
+</FAQ>
+```
+
+---
+
+## 2. FAQ with Code Blocks in Answers
+
+FAQs often need to show CLI commands, code snippets, or configuration examples. Wrap block-level content inside a `<div>`:
+
+<FAQ>
+<FAQItem question="How do I install the project dependencies?">
+<div>
+
+Run one of the following commands depending on your package manager:
+
+```bash
+pnpm install
+```
+
+```bash
+npm install
+```
+
+```bash
+yarn install
+```
+
+</div>
+</FAQItem>
+<FAQItem question="How do I add a new MDX component?">
+<div>
+
+Create the component file and register it in two steps:
+
+**1.** Create `src/components/mdx/MyComponent.tsx`:
+
+```tsx
+import React from 'react'
+
+interface MyComponentProps {
+  title: string
+  children: React.ReactNode
+}
+
+export function MyComponent({ title, children }: MyComponentProps) {
+  return (
+    <div className="my-6 rounded-xl border border-border bg-card p-6">
+      <h3>{title}</h3>
+      <div>{children}</div>
+    </div>
+  )
+}
+```
+
+**2.** Register in `src/components/mdx/MDXComponents.tsx`:
+
+```tsx
+import { MyComponent } from './MyComponent'
+
+export const MDXComponents = {
+  // ... existing entries ...
+  MyComponent,
+}
+```
+
+No imports needed in your MDX files after registration.
+
+</div>
+</FAQItem>
+</FAQ>
+
+````mdx
+<FAQ>
+<FAQItem question="How do I install the project dependencies?">
+<div>
+
+Run one of the following:
+
+```bash
+pnpm install
+```
+
+```bash
+npm install
+```
+
+</div>
+</FAQItem>
+<FAQItem question="How do I add a new MDX component?">
+<div>
+
+Create `src/components/mdx/MyComponent.tsx` and register it in `MDXComponents.tsx`.
+
+</div>
+</FAQItem>
+</FAQ>
+````
+
+---
+
+## 3. Multi-Open Mode
+
+By default, `allowMultiple` is `true`, so users can expand several items at once:
+
+<FAQ>
+<FAQItem question="Can I open multiple items?">
+Yes — the default `allowMultiple={true}` lets you expand as many items as you want simultaneously.
+</FAQItem>
+<FAQItem question="What if I want only one open at a time?">
+Set `allowMultiple={false}`. When a new item is opened, any previously open item closes automatically — classic accordion behavior.
+</FAQItem>
+<FAQItem question="Can I start with specific items open?">
+Use the `defaultOpen` prop with an array of indices: `defaultOpen={[0, 2]}` opens the first and third items on page load.
+</FAQItem>
+</FAQ>
+
+```mdx
+<FAQ allowMultiple={true}>
+<FAQItem question="Can I open multiple items?">Yes.</FAQItem>
+<FAQItem question="Single-open mode?" allowMultiple={false}>...</FAQItem>
+<FAQItem question="Start open?" defaultOpen>I start expanded.</FAQItem>
+</FAQ>
+```
+
+---
+
+## 4. Combining with FileTree
+
+FAQs pair naturally with [`<FileTree>`](/docs/2-guides/mdx-components/file-tree) to answer project-structure questions:
+
+<FAQ>
+<FAQItem question="What does a typical project layout look like?">
+<div>
+
+Here is the top-level project structure:
+
+<FileTree tree={[
+  { name: "app", children: [
+    { name: "root.tsx" },
+    { name: "routes.ts" },
+  ]},
+  { name: "content", children: [
+    { name: "blog", children: [
+      { name: "my-post.mdx" },
+    ]},
+    { name: "docs", children: [
+      { name: "index.mdx" },
+    ]},
+  ]},
+  { name: "src", children: [
+    { name: "components", children: [
+      { name: "mdx", children: [
+        { name: "FAQ.tsx" },
+        { name: "FileTree.tsx" },
+        { name: "MDXComponents.tsx" },
+      ]},
+    ]},
+    { name: "index.css" },
+  ]},
+  { name: "package.json" },
+  { name: "tsconfig.json" },
+]} />
+
+</div>
+</FAQItem>
+<FAQItem question="Where do I put my MDX component files?">
+<div>
+
+All MDX components live in `src/components/mdx/`. Each file exports a named function component:
+
+<FileTree tree={[
+  { name: "src", children: [
+    { name: "components", children: [
+      { name: "mdx", children: [
+        { name: "Accordion.tsx" },
+        { name: "Badge.tsx" },
+        { name: "Callout.tsx" },
+        { name: "Chart.tsx" },
+        { name: "FAQ.tsx" },
+        { name: "FileTree.tsx" },
+        { name: "MDXComponents.tsx", open: false },
+        { name: "Tabs.tsx" },
+        { name: "Timeline.tsx" },
+      ]},
+    ]},
+  ]},
+]} />
+
+</div>
+</FAQItem>
+</FAQ>
+
+```mdx
+<FAQ>
+<FAQItem question="What does a typical project layout look like?">
+<div>
+
+<FileTree tree={[
+  { name: "app" },
+  { name: "content", children: [
+    { name: "blog" },
+    { name: "docs" },
+  ]},
+  { name: "src", children: [
+    { name: "components", children: [
+      { name: "mdx", children: [
+        { name: "FAQ.tsx" },
+        { name: "FileTree.tsx" },
+      ]},
+    ]},
+  ]},
+]} />
+
+</div>
+</FAQItem>
+</FAQ>
+```
+
+---
+
+## 5. SEO Structured Data
+
+Every `<FAQ>` renders an invisible `<script type="application/ld+json">` tag with [FAQPage schema.org](https://schema.org/FAQPage) markup. Search engines can display your FAQs directly in search results as **rich snippets**.
+
+You can verify this by inspecting the page source — the JSON-LD looks like:
+
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is MDX?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "MDX is a format that lets you use JSX components directly inside Markdown."
+      }
+    }
+  ]
+}
+```
+
+The text extraction is automatic — no extra configuration needed. The answer text is derived from the children of each `<FAQItem>`.
+
+---
+
+## 6. Keyboard Navigation
+
+The FAQ component is fully keyboard accessible:
+
+| Key | Action |
+| :--- | :--- |
+| **Enter** or **Space** | Toggle the focused item |
+| **Arrow Down** | Move focus to the next item |
+| **Arrow Up** | Move focus to the previous item |
+| **Home** | Jump to the first item |
+| **End** | Jump to the last item |
+
+Each item also has proper `aria-expanded`, `aria-controls`, and `aria-labelledby` attributes for screen readers.
+
+---
+
+## 7. API Reference
+
+### `<FAQ>` Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `defaultOpen` | `number[]` | — | Indices of items to expand on page load (0-based) |
+| `allowMultiple` | `boolean` | `true` | If `false`, opening one item closes any other open item |
+
+### `<FAQItem>` Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `question` | `string` | — | The FAQ question text (required) |
+| `children` | `ReactNode` | — | The FAQ answer content |
+
+---
+
+## 8. Tips & Best Practices
+
+1. **Keep questions short and scannable** — users scan FAQs quickly. Each `question` should be a complete, specific sentence.
+2. **Wrap block content in `<div>`** — code blocks, lists, and other block-level Markdown need a `<div>` wrapper inside `<FAQItem>` for proper MDX rendering.
+3. **Use `allowMultiple={false}` for compact UIs** — if space is tight, single-open mode keeps the page shorter.
+4. **Prefer FAQ over Accordion for Q&A content** — the structured data gives you an SEO advantage. Use `<Accordion>` for non-Q&A content like troubleshooting steps or reference material.
+5. **Combine with `<FileTree>` for project docs** — FAQs about project structure are clearer when paired with a live file tree.

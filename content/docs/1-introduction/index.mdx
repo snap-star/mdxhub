@@ -27,11 +27,11 @@ MDXHub is a Single Page Application that gives you the best of both worlds:
 | 📄 **`.md` / `.mdx` support** | Both Markdown and MDX files are discovered automatically via `import.meta.glob` |
 | 🌲 **Nested routing** | Blog and docs pages support nested folder paths and `index.mdx` slugs |
 | 🖼️ **Relative asset loading** | Resolve images from the current content folder or use `/public` assets |
+| 🌐 **i18n Ready** | Built-in translation system with language switcher (EN / 日本語 / ID). Plug in more locales by adding a JSON file to `src/translations/`. |
 | 🎨 **Syntax Highlighting** | Shiki v4 with Monokai dark / GitHub Light themes |
 | 🌙 **Dark Mode** | Discord-inspired palette with brand blue accents |
-| 🔍 **Full-text Search** | Fuse.js powered — press `Ctrl+K` / `Cmd+K` anywhere |
+| 🔍 **Full-text Search** | Native `.filter()` — press `Ctrl+K` / `Cmd+K` anywhere |
 | 🏠 **Dedicated Home Page** | Brand-themed landing page at `/` with animated stats, features, and blog showcase |
-| 🔍 **Full-text Search** | Fuse.js powered — press `Ctrl+K` / `Cmd+K` anywhere |
 | 📐 **Math (KaTeX)** | Inline and block LaTeX via `remark-math` + `rehype-katex` |
 | 📊 **Mermaid** | Mermaid.js for diagram and charting tools |
 | 🎬 **Video Embeds** | YouTube, Shorts, Vimeo — drop a URL and it just works |
@@ -59,6 +59,7 @@ This project is built on the latest 2026 web standards:
 6. **Shiki v4** — build-time syntax highlighting with full VS Code theme support
 7. **Mermaid** — Diagram and charting tools support
 8. **Framer Motion 12** — production-grade animations and page transitions
+9. **i18n** — multi-language UI (EN, 日本語, ID) with Zustand-persisted locale preference and a `useTranslation` hook
 
 <Callout type="tip">
 Press `Ctrl+K` (or `Cmd+K` on Mac) anywhere on the site to instantly search across all blog posts and documentation pages!

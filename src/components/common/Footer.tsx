@@ -4,6 +4,7 @@ import { Logo } from './Logo'
 import { Heart, Rss } from 'lucide-react'
 import { siGithub, siX, siReact, siMdx, siVite } from 'simple-icons'
 import type { SimpleIcon } from 'simple-icons'
+import { useTranslation } from '@/hooks/useTranslation'
 import siteConfig from '../../../site.config.json'
 
 function SimpleIconSvg({ icon, size = 14 }: { icon: SimpleIcon; size?: number }) {
@@ -16,15 +17,16 @@ function SimpleIconSvg({ icon, size = 14 }: { icon: SimpleIcon; size?: number })
 }
 
 export function Footer() {
+  const { t } = useTranslation()
+
   return (
     <footer className="mt-auto border-t border-border pt-10 sm:pt-12 px-4 sm:px-6 pb-6 sm:pb-8 bg-brand-50/50 dark:bg-[oklch(19.8%_0.006_264)]">
       <div className="max-w-[1400px] mx-auto">
         <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-8 sm:gap-10 mb-8 sm:mb-10">
-          {/* Brand column */}
           <div className="col-span-2 sm:col-span-1">
             <Logo />
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-[240px]">
-              A modern MDX-powered platform for blogs and documentation.
+              {t('footer.tagline')}
             </p>
             <div className="flex gap-2 mt-4">
               {([
@@ -50,47 +52,46 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Links */}
           {[
             {
-              title: 'Blog',
+              titleKey: 'footer.blogTitle',
               links: [
-                { label: 'All Posts', href: '/blog' },
-                { label: 'Categories', href: '/blog/category' },
-                { label: 'Tutorials', href: '/blog/category/Tutorial' },
-                { label: 'Guides', href: '/blog/category/Guide' },
+                { labelKey: 'footer.allPosts', href: '/blog' },
+                { labelKey: 'footer.categories', href: '/blog/category' },
+                { labelKey: 'footer.tutorials', href: '/blog/category/Tutorial' },
+                { labelKey: 'footer.guides', href: '/blog/category/Guide' },
               ],
             },
             {
-              title: 'Docs',
+              titleKey: 'footer.docsTitle',
               links: [
-                { label: 'Introduction', href: '/docs/1-introduction' },
-                { label: 'Installation', href: '/docs/2-guides/installation' },
-                { label: 'Deployment', href: '/docs/3-deployment/hosting' },
-                { label: 'MDX Authoring Guide', href: '/blog/creating-posts-guide' },
+                { labelKey: 'footer.introduction', href: '/docs/1-introduction' },
+                { labelKey: 'footer.installation', href: '/docs/2-guides/installation' },
+                { labelKey: 'footer.deployment', href: '/docs/3-deployment/hosting' },
+                { labelKey: 'footer.mdxGuide', href: '/blog/creating-posts-guide' },
               ],
             },
             {
-              title: 'More',
+              titleKey: 'footer.moreTitle',
               links: [
-                { label: 'Search', href: '/search' },
-                { label: 'Tags', href: '/blog/tags' },
-                { label: 'Authors', href: '/about' },
+                { labelKey: 'footer.search', href: '/search' },
+                { labelKey: 'footer.tags', href: '/blog/tags' },
+                { labelKey: 'footer.authors', href: '/about' },
               ],
             },
-          ].map(({ title, links }) => (
-            <div key={title}>
+          ].map(({ titleKey, links }) => (
+            <div key={titleKey}>
               <p className="font-semibold text-xs tracking-widest uppercase text-muted-foreground mb-3.5">
-                {title}
+                {t(titleKey)}
               </p>
               <ul className="flex flex-col gap-2">
-                {links.map(({ label, href }) => (
-                  <li key={label}>
+                {links.map(({ labelKey, href }) => (
+                  <li key={labelKey}>
                     <Link
                       to={href}
                       className="text-sm text-muted-foreground hover:text-primary transition-colors duration-150"
                     >
-                      {label}
+                      {t(labelKey)}
                     </Link>
                   </li>
                 ))}
@@ -101,11 +102,11 @@ export function Footer() {
 
         <div className="border-t border-border pt-6 flex justify-between items-center flex-wrap gap-2">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} {siteConfig.copyright || 'MDX Hub'}. Built with <Heart className="inline-block w-4 h-4 text-red-800/40 fill-red-400" /> in this chaotic world.
+            © {new Date().getFullYear()} {siteConfig.copyright || 'MDX Hub'}. {t('footer.builtWith')} <Heart className="inline-block w-4 h-4 text-red-800/40 fill-red-400" /> {t('footer.inThisChaoticWorld')}
           </p>
           <div className="text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-2">
-            Powered by{' '}
+            {t('footer.poweredBy')}{' '}
             <a href="https://react.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
               <SimpleIconSvg icon={siReact} size={14} />
               React

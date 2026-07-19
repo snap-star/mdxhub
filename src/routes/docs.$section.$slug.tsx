@@ -190,8 +190,10 @@ export default function DocPage() {
       </main>
 
       {toc !== false && (
-        <div className="docs-toc sticky top-16 self-start hidden lg:block pr-2 overflow-y-auto">
-          <TableOfContents items={headings} activeId={activeId} />
+        <div className="docs-toc hidden lg:block">
+          <div className="toc-card">
+            <TableOfContents items={headings} activeId={activeId} />
+          </div>
         </div>
       )}
 
