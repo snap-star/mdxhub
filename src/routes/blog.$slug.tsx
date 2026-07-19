@@ -334,34 +334,11 @@ export default function BlogPost() {
         </footer>
       </main>
 
-      <aside className="sticky top-[100px] self-start hidden lg:block blog-toc-aside max-h-[calc(100vh-140px)] overflow-y-auto pr-2">
+      <aside className="sticky top-16 self-start hidden lg:block blog-toc-aside max-h-[calc(100vh-64px)] overflow-y-auto pr-2">
         <TableOfContents items={headings} activeId={activeId} />
       </aside>
 
       <MobileTocSheet />
-
-      <style>{`
-        @media (max-width: 1024px) {
-          .blog-post-grid { grid-template-columns: 1fr !important; }
-          .blog-toc-aside { display: none !important; }
-        }
-        .blog-toc-aside::-webkit-scrollbar {
-          width: 4px;
-        }
-        .blog-toc-aside::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .blog-toc-aside::-webkit-scrollbar-thumb {
-          background: var(--color-slate-200);
-          border-radius: 4px;
-        }
-        .dark .blog-toc-aside::-webkit-scrollbar-thumb {
-          background: oklch(32% 0.008 264);
-        }
-        .blog-toc-aside::-webkit-scrollbar-thumb:hover {
-          background: var(--color-brand-400);
-        }
-      `}</style>
     </div>
     
     <BackToTop />

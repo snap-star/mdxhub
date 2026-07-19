@@ -109,17 +109,9 @@ export default function BlogTag() {
         )}
       </main>
 
-      <aside className="tag-page-aside sticky top-[100px] self-start">
+      <aside className="tag-page-aside sticky top-16 self-start">
         <TagCloud tags={tags} activeTag={tag} />
       </aside>
-
-      <style>{`
-        .tag-page-grid { grid-template-columns: 1fr 300px; }
-        @media (max-width: 1024px) {
-          .tag-page-grid { grid-template-columns: 1fr; }
-          .tag-page-aside { display: none; }
-        }
-      `}</style>
     </div>
   )
 }

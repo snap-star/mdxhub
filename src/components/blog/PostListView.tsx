@@ -155,6 +155,7 @@ function PostListItem({ post }: PostListItemProps) {
                   src={post.authorAvatar}
                   alt={post.authorName}
                   className="w-5 h-5 rounded-full object-cover shrink-0"
+                  decoding="async" loading="lazy"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
               ) : null}
@@ -199,7 +200,7 @@ function PostListItem({ post }: PostListItemProps) {
                 src={coverImage}
                 alt={title}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
+                loading="lazy" decoding="async"
               />
               {/* Gradient overlay on image for text readability */}
               <div className="absolute inset-0 bg-gradient-to-l from-black/30 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:via-transparent sm:to-black/20" />

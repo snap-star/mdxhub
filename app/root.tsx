@@ -102,6 +102,8 @@ export function ErrorBoundary() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <Links />
       </head>
       <body className="min-h-screen bg-background text-foreground flex flex-col">
@@ -139,6 +141,8 @@ export default function Root() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <Links />
       </head>
       <body className="min-h-screen bg-background text-foreground transition-colors duration-300">
