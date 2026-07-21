@@ -24,10 +24,8 @@ export const MANIFEST = {
     'eslint.config.js',
     'site.config.json',
     'vercel.json',
-    '.gitignore',
     'LICENSE',
     'README.md',
-
 
     // App entry
     'app/entry.client.tsx',
@@ -134,8 +132,6 @@ export const MANIFEST = {
     'src/translations/ja.json',
     'src/translations/id.json',
 
-    // @ alias
-    '@/lib/utils.ts',
   ],
 
   // ─── Blog: essential guide/component-usage content ─────────────────

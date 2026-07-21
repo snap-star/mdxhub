@@ -296,6 +296,8 @@ async function main() {
     const hasDocsRoutes   = existsSync(resolve(target, 'src', 'routes', 'docs._index.tsx'))
     const hasBlogLayout   = existsSync(resolve(target, 'src', 'layouts', 'BlogLayout.tsx'))
     const hasDocsLayout   = existsSync(resolve(target, 'src', 'layouts', 'DocsLayout.tsx'))
+    const hasBlogSlugRoute = existsSync(resolve(target, 'src', 'routes', 'blog.$slug.tsx'))
+    const hasDocsSlugRoute = existsSync(resolve(target, 'src', 'routes', 'docs.$section.$slug.tsx'))
 
     // Blog content: essential guides
     const hasBlogGuide   = existsSync(resolve(target, 'content', 'blog', 'tutorial'))
@@ -313,6 +315,8 @@ async function main() {
       assert(hasDocsRoutes,   'docs routes present')
       assert(hasBlogLayout,   'BlogLayout present')
       assert(hasDocsLayout,   'DocsLayout present')
+      assert(hasBlogSlugRoute, 'blog.$slug.tsx present (full)')
+      assert(hasDocsSlugRoute, 'docs.$section.$slug.tsx present (full)')
       // Full variant: essential guides + only javascript sample (other samples removed)
       assert(hasBlogGuide,    'blog guide content present (full)')
       assert(hasBlogShowcase, 'blog showcase content present (full)')
@@ -326,6 +330,8 @@ async function main() {
       assert(!hasDocsRoutes,  'docs routes absent')
       assert(hasBlogLayout,   'BlogLayout present')
       assert(!hasDocsLayout,  'DocsLayout absent')
+      assert(hasBlogSlugRoute, 'blog.$slug.tsx present (blog)')
+      assert(!hasDocsSlugRoute, 'docs.$section.$slug.tsx absent (blog)')
       // Blog variant: only essential guides, no sample content
       assert(hasBlogGuide,    'blog guide content present (blog)')
       assert(hasBlogShowcase, 'blog showcase content present (blog)')
@@ -339,6 +345,8 @@ async function main() {
       assert(hasDocsRoutes,    'docs routes present')
       assert(!hasBlogLayout,   'BlogLayout absent')
       assert(hasDocsLayout,    'DocsLayout present')
+      assert(!hasBlogSlugRoute, 'blog.$slug.tsx absent (docs)')
+      assert(hasDocsSlugRoute,  'docs.$section.$slug.tsx present (docs)')
       // Docs variant: no blog at all
       assert(!hasBlogGuide,    'blog guide content absent (docs)')
       assert(!hasBlogShowcase, 'blog showcase content absent (docs)')
@@ -401,6 +409,33 @@ async function main() {
       assert(!footerContent.includes("footer.blogTitle"), 'Footer has no blog section')
       assert(footerContent.includes("footer.docsTitle"), 'Footer has docs section')
       assert(footerContent.includes("footer.moreTitle"), 'Footer has more section')
+    }
+
+    // Check React 19 use() hook is used in the route files (Suspense-based MDX loading)
+    if (name !== 'docs') {
+      const blogRoutePath = resolve(target, 'src', 'routes', 'blog.$slug.tsx')
+      if (existsSync(blogRoutePath)) {
+        const blogRouteContent = readFileSync(blogRoutePath, 'utf-8')
+        assert(blogRouteContent.includes('React.use'), 'blog route uses React.use() hook')
+        assert(blogRouteContent.includes('React.Suspense'), 'blog route uses React.Suspense boundary')
+        assert(blogRouteContent.includes('BlogPostContent'), 'blog route has BlogPostContent sub-component')
+        // Verify old pattern is gone — no manual cancellation flags or loading state
+        assert(!blogRouteContent.includes('const [mdxLoading, setMdxLoading]'), 'blog route: old mdxLoading state removed')
+        // Note: cancellation flags still exist in the author loading useEffect —
+        // only the MDX-specific mdxLoading state proves the old pattern is gone.
+      }
+    }
+    if (name !== 'blog') {
+      const docsRoutePath = resolve(target, 'src', 'routes', 'docs.$section.$slug.tsx')
+      if (existsSync(docsRoutePath)) {
+        const docsRouteContent = readFileSync(docsRoutePath, 'utf-8')
+        assert(docsRouteContent.includes('React.use'), 'docs route uses React.use() hook')
+        assert(docsRouteContent.includes('React.Suspense'), 'docs route uses React.Suspense boundary')
+        assert(docsRouteContent.includes('DocContent'), 'docs route has DocContent sub-component')
+        // Verify old pattern is gone
+        assert(!docsRouteContent.includes('const [mdxLoading, setMdxLoading]'), 'docs route: old mdxLoading state removed')
+        // Note: only check mdxLoading — the old MDX loading pattern used this state variable.
+      }
     }
 
     console.log(dim(`     (${elapsed}s, ${result.copied} files)`))

@@ -19,6 +19,44 @@ import { resolve, dirname, relative } from 'path'
 import { fileURLToPath } from 'url'
 import { readFileSync, existsSync, mkdirSync, writeFileSync, copyFileSync, rmSync, readdirSync } from 'fs'
 
+// ─── Generated .gitignore content ─────────────────────────────────
+function generateGitignore() {
+  return `# Dependencies
+node_modules
+
+# Build output
+dist
+build
+.react-router
+
+# TypeScript
+*.tsbuildinfo
+.vite
+
+# Environment
+.env
+.env.*
+
+# Testing
+coverage
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.sw?
+`
+}
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PKG_ROOT = resolve(__dirname, '..')
 
@@ -214,6 +252,9 @@ async function scaffold(projectName, variant, packageManager) {
   if (!existsSync(routesDir)) mkdirSync(routesDir, { recursive: true })
   writeFileSync(resolve(targetDir, 'app/routes.ts'), generateRoutesConfig(variant), 'utf-8')
 
+  // Generate .gitignore (not copied from template — project-specific)
+  writeFileSync(resolve(targetDir, '.gitignore'), generateGitignore(), 'utf-8')
+
   // Remove irrelevant content
   if (variant === 'blog') {
     const d = resolve(targetDir, 'content', 'docs')
@@ -312,7 +353,8 @@ async function main() {
   console.log()
   console.log(k.bold().blue('  ╭─────────────────────────────────────╮'))
   console.log(k.bold().blue('  │         create-mdxhub 🚀            │'))
-  console.log(k.bold().blue('  │   Scaffold your MDXHub project      │'))
+  console.log(k.bold().blue('  │      create your project            │'))
+  console.log(k.bold().blue('  │      With MDXHub Template           │'))
   console.log(k.bold().blue('  ╰─────────────────────────────────────╯'))
   console.log()
 

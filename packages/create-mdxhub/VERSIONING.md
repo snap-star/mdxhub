@@ -23,6 +23,18 @@
 npm create mdxhub@latest
 ```
 
+The scaffolded project runs **React 19** (`^19.2.7`) and makes use of several modern APIs. The most notable React 19-specific addition is **`React.use()`** for Suspense-native MDX content loading:
+
+| API | React version | Where used | Purpose |
+|---|---|---|---|
+| **`React.use()`** | **19+** ★ | Blog & doc route pages | Suspense-native lazy-loading of MDX content, replacing the older `useEffect` + `useState` + cancellation pattern |
+| **`React.Suspense`** | 16.6+ | Layouts & content areas | Granular fallback UI during content loading — headers/breadcrumbs render immediately from the metadata index while the MDX body loads |
+| **`React.lazy()`** | 16.6+ | About page, Mermaid & CodeSandbox components | Dynamic import of heavy components on-demand |
+| **`useSyncExternalStore`** | 18+ | Translation store, custom `createStore` utility | Thread-safe external store subscriptions (integrated with zustand) |
+| **`createRoot`** | 18+ | `entry.client.tsx` | Concurrent rendering entry point |
+
+> **Why `use()` instead of `useEffect` for content loading?** The old pattern required 15+ lines of boilerplate per route with manual cancellation flags. `use()` integrates with React's built-in Suspense — the promise identity is tracked via `useMemo` keyed on the slug, so navigating between posts automatically suspends, resumes, and discards stale promises without explicit cancel logic.
+
 The CLI works in two modes:
 
 ### Production mode (published on npm)
@@ -145,7 +157,6 @@ packages/create-mdxhub/
         ├── scripts/
         ├── src/
         ├── .github/
-        ├── @/
         └── ... (all other project files)
 ```
 
@@ -341,58 +352,203 @@ shared: [
 - npm account with access to publish `create-mdxhub`
 - Logged in: `npm login`
 
-### Step-by-step Release
+### Pre-release Checklist
 
-#### 1. Prepare the templates
+Before every release, run through this checklist to ensure nothing is broken or stale.
+
+#### □ 1. Run the full e2e test suite
 
 ```bash
-# From the monorepo root
-git checkout main
-git pull
-node packages/create-mdxhub/scripts/assemble-templates.mjs
+pnpm --filter create-mdxhub test:e2e
+# Expected: 142/142 assertions passed
 ```
 
-#### 2. Bump the version
+This validates all 3 variants scaffold correctly, the full variant builds, and non-interactive mode works. **Do not proceed if any assertion fails.**
+
+#### □ 2. Verify the manifest is up to date
+
+Review `packages/create-mdxhub/src/manifest.js` and confirm:
+
+- All new source files are added to the correct category (`shared`, `blogInfrastructure`, `blogContentEssential`, `docsOnly`)
+- No deleted source files are still listed in the manifest
+- The `generated` section only contains files created by the CLI (not copied from source)
+- Blog content files (`blogContentEssential`) are guides/component-usage content only — sample/demo posts should be in `blogContentSample`
+
+#### □ 3. Re-assemble the templates
+
+```bash
+node packages/create-mdxhub/scripts/assemble-templates.mjs
+# Expected output (counts may vary):
+#   ✓ Templates assembled:
+#      Files copied: ~183
+#      Skipped:      0
+#      Errors:       0
+```
+
+If `Skipped` or `Errors` are non-zero, investigate:
+- **Skipped**: a manifest pattern matched no file — likely a stale entry or a deleted file
+- **Errors**: a file copy failed — check permissions and paths
+
+#### □ 4. Dry-run the publish
+
+```bash
+cd packages/create-mdxhub
+npm publish --dry-run
+```
+
+Review the output and verify:
+- Only expected files are included (no `.git`, `node_modules`, or temp files)
+- `templates/full/` is in the tarball with all expected files
+- `package.json` bin entry points to correct file
+- Version number is correct
+
+#### □ 5. Check the documentation
+
+- `README.md` — usage examples are correct and up to date
+- `VERSIONING.md` — manifest categories, file counts, and flow diagrams match the current state
+- CLI `--help` output matches actual flags (run `node packages/create-mdxhub/src/index.js --help` to verify)
+
+#### □ 6. Verify the CLI flags work end-to-end
+
+```bash
+# Run from monorepo root — scaffold all three variants in non-interactive mode
+node packages/create-mdxhub/src/index.js --yes --name preflight-full --template full --pm pnpm --skip-install
+node packages/create-mdxhub/src/index.js --yes --name preflight-blog --template blog --pm pnpm --skip-install
+node packages/create-mdxhub/src/index.js --yes --name preflight-docs --template docs --pm pnpm --skip-install
+```
+
+Quick-check each:
+- ✅ Project directory exists
+- ✅ `app/routes.ts` has variant-appropriate routes
+- ✅ `package.json` has the correct project name
+- ✅ `site.config.json` has the correct site title
+- ✅ `.gitignore` was generated
+- ✅ Variant-irrelevant content is removed (e.g., no `content/docs/` in blog variant)
+- ✅ Navbar/Footer has variant-appropriate links
+
+#### □ 7. Confirm you're logged into npm
+
+```bash
+npm whoami
+# Should show your npm username, not an error
+```
+
+If not logged in:
+```bash
+npm login
+```
+
+#### □ 8. Final git status check
+
+```bash
+git status
+```
+
+Ensure:
+- No uncommitted changes to `templates/full/` (they're gitignored)
+- No uncommitted changes to `src/` or `package.json`
+- Working tree is clean
+
+### Step-by-step Release
+
+Once the checklist above is complete, follow these steps:
+
+#### 1. Bump the version
 
 Edit `packages/create-mdxhub/package.json`:
 
 ```json
 {
   "name": "create-mdxhub",
-  "version": "1.1.0",  // ← bump this
+  "version": "1.0.0-beta.1",  // ← bump this
   // ...
 }
 ```
 
 Follow [SemVer](https://semver.org/):
-- Patch (`1.0.0` → `1.0.1`): bug fixes, dependency bumps
-- Minor (`1.0.0` → `1.1.0`): new features, new components in template
-- Major (`1.0.0` → `2.0.0`): breaking changes
 
-#### 3. Commit and tag
+| Bump | Example | When |
+|---|---|---|
+| **Patch** | `1.0.0` → `1.0.1` | CLI bug fixes, template patches (typo fixes, dependency bumps) |
+| **Minor** | `1.0.0` → `1.1.0` | New features, new MDX components added to templates, new content |
+| **Major** | `1.0.0` → `2.0.0` | Breaking changes in scaffolded project structure |
+| **Pre-release** | `1.0.0` → `1.0.0-beta.1` | Test releases before stable — npm tag `beta` |
+
+For pre-releases (testing before stable):
+```bash
+npm publish --tag beta  # Published as create-mdxhub@beta
+# Users install with: npm create mdxhub@beta
+```
+
+#### 2. Commit and tag
 
 ```bash
-git add packages/create-mdxhub/
-git commit -m "chore(create-mdxhub): bump to v1.1.0"
-git tag create-mdxhub@v1.1.0
+git add packages/create-mdxhub/package.json
+git commit -m "chore(create-mdxhub): bump to v1.0.0-beta.1"
+git tag create-mdxhub@v1.0.0-beta.1
 git push && git push --tags
 ```
 
-#### 4. Publish to npm
+Tag format must match `.github/workflows/publish-create-mdxhub.yml`:
+```
+create-mdxhub@v<semver>
+# Example: create-mdxhub@v1.0.0, create-mdxhub@v1.0.0-beta.1
+```
+
+#### 3. Publish to npm
 
 ```bash
 cd packages/create-mdxhub
+
+# For stable releases:
 npm publish
+
+# For pre-release/beta:
+npm publish --tag beta
 ```
 
-#### 5. Verify
+Verify with:
+```bash
+npm view create-mdxhub versions --json
+```
+
+#### 4. Tag for automated release
+
+The GitHub Actions workflow `.github/workflows/publish-create-mdxhub.yml` will:
+1. Trigger on tag push `create-mdxhub@v*`
+2. Assemble templates from latest source
+3. Run e2e tests
+4. Publish to npm
+5. Create a GitHub Release with auto-generated release notes
+
+If you prefer to publish manually instead of relying on CI:
+```bash
+# After npm publish, create the GitHub Release manually:
+git tag create-mdxhub@v1.0.0
+git push origin create-mdxhub@v1.0.0
+```
+
+#### 5. Verify the published package
 
 ```bash
 # Create a temporary directory
-cd /tmp
-# Test the published package
+cd $(mktemp -d)
+
+# For stable:
 npm create mdxhub@latest
+# For beta:
+npm create mdxhub@beta
+
+# Or with npx:
+npx create-mdxhub@latest --yes --name verify-release --template full --skip-install
 ```
+
+Check:
+- ✅ Project scaffolds without errors
+- ✅ Files are copied correctly
+- ✅ `app/routes.ts` has correct routes for the selected variant
+- ✅ Variant-aware content filtering works
+- ✅ `.gitignore` was generated
 
 ### Automated Release via GitHub Actions
 
@@ -475,7 +631,7 @@ node packages/create-mdxhub/scripts/assemble-templates.mjs
 #   ℹ Assembling templates...
 #   ℹ Cleaning existing template directory...
 #   ✓ Templates assembled:
-#      Files copied: 260
+#      Files copied: ~183
 #      Skipped:      0
 #      Errors:       0
 #      Location:     packages/create-mdxhub/templates/full
@@ -578,7 +734,7 @@ Possible causes:
 
 | Variant | Files | Content included |
 |---|---|---|
-| `full` | ~258 | All blog (guides + samples) + all docs + all components |
-| `blog` | ~146 | Blog infrastructure + essential guides only (no sample posts) |
-| `docs` | ~147 | All docs + docs components only (no blog) |
+| `full` | ~181 | All blog (guides + samples) + all docs + all components |
+| `blog` | ~96 | Blog infrastructure + essential guides only (no sample posts) |
+| `docs` | ~90 | All docs + docs components only (no blog) |
 | Generated | — | `app/routes.ts`, `public/content-index.json`, `public/content-slug-map.json`, `public/rss.xml`, `public/sitemap.xml` |
