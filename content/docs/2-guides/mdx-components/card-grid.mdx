@@ -78,3 +78,77 @@ The `<CardGrid>` component renders a responsive grid of cards, perfect for featu
 </Card>
 </CardGrid>
 ```
+
+### Live Example: 3-Column Grid
+
+<CardGrid>
+<Card
+  title="Lightning Fast"
+  description="Built on Vite 8 with instant HMR and sub-second page loads."
+  icon="zap"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX-Powered"
+  description="Write content in Markdown with embedded React components."
+  icon="file"
+>
+<div></div>
+</Card>
+<Card
+  title="Type-Safe"
+  description="Full TypeScript support with strict type checking."
+  icon="shield"
+>
+<div></div>
+</Card>
+</CardGrid>
+
+### Live Example: 2-Column Grid with Links
+
+<CardGrid columns={2}>
+<Card
+  title="Getting Started"
+  description="New to MDXHub? Follow our step-by-step installation guide."
+  icon="rocket"
+  href="/docs/2-guides/installation"
+  linkText="View Guide"
+>
+<div></div>
+</Card>
+<Card
+  title="MDX Components"
+  description="Learn about all built-in MDX components and how to use them."
+  icon="book"
+  href="/docs/2-guides/mdx-components"
+  linkText="Browse Components"
+>
+<div></div>
+</Card>
+</CardGrid>
+
+### Live Example: 4-Column Grid
+
+<CardGrid columns={4}>
+<Card
+  title="Fast"
+  description="Sub-second page loads with instant HMR."
+  icon="zap"
+/>
+<Card
+  title="Flexible"
+  description="MDX + React — endless customization."
+  icon="file"
+/>
+<Card
+  title="Safe"
+  description="Full TypeScript with strict type checking."
+  icon="shield"
+/>
+<Card
+  title="Free"
+  description="Open source — MIT licensed."
+  icon="heart"
+/>
+</CardGrid>
