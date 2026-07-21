@@ -1,0 +1,44 @@
+{
+  "name": "create-mdxhub",
+  "version": "1.0.0",
+  "description": "Scaffold an MDXHub project — a blazingly fast documentation and blog platform built with React, Vite, and MDX.",
+  "type": "module",
+  "bin": {
+    "create-mdxhub": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "templates",
+    "README.md"
+  ],
+  "keywords": [
+    "mdxhub",
+    "scaffold",
+    "template",
+    "mdx",
+    "blog",
+    "docs",
+    "react",
+    "vite",
+    "documentation"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snap-star/mdxhub"
+  },
+  "bugs": {
+    "url": "https://github.com/snap-star/mdxhub/issues"
+  },
+  "homepage": "https://mdxhub.vercel.app",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test:e2e": "node scripts/assemble-templates.mjs && node scripts/e2e-test.mjs"
+  },
+  "dependencies": {
+    "kleur": "^4.1.5",
+    "prompts": "^2.4.2"
+  }
+}
