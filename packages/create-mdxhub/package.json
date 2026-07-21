@@ -1,6 +1,6 @@
 {
   "name": "create-mdxhub",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "description": "Scaffold an MDXHub project — a blazingly fast documentation and blog platform built with React, Vite, and MDX.",
   "type": "module",
   "bin": {
