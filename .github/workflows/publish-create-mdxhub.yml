@@ -1,0 +1,78 @@
+name: Publish create-mdxhub
+
+on:
+  push:
+    tags:
+      - 'create-mdxhub@v*'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  test-and-publish:
+    runs-on: ubuntu-latest
+    # Optional: create a GitHub environment for deployment protection rules
+    # environment: npm-publish
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Assemble templates
+        run: node packages/create-mdxhub/scripts/assemble-templates.mjs
+
+      - name: Run e2e tests
+        run: pnpm --filter create-mdxhub test:e2e
+
+      # Requires NPM_TOKEN secret in repository/org settings.
+      # See: https://docs.npmjs.com/managing-access-tokens
+      - name: Publish to npm
+        working-directory: packages/create-mdxhub
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Extract version
+        id: version
+        working-directory: packages/create-mdxhub
+        run: echo "version=v$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
+
+      - name: Check if release tag exists
+        id: tag_check
+        run: |
+          TAG="${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        if: steps.tag_check.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: create-mdxhub ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

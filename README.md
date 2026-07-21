@@ -38,6 +38,42 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 
 ---
 
+## 🚀 Quick Start
+
+The fastest way to get started with MDXHub is via the scaffolding CLI — no need to clone the entire monorepo:
+
+```bash
+# Interactive mode (guided prompts)
+npm create mdxhub@latest
+# or
+pnpm create mdxhub@latest
+```
+
+Choose your **template variant** during setup:
+
+| Variant | Description |
+|---|---|
+| **Full** | Complete site — blog + docs + about page + all features |
+| **Blog** | Blog-only site with categories, tags, series, and author pages |
+| **Docs** | Documentation-only site with sidebar navigation and section grouping |
+
+### Non-interactive mode (CI / automation)
+
+```bash
+npm create mdxhub@latest -- --yes --name my-site --template full --pm pnpm
+```
+
+This scaffolds a fully functional MDXHub project in seconds. After scaffolding, run:
+
+```bash
+cd my-site
+pnpm dev
+```
+
+> 💡 **Already an MDXHub user?** The CLI is independently versioned from the platform itself. See [`packages/create-mdxhub`](./packages/create-mdxhub/) for full CLI docs.
+
+---
+
 ## ✨ Features
 
 ### 📝 Content Authoring
@@ -164,7 +200,9 @@ A blazingly fast, highly interactive, and beautiful MDX-powered platform for bui
 
 ---
 
-## 📦 Getting Started
+## 📦 Monorepo Development
+
+Want to hack on MDXHub itself? Clone the monorepo:
 
 ### Prerequisites
 

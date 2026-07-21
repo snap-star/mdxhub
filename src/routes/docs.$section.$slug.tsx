@@ -16,39 +16,28 @@ import { setTocData } from '@/lib/tocStore'
 import { useContentHeadings } from '@/hooks/useContentHeadings'
 import siteConfig from '../../site.config.json'
 
+// ── Lazy-load the MDX component using React 19's use() hook ────────────
+function DocContent({ slug }: { slug: string | undefined }) {
+  const loadPromise = React.useMemo(
+    () => slug ? useContentStore.getState().loadDocComponent(slug) : Promise.resolve(null),
+    [slug],
+  )
+  const MdxComponent = React.use(loadPromise) as React.ComponentType | null
+
+  if (!MdxComponent) {
+    return <p className="text-muted-foreground italic">Content could not be loaded.</p>
+  }
+
+  return <MdxComponent />
+}
+
 const config = siteConfig as unknown as { siteUrl: string; githubUrl: string }
 
 export default function DocPage() {
   const params = useParams()
   const fullSlug = params['*']
 
-  // ── Lazy-load the MDX component for this specific doc ──────────────
-  const [MdxComponent, setMdxComponent] = React.useState<React.ComponentType | null>(null)
-  const [mdxLoading, setMdxLoading] = React.useState(true)
-
-  React.useEffect(() => {
-    let cancelled = false
-    setMdxLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
-
-    async function load() {
-      if (!fullSlug) {
-        setMdxLoading(false)
-        return
-      }
-      try {
-        const Component = await useContentStore.getState().loadDocComponent(fullSlug)
-        if (!cancelled) {
-          setMdxComponent(() => Component || null)
-          setMdxLoading(false)
-        }
-      } catch {
-        if (!cancelled) setMdxLoading(false)
-      }
-    }
-    load()
-
-    return () => { cancelled = true }
-  }, [fullSlug])
+  // ── MDX component is loaded lazily via DocContent below ────────────
 
   // ── Metadata from the lightweight content index ───────────────────
   const docs = useContentStore((s) => s.docs)
@@ -163,17 +152,15 @@ export default function DocPage() {
       </header>
 
       <article className="prose">
-        {mdxLoading ? (
+        <React.Suspense fallback={
           <div className="animate-pulse space-y-4">
             <div className="h-4 bg-muted rounded w-full" />
             <div className="h-4 bg-muted rounded w-5/6" />
             <div className="h-4 bg-muted rounded w-4/6" />
           </div>
-        ) : MdxComponent ? (
-          <MdxComponent />
-        ) : (
-          <p className="text-muted-foreground italic">Content could not be loaded.</p>
-        )}
+        }>
+          <DocContent slug={fullSlug} />
+        </React.Suspense>
       </article>
 
       {/* Edit on GitHub */}

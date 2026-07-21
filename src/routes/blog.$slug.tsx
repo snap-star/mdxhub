@@ -36,33 +36,27 @@ import { MobileTocSheet } from '@/components/blog/MobileTocSheet'
 import { setTocData } from '@/lib/tocStore'
 import { useContentHeadings } from '@/hooks/useContentHeadings'
 
+// ── Lazy-load the MDX component using React 19's use() hook ────────────
+// This replaces the old useEffect+useState pattern with Suspense-native
+// async loading. The promise is memoized by slug so use() can track
+// identity and re-suspend when navigating between posts.
+function BlogPostContent({ slug }: { slug: string }) {
+  const loadPromise = React.useMemo(
+    () => useContentStore.getState().loadPostComponent(slug),
+    [slug],
+  )
+  const MdxComponent = React.use(loadPromise) as React.ComponentType | null
+
+  if (!MdxComponent) {
+    return <p className="text-muted-foreground italic">Content could not be loaded.</p>
+  }
+
+  return <MdxComponent />
+}
+
 export default function BlogPost() {
   const params = useParams()
   const currentSlug = [params.slug, params['*']].filter(Boolean).join('/')
-
-  // ── Lazy-load the MDX component for this specific post ────────────
-  const [MdxComponent, setMdxComponent] = React.useState<React.ComponentType | null>(null)
-  const [mdxLoading, setMdxLoading] = React.useState(true)
-
-  React.useEffect(() => {
-    let cancelled = false
-    setMdxLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
-
-    async function load() {
-      try {
-        const Component = await useContentStore.getState().loadPostComponent(currentSlug)
-        if (!cancelled) {
-          setMdxComponent(() => Component || null)
-          setMdxLoading(false)
-        }
-      } catch {
-        if (!cancelled) setMdxLoading(false)
-      }
-    }
-    load()
-
-    return () => { cancelled = true }
-  }, [currentSlug])
 
   // ── Metadata from the lightweight content index ───────────────────
   const allPosts = useContentStore((s) => s.posts)
@@ -267,17 +261,15 @@ export default function BlogPost() {
         </header>
 
         <article className="prose" style={{ maxWidth: '100%' }}>
-          {mdxLoading ? (
+          <React.Suspense fallback={
             <div className="animate-pulse space-y-4">
               <div className="h-4 bg-muted rounded w-full" />
               <div className="h-4 bg-muted rounded w-5/6" />
               <div className="h-4 bg-muted rounded w-4/6" />
             </div>
-          ) : MdxComponent ? (
-            <MdxComponent />
-          ) : (
-            <p className="text-muted-foreground italic">Content could not be loaded.</p>
-          )}
+          }>
+            <BlogPostContent slug={currentSlug} />
+          </React.Suspense>
         </article>
 
         <footer className="mt-16 pt-8 border-t border-border">
