@@ -1,0 +1,67 @@
+---
+title: "OptimizedImage"
+section: "2. Guides"
+order: 53
+version: "v1.2"
+description: "Responsive <picture> element with WebP/AVIF fallback for optimized image delivery. Used automatically by the default MDX img tag."
+---
+
+The `<OptimizedImage>` component renders a `<picture>` element with automatic WebP and AVIF source variants, falling back to the original format. It's used **automatically** by the default MDX image component — any `![alt](src)` in your MDX gets optimized without extra configuration.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `src` | string | — | Original image source URL or path (required) |
+| `alt` | string | `""` | Alt text for accessibility |
+| `contentPath` | string | — | Filesystem-style content path (e.g. `"blog/image.png"`) for asset map lookups — auto-resolved when used via the MDX img tag |
+| `imgClassName` | string | — | Additional class names for the inner `<img>` element |
+| `usePicture` | boolean | `true` | Whether to wrap in a `<picture>` element. Set to `false` to skip multi-format optimization |
+| `className` | string | — | Additional class names for the wrapper element |
+
+### Format Detection Strategy
+
+The component tries three strategies to find alternative image formats, in order:
+
+1. **Content asset map lookup** — if a `contentPath` is provided, looks up pre-built WebP/AVIF variants from Vite's asset pipeline
+2. **Extension replacement** — for unhashed URLs, simply replaces `.png` → `.webp`, `.png` → `.avif`
+3. **Original fallback** — for external/hashed URLs with no map entry, returns only the original format
+
+### Usage
+
+```mdx
+{/* Using the standard MDX image syntax — automatically optimized */}
+![Mountain landscape](./mountains.png)
+
+{/* Direct component usage */}
+<OptimizedImage
+  src="/images/example.png"
+  alt="Example image"
+  imgClassName="rounded-xl shadow-lg"
+/>
+
+{/* Skip picture element for simple images */}
+<OptimizedImage
+  src="/images/icon.svg"
+  alt="Icon"
+  usePicture={false}
+/>
+```
+
+### Live Example
+
+The image below uses `<OptimizedImage>` via the default MDX `img` component. Hover over it to see the subtle scale effect, and click to open the lightbox:
+
+![Demo placeholder](https://placehold.co/800x400/6366f1/ffffff?text=Optimized+Image+Demo)
+
+### Dark Mode Support
+
+The `<OptimizedImage>` component is dark-mode aware when used through the `MDXImg` wrapper in `MDXComponents.tsx` — the `imgClassName` prop adds a `border border-border` that automatically adapts to the current theme.
+
+### Notes
+
+- **No extra configuration needed** — the standard `![alt](src)` MDX syntax automatically benefits from optimization
+- The component is **lazy-loaded** by default (`loading="lazy"`, `decoding="async"`)
+- Hovering over images wrapped by the default MDX `img` component applies a subtle `scale(1.01)` transform
+- All images are clickable and open in the [Image Lightbox](/docs/2-guides/mdx-components/image-lightbox)
+- For optimal results, place source images in your `content/` directory so Vite can generate WebP/AVIF variants at build time

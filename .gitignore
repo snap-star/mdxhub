@@ -50,3 +50,6 @@ Thumbs.db
 skills-lock.json
 new-blog-layout-design.md
 TODO.md
+
+# Generated template artifacts (built from assemble-templates.mjs)
+packages/create-mdxhub/templates/

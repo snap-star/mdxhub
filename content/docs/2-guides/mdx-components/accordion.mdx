@@ -48,6 +48,32 @@ Create a component in `src/components/mdx/`, then register it in `MDXComponents.
 </Accordion>
 ```
 
+### Live Example: Bordered (Default)
+
+<Accordion>
+<AccordionItem title="What is MDX?">
+<div>
+
+MDX is a format that lets you use JSX components directly inside Markdown. It combines the readability of Markdown with the power of React components.
+
+</div>
+</AccordionItem>
+<AccordionItem title="How do I add new components?">
+<div>
+
+Create a component file in `src/components/mdx/`, then register it in `MDXComponents.tsx`. No imports are needed in your MDX files — the component is automatically available.
+
+</div>
+</AccordionItem>
+<AccordionItem title="Can I use custom themes?">
+<div>
+
+Yes. The project uses Tailwind CSS v4 with OKLCH color spaces. Customize `src/index.css` to define your own color palette.
+
+</div>
+</AccordionItem>
+</Accordion>
+
 ### Multi-Open Variant
 
 Use `allowMultiple={true}` to allow opening several sections at once:
@@ -59,6 +85,32 @@ Use `allowMultiple={true}` to allow opening several sections at once:
 </Accordion>
 ```
 
+### Live Example: Multi-Open
+
+<Accordion allowMultiple>
+<AccordionItem title="Getting Started">
+<div>
+
+Run `pnpm install` to install dependencies, then `pnpm run dev` to start the dev server.
+
+</div>
+</AccordionItem>
+<AccordionItem title="Configuration">
+<div>
+
+Edit `site.config.json` to customize your site title, description, and social links.
+
+</div>
+</AccordionItem>
+<AccordionItem title="Deployment">
+<div>
+
+Build with `pnpm build` and deploy the `build/` directory to your hosting provider.
+
+</div>
+</AccordionItem>
+</Accordion>
+
 ### Ghost Variant
 
 Use `variant="ghost"` for a minimal, borderless look — great for compact FAQs:
@@ -68,6 +120,27 @@ Use `variant="ghost"` for a minimal, borderless look — great for compact FAQs:
 <AccordionItem title="Keyboard shortcuts">...</AccordionItem>
 </Accordion>
 ```
+
+### Live Example: Ghost Variant
+
+<Accordion variant="ghost">
+<AccordionItem title="What keyboard shortcuts are available?">
+<div>
+
+- **Enter / Space** — toggle the focused item
+- **Arrow Down / Arrow Up** — move between accordion triggers
+- **Home / End** — jump to first/last item
+
+</div>
+</AccordionItem>
+<AccordionItem title="Can I open multiple items at once?">
+<div>
+
+Yes! Set `allowMultiple={true}` on the `<Accordion>` component. By default, only one item can be open at a time.
+
+</div>
+</AccordionItem>
+</Accordion>
 
 ### Keyboard Navigation
 

@@ -1,0 +1,119 @@
+---
+title: "DiffView"
+section: "2. Guides"
+order: 52
+version: "v1.2"
+description: "Side-by-side diff viewer with add/remove line highlighting and syntax tokens. Perfect for showing code migrations and before/after comparisons."
+---
+
+The `<DiffView>` component renders a side-by-side diff viewer that highlights added and removed lines between two code snippets. It includes basic token-level syntax highlighting and a copy button.
+
+### Props
+
+| Prop | Type | Default | Description |
+| :--- | :--- | :---: | :--- |
+| `before` | string | — | The original/"before" code block (required) |
+| `after` | string | — | The new/"after" code block (required) |
+| `language` | string | `"text"` | Language label shown in the header |
+
+### Usage
+
+```mdx
+<DiffView
+  before={`function greet(name) {\n  return \"Hello, \" + name;\n}`}
+  after={`function greet(name: string): string {\n  return `Hello, ${name}!`;\n}`}
+  language="TypeScript"
+/>
+```
+
+### Live Example: TypeScript Migration
+
+<DiffView
+  before={`function add(a, b) {
+  return a + b;
+}
+
+function greet(name) {
+  return "Hello, " + name;
+}
+
+const result = add(5, 10);
+console.log(greet("World"), result);`}
+  after={`function add(a: number, b: number): number {
+  return a + b;
+}
+
+function greet(name: string): string {
+  return \`Hello, \${name}!\`;
+}
+
+const result = add(5, 10);
+console.log(greet("World"), result);`}
+  language="TypeScript"
+/>
+
+### Live Example: Refactoring to Modern Syntax
+
+<DiffView
+  before={`// Legacy callback pattern
+function fetchUser(id, callback) {
+  setTimeout(function() {
+    callback({ id: id, name: "User" });
+  }, 1000);
+}
+
+fetchUser(1, function(user) {
+  console.log(user);
+});`}
+  after={`// Modern async/await pattern
+async function fetchUser(id: number) {
+  const response = await fetch(\`/api/users/\${id}\`);
+  return response.json();
+}
+
+const user = await fetchUser(1);
+console.log(user);`}
+  language="JavaScript"
+/>
+
+### Live Example: CSS Modernization
+
+<DiffView
+  before={`.container {
+  display: block;
+  width: 960px;
+  margin: 0 auto;
+  padding: 10px 15px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  float: left;
+}
+
+.sidebar {
+  display: block;
+  width: 300px;
+  float: left;
+}`}
+  after={`.container {
+  display: flex;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: clamp(0.5rem, 2vw, 2rem);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar {
+  width: 300px;
+  flex-shrink: 0;
+}`}
+  language="CSS"
+/>
+
+### Notes
+
+- **Diff algorithm** uses a simple lookahead — up to 10 lines forward — to align matching content
+- **Color coding**: red background for removed lines, green for added lines, no highlight for unchanged lines
+- **Line numbers**: shown on both sides — left (before) and right (after) — with the removed/added line numbers tinted to match
+- **Copy button**: copies the entire diff content (including markers) to clipboard
+- The component auto-calculates differences — no need to manually mark lines as added/removed

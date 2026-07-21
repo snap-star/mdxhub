@@ -1,10 +1,10 @@
 {
   "name": "create-mdxhub",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.1",
   "description": "Scaffold an MDXHub project — a blazingly fast documentation and blog platform built with React, Vite, and MDX.",
   "type": "module",
   "bin": {
-    "create-mdxhub": "./src/index.js"
+    "create-mdxhub": "src/index.js"
   },
   "files": [
     "src",
@@ -25,7 +25,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/snap-star/mdxhub"
+    "url": "git+https://github.com/snap-star/mdxhub.git"
   },
   "bugs": {
     "url": "https://github.com/snap-star/mdxhub/issues"

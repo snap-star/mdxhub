@@ -48,6 +48,57 @@ export default function App() {
 />
 ```
 
+### Live Example: Counter Component
+
+<CodeSandbox
+  template="react"
+  files={{
+    "/App.js": `
+import React from 'react'
+
+export default function App() {
+  const [count, setCount] = React.useState(0)
+  return (
+    <div style={{ padding: 20, fontFamily: 'sans-serif', textAlign: 'center' }}>
+      <h2>Count: {count}</h2>
+      <button onClick={() => setCount(c => c + 1)} style={{ padding: '8px 16px', marginRight: 8, cursor: 'pointer' }}>+</button>
+      <button onClick={() => setCount(c => c - 1)} style={{ padding: '8px 16px', cursor: 'pointer' }}>-</button>
+    </div>
+  )
+}
+    `.trim(),
+  }}
+  caption="A live counter — edit the code and see changes instantly"
+/>
+
+### Live Example: Greeting Component
+
+<CodeSandbox
+  template="react"
+  files={{
+    "/App.js": `
+import React from 'react'
+
+export default function App() {
+  const [name, setName] = React.useState('')
+  return (
+    <div style={{ padding: 20, fontFamily: 'sans-serif' }}>
+      <h2>Personalized Greeting</h2>
+      <input
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Enter your name"
+        style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ccc', marginBottom: 12, width: 250 }}
+      />
+      {name && <p style={{ fontSize: 18 }}>Hello, <strong>{name}</strong>! 👋</p>}
+    </div>
+  )
+}
+    `.trim(),
+  }}
+  caption="A greeting component with live preview"
+/>
+
 ### Theme Awareness
 
 CodeSandbox automatically switches between GitHub Light (light mode) and Monokai Pro (dark mode) themes to match the current site theme — no configuration needed.
