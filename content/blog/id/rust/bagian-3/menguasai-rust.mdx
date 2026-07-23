@@ -1,0 +1,429 @@
+---
+title: "Tingkat Expert — Menguasai Rust"
+description: "Konsep Rust tingkat lanjut — unsafe Rust, traits lanjutan, konkurensi, async/await, macros, Pin, FFI, dan optimasi performa."
+date: 2026-07-24
+tags: ["Rust", "Panduan"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Menguasai Rust"
+seriesOrder: 5
+---
+
+# Bagian 3: Tingkat Expert — Menguasai Rust
+
+## Bab 21: Unsafe Rust
+
+<Badge variant="red">Expert</Badge>
+
+### 21.1 Apa itu Unsafe Rust?
+
+Unsafe Rust memungkinkanmu memilih keluar dari beberapa jaminan keamanan Rust. Ini **bukan** "kembali ke C" — ini adalah toolkit untuk membangun abstraksi aman di atas operasi tingkat rendah.
+
+```rust
+unsafe {
+    // Di blok unsafe, kamu bisa:
+    // 1. Dereference raw pointer
+    // 2. Memanggil fungsi unsafe (termasuk FFI)
+    // 3. Mengakses/memodifikasi mutable static
+    // 4. Mengimplementasikan unsafe trait
+    // 5. Mengakses field union
+}
+
+unsafe fn dangerous() {
+    // Pemanggil harus menjaga invariant keamanan
+}
+```
+
+### 21.2 Raw Pointer
+
+```rust
+fn main() {
+    let mut num = 5;
+
+    let r1 = &num as *const i32;   // Immutable raw pointer
+    let r2 = &mut num as *mut i32; // Mutable raw pointer
+
+    // Membuat raw pointer itu AMAN
+    // Mendereference-nya itu TIDAK AMAN
+    unsafe {
+        println!("r1 = {}", *r1);  // 5
+        *r2 = 10;
+        println!("r2 = {}", *r2);  // 10
+    }
+}
+```
+
+### 21.3 Fungsi Unsafe dan FFI
+
+```rust
+extern "C" {
+    fn abs(input: i32) -> i32;
+}
+
+fn main() {
+    unsafe {
+        println!("abs(-3) = {}", abs(-3));  // 3
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn call_from_c() {
+    println!("Dipanggil dari C!");
+}
+```
+
+### 21.4 Kapan Menggunakan Unsafe
+
+| ✅ Penggunaan yang baik | ❌ Penggunaan yang buruk |
+|-------------|-----------|
+| FFI / memanggil kode C | "Saya tidak bisa mengatasi borrow checker" |
+| Hot path yang kritis performa | Mengimplementasi ulang standard library |
+| Membangun abstraksi yang aman | Menghindari type safety Rust |
+
+**Aturan praktis**: Jika kamu menulis `unsafe` dan tidak memiliki komentar `// SAFETY: ...` yang menjelaskan mengapa invariant dijaga, kamu mungkin melakukannya dengan salah.
+
+---
+
+## Bab 22: Traits Lanjutan
+
+<Badge variant="red">Expert</Badge>
+
+### 22.1 Associated Types
+
+```rust
+pub trait Iterator {
+    type Item;  // Associated type
+
+    fn next(&mut self) -> Option<Self::Item>;
+}
+
+impl Iterator for Counter {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // Implementasi
+    }
+}
+```
+
+### 22.2 Supertraits
+
+```rust
+trait OutlinePrint: Display {
+    fn outline_print(&self) {
+        let output = self.to_string();
+        let len = output.len();
+        println!("{}", "*".repeat(len + 4));
+        println!("*{output}*");
+        println!("{}", "*".repeat(len + 4));
+    }
+}
+```
+
+### 22.3 Fully Qualified Syntax
+
+```rust
+trait Animal { fn name(&self) -> &'static str; }
+trait Dog { fn name(&self) -> &'static str; }
+
+struct Pet;
+impl Animal for Pet { fn name(&self) -> &'static str { "Animal" } }
+impl Dog for Pet { fn name(&self) -> &'static str { "Dog" } }
+
+fn main() {
+    let pet = Pet;
+    println!("{}", <Pet as Animal>::name(&pet));  // "Animal"
+    println!("{}", <Pet as Dog>::name(&pet));      // "Dog"
+}
+```
+
+---
+
+## Bab 23: Konkurensi
+
+<Badge variant="red">Expert</Badge>
+
+### 23.1 Thread
+
+```rust
+use std::thread;
+
+fn main() {
+    let handle = thread::spawn(|| {
+        for i in 1..10 {
+            println!("Thread: {i}");
+        }
+    });
+
+    for i in 1..5 {
+        println!("Main: {i}");
+    }
+
+    handle.join().unwrap();
+}
+```
+
+### 23.2 `Arc<Mutex<T>>`
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+        handles.push(thread::spawn(move || {
+            let mut num = counter.lock().unwrap();
+            *num += 1;
+        }));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    println!("Hasil: {}", *counter.lock().unwrap());  // 10
+}
+```
+
+### 23.3 Channel — Pengiriman Pesan
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        tx.send("Halo dari thread").unwrap();
+    });
+
+    let received = rx.recv().unwrap();
+    println!("Menerima: {received}");
+}
+```
+
+### 23.4 Scoped Thread (Rust 1.63+)
+
+```rust
+use std::thread;
+
+fn main() {
+    let mut vec = vec![1, 2, 3];
+
+    thread::scope(|scope| {
+        scope.spawn(|| {
+            println!("Thread: {vec:?}");
+        });
+        scope.spawn(|| {
+            vec.push(4);
+            println!("Thread 2: {vec:?}");
+        });
+    });
+
+    vec.push(5);
+    println!("Setelah scope: {vec:?}");
+}
+```
+
+---
+
+## Bab 24: Async/Await
+
+<Badge variant="red">Expert</Badge>
+
+### 24.1 Runtime Async (Tokio)
+
+```toml
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+```
+
+```rust
+use tokio::time::{sleep, Duration};
+
+#[tokio::main]
+async fn main() {
+    println!("Memulai...");
+    sleep(Duration::from_secs(1)).await;
+    println!("Selesai!");
+}
+```
+
+### 24.2 Eksekusi Konkuren
+
+```rust
+async fn task(id: u32, duration_ms: u64) -> String {
+    sleep(Duration::from_millis(duration_ms)).await;
+    format!("Tugas {id} selesai")
+}
+
+#[tokio::main]
+async fn main() {
+    // Konkuren — hanya butuh 200ms!
+    let (r1, r2) = tokio::join!(task(1, 100), task(2, 200));
+
+    // Atau spawn task
+    let handle = tokio::spawn(async {
+        "Halo dari spawned task"
+    });
+    let result = handle.await.unwrap();
+}
+```
+
+### 24.3 Jangan Blocking di Async
+
+```rust
+// ❌ BURUK: memblokir seluruh runtime thread!
+async fn bad_handler() {
+    std::thread::sleep(std::time::Duration::from_secs(5));  // Blocking!
+}
+
+// ✅ BAIK: gunakan async sleep
+async fn good_handler() {
+    tokio::time::sleep(Duration::from_secs(5)).await;  // Yield
+}
+
+// Untuk kerja CPU-heavy:
+async fn handle_cpu() {
+    let result = tokio::task::spawn_blocking(|| {
+        expensive_calculation()
+    }).await.unwrap();
+}
+```
+
+---
+
+## Bab 25: Macros
+
+<Badge variant="red">Expert</Badge>
+
+### 25.1 Declarative Macros (`macro_rules!`)
+
+```rust
+macro_rules! say_hello {
+    () => {
+        println!("Halo!");
+    };
+    ($name:expr) => {
+        println!("Halo, {}!", $name);
+    };
+}
+
+fn main() {
+    say_hello!();               // "Halo!"
+    say_hello!("Alice");         // "Halo, Alice!"
+}
+```
+
+### 25.2 Macro Umum di Standard Library
+
+| Macro | Tujuan |
+|-------|--------|
+| `println!` / `print!` | Cetak ke stdout |
+| `eprintln!` / `eprint!` | Cetak ke stderr |
+| `format!` | Buat string dari format |
+| `assert!` / `assert_eq!` | Runtime assertions |
+| `todo!` | Placeholder untuk kode yang belum diimplementasi |
+| `unreachable!` | Menandai kode yang tidak bisa dicapai |
+| `dbg!` | Debug-print ekspresi dengan file/line |
+| `include_str!` / `include_bytes!` | Sertakan konten file pada kompilasi |
+| `matches!` | Periksa apakah ekspresi cocok dengan pattern |
+
+---
+
+## Bab 26: Lifetimes Lanjutan & Variance
+
+<Badge variant="red">Expert</Badge>
+
+### 26.1 Variance
+
+Variance menjelaskan bagaimana subtyping dari tipe compound berhubungan dengan komponennya:
+
+| Variance | Makna | Contoh |
+|----------|-------|--------|
+| **Covariant** | Hubungan subtype dipertahankan | `&'a T`, `*const T` |
+| **Invariant** | Harus tipe yang tepat | `&mut T`, `Cell<T>` |
+| **Contravariant** | Hubungan subtype dibalik | `fn(T)` parameter |
+
+### 26.2 Non-Lexical Lifetimes (NLL)
+
+```rust
+fn main() {
+    let mut x = String::new();
+    let y = &x;
+    println!("{y}");  // y terakhir digunakan di sini
+    let z = &mut x;   // ✅ Bekerja dengan NLL (Rust 2018+)
+    println!("{z}");
+}
+```
+
+---
+
+## Bab 27: Pin & Self-Referential Struct
+
+<Badge variant="red">Expert</Badge>
+
+### 27.1 `Pin<P>` — Mengunci Memori
+
+```rust
+use std::pin::Pin;
+use std::marker::PhantomPinned;
+
+#[derive(Debug)]
+struct SelfReferential {
+    data: String,
+    pointer: *const String,
+    _pin: PhantomPinned,
+}
+
+// Setiap fungsi async mengembalikan Future yang mungkin
+// berisi self-referential struct. Pin memastikan future
+// ini tidak pernah dipindahkan setelah di-poll.
+```
+
+---
+
+## Bab 28: Optimasi Performa
+
+<Badge variant="red">Expert</Badge>
+
+### 28.1 Tools Profiling
+
+```bash
+# Linux perf
+perf record --call-graph dwarf ./target/release/my_program
+perf report
+
+# Flamegraph
+cargo flamegraph
+
+# Cachegrind
+valgrind --tool=cachegrind ./target/release/my_program
+```
+
+### 28.2 Optimasi Kompiler
+
+```toml
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = "symbols"
+```
+
+### Tips Performa Umum
+
+| Tips | Mengapa |
+|------|--------|
+| Gunakan `cargo build --release` | Mode debug ~10-100x lebih lambat |
+| Pre-alokasi collection | Hindari realokasi berulang |
+| Gunakan `#[inline]` di fungsi hot | Kurangi overhead panggilan fungsi |
+| Hindari cloning/heap allocation di hot path | Alokasi heap itu mahal |
+| Gunakan iterator daripada loop manual | Kompiler bisa optimasi rantai iterator lebih baik |
+| Profile sebelum optimasi | Jangan tebak — ukur! |

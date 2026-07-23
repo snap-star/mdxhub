@@ -1,0 +1,517 @@
+---
+title: "Tingkat Pemula — Dasar-Dasar"
+description: "Fundamental Rust — variabel, tipe data, fungsi, kontrol alur, ownership, borrowing, slices, struct, enum, pattern matching, dan I/O dasar."
+date: 2026-07-24
+tags: ["Rust", "Panduan"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Menguasai Rust"
+seriesOrder: 3
+---
+
+# Bagian 1: Tingkat Pemula — Dasar-Dasar
+
+## Bab 1: Variabel dan Mutabilitas
+
+<Badge variant="green">Pemula</Badge>
+
+### 1.1 Mendeklarasikan Variabel
+
+Variabel Rust **immutable secara default** — pilihan desain yang disengaja untuk keamanan dan konkurensi.
+
+```rust
+fn main() {
+    // Immutable (default) — tidak bisa diubah setelah ditetapkan
+    let x = 5;
+    // x = 6;  // ❌ Error kompilasi: cannot assign twice to immutable variable
+
+    // Mutable — dideklarasikan secara eksplisit dengan `mut`
+    let mut y = 5;
+    println!("y = {}", y);  // y = 5
+    y = 6;
+    println!("y = {}", y);  // y = 6
+
+    // Konstanta — selalu immutable, harus memiliki anotasi tipe
+    const MAX_USERS: u32 = 1000;
+    const PI: f64 = 3.1415926535;
+}
+```
+
+### 1.2 Shadowing
+
+Rust mengizinkan **shadowing** — mendeklarasikan variabel baru dengan nama yang sama dengan variabel sebelumnya.
+
+```rust
+fn main() {
+    let x = 5;
+    let x = x + 1;  // Shadow — membuat variabel BARU
+    println!("x = {}", x);  // x = 6
+
+    // Shadowing berbeda dengan mutasi!
+    // Kita bisa mengubah TIPE variabel melalui shadowing:
+    let spaces = "   ";        // &str
+    let spaces = spaces.len(); // usize — valid!
+    println!("{} spasi", spaces);  // 3 spasi
+}
+```
+
+---
+
+## Bab 2: Tipe Data
+
+<Badge variant="green">Pemula</Badge>
+
+### 2.1 Tipe Skalar
+
+Rust memiliki empat tipe skalar utama: integer, floating-point, boolean, dan karakter.
+
+```rust
+fn main() {
+    // === Integer ===
+    // Signed: i8, i16, i32, i64, i128, isize (bergantung arsitektur)
+    // Unsigned: u8, u16, u32, u64, u128, usize (bergantung arsitektur)
+    let a: i8 = -128;
+    let b: u8 = 255;
+    let c: i32 = -1000;     // Tipe paling umum (default)
+    let d: usize = 100;
+    let e = 42;             // Default: i32
+
+    // Literal integer
+    let dec = 98_222;
+    let hex = 0xff;         // 255
+    let oct = 0o77;         // 63
+    let bin = 0b1111_0000;  // 240
+    let byte = b'A';        // 65 (u8 only)
+
+    // === Floating Point ===
+    let f: f64 = 3.14;      // Default: f64 (double precision)
+    let g: f32 = 2.5;
+    let h = 2.0;            // Default: f64
+
+    // === Boolean ===
+    let active: bool = true;
+    let complete = false;
+
+    // === Character ===
+    let c = 'z';            // 4 bytes! (Unicode scalar value)
+    let heart_eyed_cat = '😻';
+    let japanese = '人';
+}
+```
+
+### 2.2 Tipe Compound
+
+```rust
+fn main() {
+    // === Tuple — Panjang tetap, heterogen ===
+    let tup: (i32, f64, char) = (500, 6.4, 'A');
+    println!("{}, {}, {}", tup.0, tup.1, tup.2);
+
+    // Destructuring
+    let (x, y, z) = tup;
+    println!("x = {x}, y = {y}");
+
+    // === Array — Panjang tetap, homogen ===
+    let arr: [i32; 3] = [1, 2, 3];
+    let zeros = [0; 5];  // [0, 0, 0, 0, 0]
+    println!("Pertama: {}, Terakhir: {}", arr[0], arr[arr.len() - 1]);
+}
+```
+
+---
+
+## Bab 3: Fungsi
+
+<Badge variant="green">Pemula</Badge>
+
+### 3.1 Sintaks Fungsi
+
+```rust
+fn main() {
+    greet("Alice");         // "Halo, Alice!"
+    print_sum(5, 3);        // "5 + 3 = 8"
+}
+
+fn greet(name: &str) {
+    println!("Halo, {name}!");
+}
+
+fn print_sum(a: i32, b: i32) {
+    let sum = a + b;
+    println!("{a} + {b} = {sum}");
+}
+```
+
+### 3.2 Return Value
+
+**Ekspresi terakhir** dalam fungsi adalah nilai return-nya (tanpa titik koma!).
+
+```rust
+fn five() -> i32 {
+    5
+}
+
+fn add(x: i32, y: i32) -> i32 {
+    x + y
+}
+
+fn main() {
+    println!("{}", five());  // 5
+    println!("{}", add(3, 4));  // 7
+}
+```
+
+### 3.3 Expression vs Statement
+
+```rust
+fn main() {
+    let x = 5;  // Statement
+
+    // Block adalah expression
+    let y = {
+        let a = 3;
+        let b = 4;
+        a + b  // Nilai expression
+    };
+    println!("y = {}", y);  // y = 7
+
+    // if adalah expression!
+    let number = if true { 5 } else { 6 };
+    println!("number = {}", number);  // number = 5
+}
+```
+
+---
+
+## Bab 4: Kontrol Alur
+
+<Badge variant="green">Pemula</Badge>
+
+```rust
+fn main() {
+    // if / else if / else
+    let number = 7;
+    if number < 5 {
+        println!("Kurang dari 5");
+    } else if number == 5 {
+        println!("Tepat 5");
+    } else {
+        println!("Lebih dari 5");
+    }
+
+    // loop — infinite sampai break
+    let mut counter = 0;
+    let result = loop {
+        counter += 1;
+        if counter == 10 {
+            break counter * 2;  // break bisa mengembalikan nilai!
+        }
+    };
+    println!("Hasil: {result}");  // Hasil: 20
+
+    // while
+    let mut number = 3;
+    while number > 0 {
+        println!("{number}...");
+        number -= 1;
+    }
+    println!("Go!");
+
+    // for
+    let arr = [10, 20, 30, 40, 50];
+    for element in arr {
+        println!("Nilai: {element}");
+    }
+
+    // Range
+    for number in 1..4 {
+        println!("{number}");  // 1, 2, 3
+    }
+}
+```
+
+---
+
+## Bab 5: Ownership
+
+<Badge variant="green">Pemula</Badge>
+
+Ini adalah **konsep terpenting di Rust**. Luangkan waktu dengan bab ini.
+
+### Aturan Ownership
+
+1. **Setiap nilai di Rust memiliki tepat satu pemilik (owner).**
+2. **Hanya boleh ada satu pemilik pada satu waktu.**
+3. **Ketika pemilik keluar dari scope, nilai akan di-drop** (memori dibebaskan).
+
+```rust
+fn main() {
+    let s = String::from("hello");  // s menjadi pemilik string
+    println!("{s}");  // Gunakan s
+}  // Scope berakhir → s di-drop → memori dibebaskan secara otomatis
+```
+
+### Move Semantics
+
+Saat kamu menetapkan nilai heap-allocated ke variabel lain, **kepemilikan dipindahkan** — variabel asli tidak lagi valid.
+
+```rust
+fn main() {
+    let s1 = String::from("hello");
+    let s2 = s1;  // s1 di-MOVE ke s2
+
+    // println!("{s1}");  // ❌ Error: value borrowed after move
+    println!("{s2}");  // ✅ s2 adalah pemilik baru
+}
+
+// Primitif (disimpan di stack) — mengimplementasikan Copy trait
+fn main() {
+    let x = 5;
+    let y = x;  // Copy — x masih valid!
+    println!("x = {x}, y = {y}");  // ✅
+}
+```
+
+---
+
+## Bab 6: Borrowing & Reference
+
+<Badge variant="green">Pemula</Badge>
+
+### 6.1 Reference (`&T`)
+
+**Reference** memungkinkanmu menggunakan nilai tanpa mengambil kepemilikan.
+
+```rust
+fn calculate_length(s: &String) -> usize {
+    s.len()
+}
+
+fn main() {
+    let s = String::from("hello");
+    let len = calculate_length(&s);  // &s membuat reference ke s
+    println!("'{s}' memiliki panjang {len}");  // ✅ s masih memiliki nilai
+}
+```
+
+### 6.2 Mutable Reference (`&mut T`)
+
+```rust
+fn change(s: &mut String) {
+    s.push_str(", world");
+}
+
+fn main() {
+    let mut s = String::from("hello");
+    change(&mut s);
+    println!("{s}");  // "hello, world"
+}
+```
+
+### 6.3 Aturan Borrowing
+
+**Pada waktu tertentu, kamu bisa memiliki SALAH SATU: satu mutable reference ATAU sejumlah immutable reference.**
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    let r1 = &s;       // immutable borrow
+    let r2 = &s;       // OK — banyak immutable diperbolehkan
+    println!("{r1} dan {r2}");  // r1 dan r2 sudah tidak digunakan setelah ini
+    let r3 = &mut s;   // ✅ Sekarang boleh
+    println!("{r3}");
+}
+```
+
+---
+
+## Bab 7: Slices
+
+<Badge variant="green">Pemula</Badge>
+
+**Slice** adalah reference ke urutan elemen yang berdekatan dalam koleksi. Slice tidak memiliki kepemilikan.
+
+```rust
+fn main() {
+    let s = String::from("hello world");
+
+    let hello = &s[0..5];   // "hello"
+    let world = &s[6..11];  // "world"
+
+    // &str sebagai parameter lebih fleksibel daripada &String
+    fn first_word(s: &str) -> &str {
+        let bytes = s.as_bytes();
+        for (i, &byte) in bytes.iter().enumerate() {
+            if byte == b' ' {
+                return &s[..i];
+            }
+        }
+        &s[..]
+    }
+
+    let word = first_word("hello world");
+    println!("{word}");  // "hello"
+}
+```
+
+**Praktik terbaik: gunakan `&str` untuk parameter fungsi kecuali kamu membutuhkan kepemilikan.**
+
+---
+
+## Bab 8: Struct
+
+<Badge variant="green">Pemula</Badge>
+
+```rust
+struct User {
+    active: bool,
+    username: String,
+    email: String,
+    sign_in_count: u64,
+}
+
+fn main() {
+    let user = User {
+        active: true,
+        username: String::from("alice"),
+        email: String::from("alice@example.com"),
+        sign_in_count: 1,
+    };
+    println!("{}", user.email);
+
+    // Method
+    impl User {
+        fn is_active(&self) -> bool {
+            self.active
+        }
+    }
+    println!("{}", user.is_active());
+
+    // Tuple struct
+    struct Point(i32, i32, i32);
+    let origin = Point(0, 0, 0);
+    println!("x: {}", origin.0);
+}
+```
+
+---
+
+## Bab 9: Enum & Pattern Matching
+
+<Badge variant="green">Pemula</Badge>
+
+```rust
+enum Message {
+    Quit,
+    Move { x: i32, y: i32 },
+    Write(String),
+    ChangeColor(i32, i32, i32),
+}
+
+enum Option<T> {
+    Some(T),
+    None,
+}
+
+fn main() {
+    let some_number = Some(5);
+    let absent: Option<i32> = None;
+
+    // match
+    fn value_in_cents(coin: Coin) -> u8 {
+        match coin {
+            Coin::Penny => 1,
+            Coin::Nickel => 5,
+            Coin::Dime => 10,
+            Coin::Quarter => 25,
+        }
+    }
+
+    // if let
+    let config_max = Some(3u8);
+    if let Some(max) = config_max {
+        println!("Maksimum: {max}");
+    }
+}
+```
+
+---
+
+## Bab 10: I/O Dasar & Module
+
+<Badge variant="green">Pemula</Badge>
+
+### Mencetak
+
+```rust
+fn main() {
+    println!("Halo, dunia!");
+    println!("{0} adalah {1}", "Alice", 30);
+    println!("Nama: {name}", name = "Bob");
+    println!("{arr:?}", arr = vec![1, 2, 3]);  // Debug print
+}
+```
+
+### Membaca Input
+
+```rust
+use std::io;
+
+fn main() {
+    let mut input = String::new();
+    println!("Masukkan nama:");
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Gagal membaca baris");
+    println!("Halo, {}!", input.trim());
+}
+```
+
+### Module
+
+```rust
+// src/main.rs
+mod greetings;
+
+fn main() {
+    greetings::hello();
+}
+
+// src/greetings.rs
+pub fn hello() {
+    println!("Halo!");
+}
+```
+
+### Latihan Praktis: Tebak Angka
+
+```rust
+use std::io;
+use std::cmp::Ordering;
+use rand::Rng;
+
+fn main() {
+    println!("Tebak angkanya!");
+    let secret = rand::thread_rng().gen_range(1..=100);
+
+    loop {
+        let mut guess = String::new();
+        io::stdin().read_line(&mut guess).expect("Gagal membaca");
+        let guess: u32 = match guess.trim().parse() {
+            Ok(num) => num,
+            Err(_) => continue,
+        };
+
+        match guess.cmp(&secret) {
+            Ordering::Less => println!("Terlalu kecil!"),
+            Ordering::Greater => println!("Terlalu besar!"),
+            Ordering::Equal => {
+                println!("Kamu menang!");
+                break;
+            }
+        }
+    }
+}
+```

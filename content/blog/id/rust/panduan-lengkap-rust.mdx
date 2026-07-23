@@ -1,0 +1,120 @@
+---
+title: "Panduan Lengkap Rust"
+description: "Menguasai Pemrograman Rust Dari Pemula hingga Expert"
+date: 2026-07-24
+tags: ["Rust", "Panduan"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Menguasai Rust"
+seriesOrder: 1
+---
+
+> <Badge variant="tip" icon="book">**Rust Edition 2024**</Badge> <Badge variant="warning" icon="info">**Terakhir Diperbarui**: Juli 2026</Badge>
+
+Dalam panduan ini, kita akan belajar dari menulis baris pertama kode Rust hingga menguasai konsep terdalamnya — mencakup ownership, borrowing, lifetimes, pemrograman async, konkurensi, unsafe Rust, dan proyek-proyek praktis.
+
+## Daftar Isi
+
+### Bagian 0: Pengantar & Filosofi
+
+| Bagian | Topik Utama |
+|--------|-----------|
+| [Apa yang Dicakup Panduan Ini](/blog/rust/bagian-0/pengantar-filosofi) | Jalur belajar, tingkat keahlian, cara membaca |
+| [Mengapa Rust?](/blog/rust/bagian-0/pengantar-filosofi) | Keamanan memori, zero-cost abstractions, ekosistem |
+| [Instalasi & Toolchain](/blog/rust/bagian-0/pengantar-filosofi) | rustup, cargo, rustc, rustfmt, clippy, rust-analyzer |
+| [Program Rust Pertamamu](/blog/rust/bagian-0/pengantar-filosofi) | Hello World, proyek Cargo, struktur proyek |
+
+### Bagian 1: Tingkat Pemula — Dasar-Dasar
+
+| # | Bagian | Topik Utama |
+|---|--------|-----------|
+| 1 | [Variabel dan Mutabilitas](/blog/rust/bagian-1/dasar-dasar) | let, mut, const, shadowing, scope |
+| 2 | [Tipe Data](/blog/rust/bagian-1/dasar-dasar) | Integer, float, bool, char, tuple, array, type inference |
+| 3 | [Fungsi](/blog/rust/bagian-1/dasar-dasar) | Parameter, return value, expression vs statement |
+| 4 | [Kontrol Alur](/blog/rust/bagian-1/dasar-dasar) | if/else, loop, while, for, loop, match dasar |
+| 5 | [Ownership](/blog/rust/bagian-1/dasar-dasar) | Stack vs heap, move semantics, Copy trait, clone |
+| 6 | [Borrowing & Reference](/blog/rust/bagian-1/dasar-dasar) | &T, &mut T, aturan borrowing, dangling reference |
+| 7 | [Slices](/blog/rust/bagian-1/dasar-dasar) | String slice, array slice, &str vs String |
+| 8 | [Struct](/blog/rust/bagian-1/dasar-dasar) | Mendefinisikan, instansiasi, tuple struct, method |
+| 9 | [Enum & Pattern Matching](/blog/rust/bagian-1/dasar-dasar) | Option, Result, match arms, if let, while let |
+| 10 | [I/O Dasar & Module](/blog/rust/bagian-1/dasar-dasar) | println!, stdin, use, mod, pub |
+
+### Bagian 2: Tingkat Menengah — Membangun Aplikasi Nyata
+
+| # | Bagian | Topik Utama |
+|---|--------|-----------|
+| 11 | [Error Handling](/blog/rust/bagian-2/membangun-aplikasi-nyata) | panic!, `Result<T,E>`, operator ?, custom error, thiserror, anyhow |
+| 12 | [Generics](/blog/rust/bagian-2/membangun-aplikasi-nyata) | Fungsi generic, struct generic, monomorfisasi |
+| 13 | [Traits](/blog/rust/bagian-2/membangun-aplikasi-nyata) | Mendefinisikan trait, implementasi, default method, trait bounds |
+| 14 | [Lifetimes](/blog/rust/bagian-2/membangun-aplikasi-nyata) | Lifetime annotation, elision rules, struct lifetime, 'static |
+| 15 | [Closure & Iterator](/blog/rust/bagian-2/membangun-aplikasi-nyata) | Sintaks closure, Fn/FnMut/FnOnce, iterator adapter, lazy evaluation |
+| 16 | [Collection](/blog/rust/bagian-2/membangun-aplikasi-nyata) | Vec, HashMap, HashSet, String, karakteristik performa |
+| 17 | [Module, Crate & Package](/blog/rust/bagian-2/membangun-aplikasi-nyata) | Cargo workspace, visibilitas pub, re-export, crate eksternal |
+| 18 | [Testing](/blog/rust/bagian-2/membangun-aplikasi-nyata) | #[test], assertion, #[should_panic], integration test, doc test |
+| 19 | [File I/O](/blog/rust/bagian-2/membangun-aplikasi-nyata) | std::fs, std::io, membaca/menulis file, path, BufRead |
+| 20 | [Smart Pointer](/blog/rust/bagian-2/membangun-aplikasi-nyata) | `Box<T>`, `Rc<T>`, `RefCell<T>`, interior mutability, reference cycle |
+
+### Bagian 3: Tingkat Expert — Menguasai Rust
+
+| # | Bagian | Topik Utama |
+|---|--------|-----------|
+| 21 | [Unsafe Rust](/blog/rust/bagian-3/menguasai-rust) | Raw pointer, unsafe function, FFI dasar, invariant |
+| 22 | [Traits Lanjutan](/blog/rust/bagian-3/menguasai-rust) | Associated types, GATs, supertraits, fully qualified syntax |
+| 23 | [Konkurensi](/blog/rust/bagian-3/menguasai-rust) | Send/Sync, Arc, Mutex, RwLock, channel, scoped thread |
+| 24 | [Async/Await](/blog/rust/bagian-3/menguasai-rust) | Future, async/await, tokio, executor, stream, select! |
+| 25 | [Macro](/blog/rust/bagian-3/menguasai-rust) | Declarative macro (macro_rules!), procedural macro, derive macro |
+| 26 | [Lifetimes Lanjutan & Variance](/blog/rust/bagian-3/menguasai-rust) | Subtyping, covariance/contravariance, NLL, higher-ranked bounds |
+| 27 | [Pin & Self-Referential Struct](/blog/rust/bagian-3/menguasai-rust) | `Pin<P>`, `unpin`, `pin` projection, async future internals |
+| 28 | [Optimasi Performa](/blog/rust/bagian-3/menguasai-rust) | Profiling (perf, flamegraph), allocator, SIMD, cache-friendly code |
+
+### Bagian 4: Proyek Praktis
+
+| # | Proyek | Konsep yang Digunakan |
+|---|--------|---------------------|
+| 1 | [CLI Task Manager](/blog/rust/bagian-4/proyek-praktis) | clap, serde, file I/O, Result handling |
+| 2 | [Concurrent Web Scraper](/blog/rust/bagian-4/proyek-praktis) | reqwest, tokio, async, channel, konkurensi |
+| 3 | [Key-Value Store (Mini Redis)](/blog/rust/bagian-4/proyek-praktis) | TCP networking, protocol parsing, `Arc<Mutex>`, benchmarking |
+
+### Bagian 5: Jebakan Umum & Praktik Terbaik
+
+| # | Bagian | Topik Utama |
+|---|--------|-----------|
+| 1 | [Masalah Borrow Checker](/blog/rust/bagian-5/jebakan-umum) | Double borrow, self-referential struct, keterbatasan NLL |
+| 2 | [Kesalahan Lifetime](/blog/rust/bagian-5/jebakan-umum) | Over-annotation, elision gotchas, lifetime coercion |
+| 3 | [Jebakan Async](/blog/rust/bagian-5/jebakan-umum) | Send bounds, recursive async, cancellation, blocking di async |
+| 4 | [Panic & Error Umum](/blog/rust/bagian-5/jebakan-umum) | Index out of bounds, unwrap on None, overflow |
+| 5 | [Anti-Pattern Performa](/blog/rust/bagian-5/jebakan-umum) | Clone obsession, alokasi tak perlu, premature optimization |
+
+### Lampiran
+
+| Lampiran | Konten |
+|----------|--------|
+| [A: Kartu Referensi Cepat](/blog/rust/bagian-5/jebakan-umum) | Konversi tipe, trait umum, standard library |
+| [B: Fitur Edition Rust](/blog/rust/bagian-5/jebakan-umum) | Ringkasan fitur 2015 → 2024 |
+| [Glosarium](/blog/rust/bagian-5/jebakan-umum) | Istilah dan definisi kunci |
+| [Sumber Daya & Bacaan Lanjutan](/blog/rust/bagian-5/jebakan-umum) | Buku, dokumentasi, platform latihan |
+
+---
+
+## Jalur Belajar
+
+| Level | Topik | Tujuan |
+|-------|-------|--------|
+| **Pemula** <Badge variant="green">Newbie</Badge> | Variabel, tipe, ownership, borrowing, struct, enum, pattern matching | Menulis program Rust yang aman dengan percaya diri |
+| **Menengah** <Badge variant="orange">Apprentice</Badge> | Error handling, generics, traits, lifetimes, closure, iterator, testing, smart pointer | Membangun aplikasi dunia nyata |
+| **Expert** <Badge variant="red">Master</Badge> | Unsafe Rust, konkurensi, async/await, macro, Pin, FFI, performa | Mengarsiteki sistem production-grade |
+
+## Cara Membaca Panduan Ini
+
+Kami menggunakan sistem badge tingkat kesulitan: <Badge variant="green">Pemula</Badge> → <Badge variant="orange">Menengah</Badge> → <Badge variant="red">Expert</Badge>. Setiap bagian dibangun di atas bagian sebelumnya. Bagian Pemula harus dikuasai sebelum bagian Menengah. Pola Menengah diasumsikan sudah diketahui di bagian Expert.
+
+**Jalankan setiap contoh.** Rust paling baik dipelajari dengan melakukan. Gunakan Rust Playground atau buat proyek lokal dengan `cargo new` untuk bereksperimen.
+
+<Callout type="tip" title="Tips Pro">
+Rust memiliki kurva belajar yang terkenal curam, terutama di sekitar ownership dan lifetimes. Jangan berkecil hati jika konsep-konsep ini membutuhkan waktu untuk dipahami — ini normal! Borrow checker adalah sekutumu, bukan musuhmu.
+</Callout>
+
+*Panduan ini adalah dokumen hidup. Rust berevolusi melalui Editions setiap tiga tahun. Periksa [Dokumentasi Rust](https://doc.rust-lang.org/) resmi untuk fitur terbaru.*
+
+*Terakhir diperbarui: Juli 2026*

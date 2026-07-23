@@ -1,6 +1,342 @@
 {
-  "generatedAt": "2026-07-21T14:56:06.534Z",
+  "generatedAt": "2026-07-23T18:43:16.225Z",
   "posts": [
+    {
+      "slug": "id/rust/bagian-0/pengantar-filosofi",
+      "title": "Pengantar & Filosofi",
+      "description": "Ikhtisar panduan Rust — jalur belajar, mengapa Rust, instalasi, toolchain, dan program Rust pertamamu.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Panduan"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 6,
+      "comments": true,
+      "series": "Menguasai Rust",
+      "seriesOrder": 2,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "id/rust/bagian-1/dasar-dasar",
+      "title": "Tingkat Pemula — Dasar-Dasar",
+      "description": "Fundamental Rust — variabel, tipe data, fungsi, kontrol alur, ownership, borrowing, slices, struct, enum, pattern matching, dan I/O dasar.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Panduan"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 3,
+      "comments": true,
+      "series": "Menguasai Rust",
+      "seriesOrder": 3,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "id/rust/bagian-2/membangun-aplikasi-nyata",
+      "title": "Tingkat Menengah — Membangun Aplikasi Nyata",
+      "description": "Pengembangan Rust modern — error handling, generics, traits, lifetimes, closures, iterators, collections, modules, testing, file I/O, dan smart pointers.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Panduan"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 2.5,
+      "comments": true,
+      "series": "Menguasai Rust",
+      "seriesOrder": 4,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "id/rust/bagian-3/menguasai-rust",
+      "title": "Tingkat Expert — Menguasai Rust",
+      "description": "Konsep Rust tingkat lanjut — unsafe Rust, traits lanjutan, konkurensi, async/await, macros, Pin, FFI, dan optimasi performa.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Panduan"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 3,
+      "comments": true,
+      "series": "Menguasai Rust",
+      "seriesOrder": 5,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "id/rust/bagian-4/proyek-praktis",
+      "title": "Proyek Praktis",
+      "description": "Bangun proyek Rust dunia nyata — CLI task manager, concurrent web scraper, dan key-value store (mini Redis).",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Panduan"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 2,
+      "comments": true,
+      "series": "Menguasai Rust",
+      "seriesOrder": 6,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "id/rust/bagian-5/jebakan-umum",
+      "title": "Jebakan Umum & Praktik Terbaik",
+      "description": "Jebakan umum Rust, praktik terbaik, kartu referensi cepat, riwayat edition Rust, glosarium, dan sumber daya untuk belajar lanjutan.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Panduan"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 5.5,
+      "comments": true,
+      "series": "Menguasai Rust",
+      "seriesOrder": 7,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "id/rust/panduan-lengkap-rust",
+      "title": "Panduan Lengkap Rust",
+      "description": "Menguasai Pemrograman Rust Dari Pemula hingga Expert",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Panduan"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 4,
+      "comments": true,
+      "series": "Menguasai Rust",
+      "seriesOrder": 1,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "rust/part-0/introduction-philosophy",
+      "title": "Introduction & Philosophy",
+      "description": "Overview of the Rust guide — learning path, why Rust, installation, toolchain setup, and your first Rust program.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 6,
+      "comments": true,
+      "series": "Mastering Rust",
+      "seriesOrder": 2,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "rust/part-1/foundations",
+      "title": "Junior Level — Foundations",
+      "description": "Rust fundamentals — variables, data types, functions, control flow, ownership, borrowing, slices, structs, enums, pattern matching, and basic I/O.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 9.5,
+      "comments": true,
+      "series": "Mastering Rust",
+      "seriesOrder": 3,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "rust/part-2/building-real-applications",
+      "title": "Intermediate Level — Building Real Applications",
+      "description": "Modern Rust development — error handling, generics, traits, lifetimes, closures, iterators, collections, modules, testing, file I/O, and smart pointers.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 10.5,
+      "comments": true,
+      "series": "Mastering Rust",
+      "seriesOrder": 4,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "rust/part-3/mastering-rust",
+      "title": "Expert Level — Mastering Rust",
+      "description": "Advanced Rust concepts — unsafe Rust, advanced traits, concurrency, async/await, macros, Pin, FFI, and performance optimization.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 8.5,
+      "comments": true,
+      "series": "Mastering Rust",
+      "seriesOrder": 5,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "rust/part-4/practical-projects",
+      "title": "Practical Projects",
+      "description": "Build real-world Rust projects — a CLI task manager, a concurrent web scraper, and a key-value store (mini Redis).",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 4.5,
+      "comments": true,
+      "series": "Mastering Rust",
+      "seriesOrder": 6,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "rust/part-5/common-pitfalls",
+      "title": "Common Pitfalls & Best Practices",
+      "description": "Common Rust pitfalls, best practices, a quick reference card, Rust edition history, glossary, and resources for continued learning.",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 8.5,
+      "comments": true,
+      "series": "Mastering Rust",
+      "seriesOrder": 7,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
+    {
+      "slug": "rust/the-complete-guide-to-rust",
+      "title": "The Complete Guide to Rust",
+      "description": "Mastering Rust Programming From Newbie to Expert",
+      "date": "2026-07-24",
+      "author": "chigusa-asuha",
+      "authorName": "Chigusa Asuha",
+      "authorAvatar": "/snap-star.png",
+      "category": "Rust",
+      "tags": [
+        "Rust",
+        "Guide"
+      ],
+      "draft": false,
+      "featured": false,
+      "coverImage": "",
+      "readingTime": 4,
+      "comments": true,
+      "series": "Mastering Rust",
+      "seriesOrder": 1,
+      "cc": "CC-BY-SA-4.0",
+      "lastEdited": "",
+      "updatedAt": ""
+    },
     {
       "slug": "news/2026-07-19-a-600-mile-road-trip-shows-ev-fast-charging-has-turned-a-corner",
       "title": "A 600-Mile Road Trip Shows EV Fast Charging Has Turned a Corner",
@@ -2120,7 +2456,7 @@
       "draft": false,
       "toc": true,
       "version": "v1.2",
-      "readingTime": 1.5
+      "readingTime": 2
     },
     {
       "slug": "2-guides/mdx-components/tooltip",
@@ -2240,7 +2576,7 @@
       "draft": false,
       "toc": true,
       "version": "v1.2",
-      "readingTime": 1
+      "readingTime": 1.5
     },
     {
       "slug": "2-guides/mdx-components/accordion",
@@ -2252,7 +2588,7 @@
       "draft": false,
       "toc": true,
       "version": "v1.2",
-      "readingTime": 1
+      "readingTime": 2
     },
     {
       "slug": "4-troubleshooting/styling-dark-mode",
@@ -2276,7 +2612,7 @@
       "draft": false,
       "toc": true,
       "version": "v1.2",
-      "readingTime": 1
+      "readingTime": 1.5
     },
     {
       "slug": "4-troubleshooting/performance",
@@ -2373,6 +2709,30 @@
       "toc": true,
       "version": "v1.2",
       "readingTime": 1.5
+    },
+    {
+      "slug": "2-guides/mdx-components/diff-view",
+      "title": "DiffView",
+      "description": "Side-by-side diff viewer with add/remove line highlighting and syntax tokens. Perfect for showing code migrations and before/after comparisons.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 52,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 1.5
+    },
+    {
+      "slug": "2-guides/mdx-components/optimized-image",
+      "title": "OptimizedImage",
+      "description": "Responsive <picture> element with WebP/AVIF fallback for optimized image delivery. Used automatically by the default MDX img tag.",
+      "section": "2. Guides",
+      "sectionSlug": "2-guides",
+      "order": 53,
+      "draft": false,
+      "toc": true,
+      "version": "v1.2",
+      "readingTime": 2
     },
     {
       "slug": "6-project-status",

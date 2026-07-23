@@ -1,0 +1,1200 @@
+---
+title: "Expert Level — Mastering Rust"
+description: "Advanced Rust concepts — unsafe Rust, advanced traits, concurrency, async/await, macros, Pin, FFI, and performance optimization."
+date: 2026-07-24
+tags: ["Rust", "Guide"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Mastering Rust"
+seriesOrder: 5
+---
+
+# Part 3: Expert Level — Mastering Rust
+
+## Chapter 21: Unsafe Rust
+
+<Badge variant="red">Expert</Badge>
+
+### 21.1 What is Unsafe Rust?
+
+Unsafe Rust lets you opt out of some of Rust's safety guarantees. It's **not** "go back to C" — it's a toolkit for building safe abstractions on top of low-level operations.
+
+```rust
+unsafe {
+    // In unsafe blocks, you can:
+    // 1. Dereference raw pointers
+    // 2. Call unsafe functions (including FFI)
+    // 3. Access/modify mutable statics
+    // 4. Implement unsafe traits
+    // 5. Access fields of unions
+}
+
+// The whole function is marked unsafe
+unsafe fn dangerous() {
+    // Caller must uphold safety invariants
+}
+```
+
+### 21.2 Raw Pointers
+
+```rust
+fn main() {
+    let mut num = 5;
+
+    // *const T — immutable raw pointer
+    // *mut T — mutable raw pointer
+    let r1 = &num as *const i32;
+    let r2 = &mut num as *mut i32;
+
+    // Creating raw pointers is SAFE
+    // Dereferencing them is UNSAFE
+    unsafe {
+        println!("r1 = {}", *r1);  // 5
+        *r2 = 10;
+        println!("r2 = {}", *r2);  // 10
+    }
+
+    // Raw pointers can be:
+    // - Null
+    // - Dangling
+    // - Aliased (multiple mutable pointers)
+    let address = 0x012345usize;
+    let r = address as *const i32;
+    // unsafe { println!("{}", *r); }  // 💥 Undefined behavior!
+}
+```
+
+### 21.3 Unsafe Functions and FFI
+
+```rust
+// Call C functions from Rust!
+extern "C" {
+    fn abs(input: i32) -> i32;
+    fn sqrt(x: f64) -> f64;
+}
+
+fn main() {
+    unsafe {
+        println!("abs(-3) = {}", abs(-3));  // 3
+    }
+}
+
+// Declare C-compatible functions in Rust
+#[no_mangle]
+pub extern "C" fn call_from_c() {
+    println!("Called from C!");
+}
+
+// ABI options:
+// extern "C" — Standard C ABI
+// extern "stdcall" — Windows API
+// extern "rust" — Default Rust ABI
+```
+
+### 21.4 Mutable Static Variables
+
+```rust
+static mut COUNTER: u32 = 0;
+
+fn add_to_counter(inc: u32) {
+    unsafe {
+        COUNTER += inc;  // Accessing mutable static is unsafe
+    }
+    // Race condition risk! Use AtomicU32 or Mutex instead.
+}
+
+// Safer alternative:
+use std::sync::atomic::{AtomicU32, Ordering};
+static SAFE_COUNTER: AtomicU32 = AtomicU32::new(0);
+
+fn safe_add(inc: u32) {
+    SAFE_COUNTER.fetch_add(inc, Ordering::SeqCst);
+}
+```
+
+### 21.5 `unsafe` Traits
+
+```rust
+// Unsafe trait — implementing it promises the compiler something
+unsafe trait Foo {
+    // Methods
+}
+
+unsafe impl Foo for i32 {
+    // Implementation promises safety invariants
+}
+
+// Real example: Send and Sync
+// unsafe auto trait Send {}
+// unsafe auto trait Sync {}
+
+// Types are automatically Send/Sync unless they contain non-Send/Sync fields
+// Unsafe impl is used for types that are "wrongly" marked as not Send/Sync:
+struct MyRc<T>(*mut T);
+// MyRc is !Send by default (raw pointers aren't Send)
+unsafe impl<T: Send> Send for MyRc<T> {}  // We promise it's safe to send
+```
+
+### 21.6 When to Use Unsafe
+
+| ✅ Good use | ❌ Bad use |
+|-------------|-----------|
+| FFI / calling C code | "I couldn't figure out the borrow checker" |
+| Performance-critical hot paths | Re-implementing standard library |
+| Building safe abstractions | Circumventing Rust's type safety |
+| Implementing allocators | "It's just for prototyping" |
+| SIMD intrinsics | Anywhere else if you can avoid it |
+
+**Rule of thumb**: If you're writing `unsafe` and it doesn't have a `// SAFETY: ...` comment explaining why the invariants are upheld, you're probably doing it wrong.
+
+---
+
+## Chapter 22: Advanced Traits
+
+<Badge variant="red">Expert</Badge>
+
+### 22.1 Associated Types
+
+```rust
+// Associated type — one type per implementation
+pub trait Iterator {
+    type Item;  // Associated type
+
+    fn next(&mut self) -> Option<Self::Item>;
+}
+
+impl Iterator for Counter {
+    type Item = u32;  // One fixed type
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // Implementation
+    }
+}
+
+// vs generic trait — multiple implementations possible
+pub trait IteratorGeneric<T> {
+    fn next(&mut self) -> Option<T>;
+}
+
+// Associated types are simpler when you only need one implementation per type
+```
+
+### 22.2 Generic Associated Types (GATs)
+
+GATs allow lifetimes or generics on associated types (Rust 1.65+):
+
+```rust
+trait Iterable {
+    type Item<'a>: 'a where Self: 'a;
+
+    fn iter<'a>(&'a self) -> impl Iterator<Item = Self::Item<'a>>;
+}
+
+impl<T: 'static> Iterable for Vec<T> {
+    type Item<'a> = &'a T where T: 'a;
+
+    fn iter<'a>(&'a self) -> impl Iterator<Item = Self::Item<'a>> {
+        self.iter()
+    }
+}
+
+// Practical example: Lending iterator
+trait LendingIterator {
+    type Item<'a>: 'a where Self: 'a;
+
+    fn next<'a>(&'a mut self) -> Option<Self::Item<'a>>;
+}
+
+struct FileLines(std::io::Lines<std::io::BufReader<std::fs::File>>);
+
+impl LendingIterator for FileLines {
+    type Item<'a> = &'a str where Self: 'a;
+
+    fn next<'a>(&'a mut self) -> Option<Self::Item<'a>> {
+        self.0.next()?.ok().map(|s| {
+            // Return reference to borrowed data
+            &*Box::leak(s.into_boxed_str())
+        })
+    }
+}
+```
+
+### 22.3 Supertraits
+
+```rust
+// A trait that depends on another trait
+trait OutlinePrint: Display {  // Any type implementing OutlinePrint must also implement Display
+    fn outline_print(&self) {
+        let output = self.to_string();
+        let len = output.len();
+        println!("{}", "*".repeat(len + 4));
+        println!("*{output}*");
+        println!("{}", "*".repeat(len + 4));
+    }
+}
+
+struct Point { x: i32, y: i32 }
+
+impl Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+impl OutlinePrint for Point {}  // Works because Point implements Display
+```
+
+### 22.4 Fully Qualified Syntax
+
+```rust
+trait Animal {
+    fn name(&self) -> &'static str;
+}
+
+trait Dog {
+    fn name(&self) -> &'static str;
+}
+
+struct Pet;
+
+impl Animal for Pet {
+    fn name(&self) -> &'static str { "Animal" }
+}
+
+impl Dog for Pet {
+    fn name(&self) -> &'static str { "Dog" }
+}
+
+fn main() {
+    let pet = Pet;
+
+    // These are ambiguous:
+    // println!("{}", pet.name());  // ❌ Multiple methods named "name"
+
+    // Fully qualified syntax:
+    println!("{}", <Pet as Animal>::name(&pet));  // "Animal"
+    println!("{}", <Pet as Dog>::name(&pet));      // "Dog"
+}
+```
+
+### 22.5 Newtype Pattern
+
+```rust
+// Create a wrapper type around an existing type
+struct Kilometers(f64);
+struct Meters(f64);
+
+// Now Kilometers and Meters are distinct types!
+// Can't accidentally add them together
+
+impl Kilometers {
+    fn to_meters(&self) -> Meters {
+        Meters(self.0 * 1000.0)
+    }
+}
+
+// Implement Display for user-friendly output:
+impl fmt::Display for Kilometers {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} km", self.0)
+    }
+}
+
+// Implement trait for external type (orphan rule workaround)
+// You can't implement a foreign trait for a foreign type
+// But you CAN implement a foreign trait for YOUR type (newtype!)
+impl Display for Kilometers {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} km", self.0)
+    }
+}
+```
+
+### 22.6 Type Coercion with `Deref`
+
+```rust
+use std::ops::Deref;
+
+struct MyBox<T>(T);
+
+impl<T> Deref for MyBox<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+fn main() {
+    let x = MyBox::new(5);
+    let y: &i32 = &x;  // Deref coercion: &MyBox<i32> → &i32
+    println!("{y}");    // 5
+
+    // Deref coercion works with function arguments:
+    fn hello(name: &str) {
+        println!("Hello, {name}!");
+    }
+
+    let m = MyBox::new(String::from("Rust"));
+    hello(&m);  // &MyBox<String> → &String (Deref) → &str (Deref again)
+}
+```
+
+### 22.7 `impl Trait` in Argument and Return Positions
+
+```rust
+// Argument position: each call site picks its own type
+fn process(items: impl Iterator<Item = i32>) -> i32 {
+    items.sum()
+}
+
+// Return position: hides the concrete type (allows changing impl later)
+fn make_iterator(start: i32, end: i32) -> impl Iterator<Item = i32> {
+    start..end  // Returns a Range<i32>
+}
+// ✅ Can return different concrete types in different code paths?
+// ❌ No — must return the same type. Use Box<dyn Iterator> for dynamic dispatch.
+```
+
+---
+
+## Chapter 23: Concurrency
+
+<Badge variant="red">Expert</Badge>
+
+### 23.1 Threads
+
+```rust
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    // Spawn a thread
+    let handle = thread::spawn(|| {
+        for i in 1..10 {
+            println!("Thread: {i}");
+            thread::sleep(Duration::from_millis(1));
+        }
+    });
+
+    for i in 1..5 {
+        println!("Main: {i}");
+        thread::sleep(Duration::from_millis(1));
+    }
+
+    handle.join().unwrap();  // Wait for thread to finish
+}
+```
+
+### 23.2 `move` Closures with Threads
+
+```rust
+use std::thread;
+
+fn main() {
+    let v = vec![1, 2, 3];
+
+    // `move` forces the closure to take ownership
+    let handle = thread::spawn(move || {
+        println!("Vector: {v:?}");
+    });
+
+    // println!("{v:?}");  // ❌ v was moved into the thread
+    handle.join().unwrap();
+}
+```
+
+### 23.3 `Send` and `Sync` Traits
+
+```rust
+// Send — type can be transferred across threads
+// Sync — type can be shared across threads (&T is Send)
+
+// Most types are both Send and Sync automatically.
+// Exceptions include:
+// - Rc<T>: not Send (reference counting isn't atomic)
+// - RefCell<T>: not Sync (interior mutability isn't thread-safe)
+// - *const T, *mut T: neither Send nor Sync (raw pointers)
+
+// Arc<T>: Send + Sync (atomic reference counting)
+// Mutex<T>: Send + Sync (mutual exclusion)
+// Cell<T>: Send but not Sync
+```
+
+### 23.4 `Arc<T>` — Atomic Reference Counting
+
+```rust
+use std::sync::Arc;
+use std::thread;
+
+fn main() {
+    let data = Arc::new(vec![1, 2, 3]);
+    let mut handles = vec![];
+
+    for i in 0..3 {
+        let data = Arc::clone(&data);  // Increments atomic reference count
+        handles.push(thread::spawn(move || {
+            println!("Thread {i}: {:?}", data);
+        }));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+}
+```
+
+### 23.5 `Mutex<T>` — Mutual Exclusion
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+        handles.push(thread::spawn(move || {
+            let mut num = counter.lock().unwrap();  // Lock the mutex
+            *num += 1;  // Modify the guarded data
+            // Lock automatically released when `num` goes out of scope
+        }));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    println!("Result: {}", *counter.lock().unwrap());  // 10
+}
+```
+
+### 23.6 `RwLock<T>` — Read-Write Lock
+
+```rust
+use std::sync::{Arc, RwLock};
+use std::thread;
+
+fn main() {
+    let data = Arc::new(RwLock::new(vec![1, 2, 3]));
+    let mut handles = vec![];
+
+    // Multiple readers can acquire the lock simultaneously
+    for _ in 0..3 {
+        let data = Arc::clone(&data);
+        handles.push(thread::spawn(move || {
+            let read = data.read().unwrap();
+            println!("Read: {:?}", *read);
+        }));
+    }
+
+    // Writer blocks all readers and other writers
+    let data_clone = Arc::clone(&data);
+    handles.push(thread::spawn(move || {
+        let mut write = data_clone.write().unwrap();
+        write.push(4);
+        println!("Wrote: {:?}", *write);
+    }));
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    println!("Final: {:?}", *data.read().unwrap());  // [1, 2, 3, 4]
+}
+```
+
+### 23.7 Channels — Message Passing
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    // Multiple Producer, Single Consumer
+    let (tx, rx) = mpsc::channel();
+
+    // Spawn producer
+    thread::spawn(move || {
+        let vals = vec![
+            String::from("hi"),
+            String::from("from"),
+            String::from("the"),
+            String::from("thread"),
+        ];
+        for val in vals {
+            tx.send(val).unwrap();
+            thread::sleep(std::time::Duration::from_secs(1));
+        }
+    });
+
+    // Receiver blocks until data is available
+    for received in rx {
+        println!("Got: {received}");
+    }
+
+    // === Multiple Producers ===
+    let (tx, rx) = mpsc::channel();
+    let tx1 = tx.clone();  // Clone the sender
+
+    thread::spawn(move || {
+        tx.send("Message from thread 1").unwrap();
+    });
+    thread::spawn(move || {
+        tx1.send("Message from thread 2").unwrap();
+    });
+
+    for msg in rx {
+        println!("{msg}");
+    }
+}
+```
+
+### 23.8 Scoped Threads (Rust 1.63+)
+
+```rust
+use std::thread;
+
+fn main() {
+    let mut vec = vec![1, 2, 3];
+
+    // Scoped threads can borrow local variables without Arc!
+    thread::scope(|scope| {
+        scope.spawn(|| {
+            println!("Thread 1: {vec:?}");
+        });
+        scope.spawn(|| {
+            vec.push(4);
+            println!("Thread 2: {vec:?}");
+        });
+        // vec.push(5);  // ❌ Borrowed by scoped threads
+    });
+
+    // After scope, all threads have joined
+    vec.push(5);
+    println!("After scope: {vec:?}");
+}
+```
+
+### 23.9 Atomic Types
+
+```rust
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+use std::thread;
+
+fn main() {
+    static FLAG: AtomicBool = AtomicBool::new(false);
+    static COUNTER: AtomicI32 = AtomicI32::new(0);
+
+    let handles: Vec<_> = (0..10).map(|_| {
+        thread::spawn(|| {
+            COUNTER.fetch_add(1, Ordering::Relaxed);
+        })
+    }).collect();
+
+    for h in handles { h.join().unwrap(); }
+
+    println!("Counter: {}", COUNTER.load(Ordering::Relaxed));  // 10
+
+    // Ordering options:
+    // Relaxed — no ordering guarantees (fastest)
+    // Acquire — operations after this won't be reordered before
+    // Release — operations before this won't be reordered after
+    // AcqRel — Acquire + Release (for read-modify-write)
+    // SeqCst — Sequential consistency (strongest, safest)
+}
+```
+
+---
+
+## Chapter 24: Async/Await
+
+<Badge variant="red">Expert</Badge>
+
+### 24.1 Why Async?
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| Synchronous | Simple, predictable | Blocks thread, can't scale to many I/O operations |
+| OS threads | True parallelism | Expensive context switching, memory per thread |
+| **Async** | Efficient for I/O-bound work | More complex, requires runtime |
+
+### 24.2 Async Runtime (Tokio)
+
+```toml
+# Cargo.toml
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+```
+
+```rust
+use tokio::time::{sleep, Duration};
+
+#[tokio::main]
+async fn main() {
+    println!("Starting...");
+    sleep(Duration::from_secs(1)).await;
+    println!("Done!");
+}
+```
+
+### 24.3 Async Functions and `await`
+
+```rust
+use tokio::time::{sleep, Duration};
+
+// Async function returns a Future
+async fn fetch_data(id: u32) -> String {
+    sleep(Duration::from_millis(100)).await;
+    format!("Data for {id}")
+}
+
+#[tokio::main]
+async fn main() {
+    // Calling an async function does NOT execute it
+    let future = fetch_data(42);  // Returns a Future, nothing happens yet
+
+    // .await polls the future until completion
+    let result = future.await;
+    println!("{result}");
+}
+```
+
+### 24.4 Concurrent Execution
+
+```rust
+use tokio::time::{sleep, Duration};
+
+async fn task(id: u32, duration_ms: u64) -> String {
+    sleep(Duration::from_millis(duration_ms)).await;
+    format!("Task {id} done")
+}
+
+#[tokio::main]
+async fn main() {
+    // Sequential — takes 300ms
+    let r1 = task(1, 100).await;
+    let r2 = task(2, 200).await;
+
+    // Concurrent with join — takes 200ms!
+    let (r1, r2) = tokio::join!(task(1, 100), task(2, 200));
+
+    // Or use join_all for many tasks
+    use futures::future::join_all;
+    let tasks: Vec<_> = (0..10).map(|i| task(i, 100)).collect();
+    let results = join_all(tasks).await;
+}
+```
+
+### 24.5 Spawning Tasks
+
+```rust
+#[tokio::main]
+async fn main() {
+    // Spawn tasks — they run in the background
+    let handle = tokio::spawn(async {
+        // This runs concurrently on the tokio runtime
+        "Hello from spawned task"
+    });
+
+    // Do other work
+    println!("Main task working...");
+
+    // Await the spawned task
+    let result = handle.await.unwrap();
+    println!("{result}");
+}
+```
+
+### 24.6 Async Channels
+
+```rust
+use tokio::sync::mpsc;
+
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx) = mpsc::channel(32);  // Buffer of 32
+
+    tokio::spawn(async move {
+        for i in 0..10 {
+            tx.send(i).await.unwrap();
+        }
+    });
+
+    while let Some(msg) = rx.recv().await {
+        println!("Got: {msg}");
+    }
+}
+```
+
+### 24.7 Async Streams
+
+```rust
+use tokio_stream::{wrappers::IntervalStream, StreamExt};
+use std::time::Duration;
+
+#[tokio::main]
+async fn main() {
+    // Create an interval stream (emits every 500ms)
+    let interval = tokio::time::interval(Duration::from_millis(500));
+    let mut stream = IntervalStream::new(interval);
+
+    // Take 5 items from the stream
+    for _ in 0..5 {
+        stream.next().await;
+        println!("Tick!");
+    }
+}
+```
+
+### 24.8 Avoid Blocking in Async Code
+
+```rust
+// ❌ BAD: blocks the entire async runtime thread!
+async fn bad_handler() {
+    std::thread::sleep(std::time::Duration::from_secs(5));  // Blocks!
+    // Other tasks on this thread can't make progress
+}
+
+// ✅ GOOD: use async sleep
+async fn good_handler() {
+    tokio::time::sleep(Duration::from_secs(5)).await;  // Yields back
+}
+
+// For CPU-heavy work, use spawn_blocking:
+async fn handle_cpu_heavy() {
+    let result = tokio::task::spawn_blocking(|| {
+        // This runs on a dedicated thread pool
+        expensive_calculation()
+    }).await.unwrap();
+}
+```
+
+### 24.9 `Select!` Macro
+
+```rust
+use tokio::time::{sleep, Duration};
+
+#[tokio::main]
+async fn main() {
+    let task1 = sleep(Duration::from_secs(1));
+    let task2 = sleep(Duration::from_secs(2));
+
+    tokio::select! {
+        _ = task1 => println!("Task 1 finished first!"),
+        _ = task2 => println!("Task 2 finished first!"),
+        // The first to complete wins, the other is cancelled
+    }
+
+    // Practical: timeout
+    let slow_task = sleep(Duration::from_secs(5));
+    let timeout = sleep(Duration::from_secs(1));
+
+    tokio::select! {
+        _ = slow_task => println!("Completed!"),
+        _ = timeout => println!("Timed out!"),
+    }
+}
+```
+
+---
+
+## Chapter 25: Macros
+
+<Badge variant="red">Expert</Badge>
+
+### 25.1 Declarative Macros (`macro_rules!`)
+
+```rust
+// Simple macro — generates code at compile time
+macro_rules! say_hello {
+    // $()* — repetition (zero or more)
+    // $name — capture variable
+    () => {
+        println!("Hello!");
+    };
+    ($name:expr) => {
+        println!("Hello, {}!", $name);
+    };
+    ($($name:expr),*) => {
+        $(
+            println!("Hello, {}!", $name);
+        )*
+    };
+}
+
+fn main() {
+    say_hello!();                    // "Hello!"
+    say_hello!("Alice");             // "Hello, Alice!"
+    say_hello!("Alice", "Bob");      // "Hello, Alice!" "Hello, Bob!"
+}
+```
+
+### 25.2 `vec!` Implementation
+
+```rust
+#[macro_export]
+macro_rules! vec {
+    ( $( $x:expr ),* ) => {
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push($x);
+            )*
+            temp_vec
+        }
+    };
+    ( $( $x:expr ),+ $(,)? ) => {  // Trailing comma support
+        {
+            let mut temp_vec = Vec::new();
+            $(
+                temp_vec.push($x);
+            )*
+            temp_vec
+        }
+    };
+}
+
+fn main() {
+    let v = vec![1, 2, 3];  // Expands to the code above
+}
+```
+
+### 25.3 Procedural Macros
+
+Procedural macros operate on the AST (Abstract Syntax Tree) at compile time.
+
+```rust
+// === Custom Derive Macro ===
+// use my_derive::Hello;
+//
+// #[derive(Hello)]
+// struct Person { name: String }
+//
+// // Generates:
+// impl Hello for Person {
+//     fn hello() { println!("Hello from Person!"); }
+// }
+
+// === Attribute-like Macro ===
+// #[route(GET, "/")]
+// fn index() {}
+
+// === Function-like Macro ===
+// sql!(SELECT * FROM users WHERE id = 1);
+
+// Implementation requires a separate crate:
+// Cargo.toml
+// [lib]
+// proc-macro = true
+```
+
+### 25.4 Common Standard Macros
+
+| Macro | Purpose |
+|-------|---------|
+| `println!` / `print!` | Print to stdout |
+| `eprintln!` / `eprint!` | Print to stderr |
+| `format!` | Create string from format |
+| `assert!` / `assert_eq!` / `assert_ne!` | Runtime assertions |
+| `debug_assert!` | Debug-only assertions (compiled out in release) |
+| `todo!` | Placeholder for unimplemented code |
+| `unreachable!` | Marks code as unreachable |
+| `dbg!` | Debug-print expression with file/line |
+| `include_str!` / `include_bytes!` | Include file content at compile time |
+| `cfg!` | Conditional compilation predicate |
+| `matches!` | Check if expression matches pattern |
+| `thread_local!` | Declare thread-local variable |
+
+---
+
+## Chapter 26: Advanced Lifetimes & Variance
+
+<Badge variant="red">Expert</Badge>
+
+### 26.1 Lifetime Subtyping
+
+```rust
+// 'a: 'b means "'a outlives 'b" (lifetime 'a is at least 'b long)
+fn longest<'a, 'b: 'a>(x: &'b str, y: &'a str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
+}
+```
+
+### 26.2 Variance
+
+Variance describes how subtyping of compound types relates to their components:
+
+| Variance | Meaning | Example |
+|----------|---------|---------|
+| **Covariant** | Subtype relationship preserved | `&'a T`, `*const T` |
+| **Invariant** | Must be exact type | `&mut T`, `Cell<T>` |
+| **Contravariant** | Subtype relationship reversed | `fn(T)` parameter types |
+
+```rust
+// Covariant: &str is subtype of &'static str
+let static_str: &'static str = "I live forever";
+let regular_str: &str = static_str;  // ✅ (covariant)
+
+// Invariant: &mut T must be exact match
+let mut x: &'static str = "hello";
+let y: &mut &'static str = &mut x;
+// let z: &mut &str = y;  // ❌ Can't widen lifetime in mutable reference
+
+// Contravariant function parameters:
+// fn(&'static str) is subtype of fn(&str)
+// (more restrictive parameter = subtype)
+```
+
+### 26.3 Non-Lexical Lifetimes (NLL)
+
+```rust
+// Before NLL (Rust 2015), this wouldn't compile:
+fn main() {
+    let mut x = String::new();
+
+    let y = &x;       // Immutable borrow starts
+    println!("{y}");  // y is used last here
+
+    let z = &mut x;   // Mutable borrow — works in NLL (Rust 2018+)
+    println!("{z}");  // Because y is no longer used after line 5
+}
+
+// NLL allows borrows to be shorter than their lexical scope
+```
+
+### 26.4 Higher-Ranked Trait Bounds (HRTB)
+
+```rust
+// for<'a> means "for ALL lifetimes 'a"
+fn process<F>(f: F)
+where
+    F: for<'a> Fn(&'a str) -> &'a str,  // F must work for ANY lifetime
+{
+    println!("{}", f("hello"));
+    println!("{}", f("world"));
+}
+
+// Without HRTB, F would only work for ONE specific lifetime
+```
+
+---
+
+## Chapter 27: Pin & Self-Referential Structs
+
+<Badge variant="red">Expert</Badge>
+
+### 27.1 The Pin Problem
+
+Self-referential structs (where a field points to another field) are impossible to write in safe Rust:
+
+```rust
+// ❌ This CANNOT work in safe Rust:
+// struct SelfReferential {
+//     data: String,
+//     reference: &str,  // Would point to `data`
+// }
+// Problem: moving the struct invalidates the pointer!
+```
+
+### 27.2 `Pin<P>` — Pinning Memory
+
+```rust
+use std::pin::Pin;
+use std::marker::PhantomPinned;
+
+#[derive(Debug)]
+struct SelfReferential {
+    data: String,
+    pointer: *const String,
+    _pin: PhantomPinned,  // !Unpin — prevents moving after pin
+}
+
+impl SelfReferential {
+    fn new(data: String) -> Self {
+        SelfReferential {
+            pointer: std::ptr::null(),
+            data,
+            _pin: PhantomPinned,
+        }
+    }
+
+    fn init(self: Pin<&mut Self>) {
+        let this = unsafe {
+            // SAFETY: We won't move self after this
+            self.get_unchecked_mut()
+        };
+        this.pointer = &this.data as *const String;
+    }
+
+    fn get_data(self: Pin<&Self>) -> &String {
+        unsafe {
+            // SAFETY: self is pinned, so pointer is still valid
+            &*self.pointer
+        }
+    }
+}
+
+fn main() {
+    let mut sr = SelfReferential::new("hello".to_string());
+    let mut pinned = unsafe { Pin::new_unchecked(&mut sr) };
+    pinned.as_mut().init();
+
+    // sr has been pinned — moving it would be UB
+    // std::mem::swap(&mut sr, &mut other);  // 💥 Wrong!
+
+    println!("{}", pinned.get_data());  // "hello"
+}
+```
+
+### 27.3 Pin and Async
+
+**Every async function returns a Future that may contain self-referential structs.**
+
+```rust
+// When you write:
+async fn example() {
+    let x = String::from("hello");
+    let y = &x;  // reference to local variable
+    use_yield().await;
+    println!("{y}");  // Still valid after yield
+}
+
+// Rust compiles this to a Future struct that contains both x and &x.
+// Pin ensures this future is never moved after being polled.
+```
+
+---
+
+## Chapter 28: Performance Optimization
+
+<Badge variant="red">Expert</Badge>
+
+### 28.1 Profiling Tools
+
+```bash
+# === Linux perf (sampling profiler) ===
+perf record --call-graph dwarf ./target/release/my_program
+perf report
+
+# === Flamegraphs (visualize hot spots) ===
+# Install: cargo install flamegraph
+cargo flamegraph
+
+# === Cachegrind (cache simulation) ===
+valgrind --tool=cachegrind ./target/release/my_program
+
+# === LLVM profiling ===
+# Cargo.toml:
+# [profile.release]
+# debug = 1
+# Then use perf/DTrace/samply
+```
+
+### 28.2 Compiler Optimizations
+
+```toml
+# Cargo.toml — Profile settings
+[profile.release]
+opt-level = 3           # Max optimization (default)
+lto = "fat"             # Link-time optimization (reduce binary size, improve perf)
+codegen-units = 1       # Single compilation unit (allows more optimization)
+debug = 1               # Line numbers only (for profiling)
+strip = "symbols"       # Remove debug symbols (smaller binary)
+```
+
+### 28.3 Allocation Patterns
+
+```rust
+fn main() {
+    // ❌ BAD: multiple allocations
+    let mut v = Vec::new();
+    v.push(1);
+    v.push(2);
+    v.push(3);
+    // Each push may need to grow (reallocate + copy)
+
+    // ✅ GOOD: pre-allocate
+    let mut v = Vec::with_capacity(1000);
+    for i in 0..1000 {
+        v.push(i);
+    }
+
+    // ❌ BAD: unnecessary cloning
+    fn process(data: &[u8]) -> Vec<u8> {
+        data.to_vec()  // Allocates!
+    }
+
+    // ✅ GOOD: avoid allocation when not needed
+    fn process(data: &[u8]) -> &[u8] {
+        data  // No allocation
+    }
+}
+```
+
+### 28.4 Cache-Friendly Code
+
+```rust
+// ❌ BAD: striding (cache misses)
+fn sum_matrix_columns(matrix: &[[i32; 1024]; 1024]) -> i64 {
+    let mut sum = 0;
+    for col in 0..1024 {
+        for row in 0..1024 {
+            sum += matrix[row][col] as i64;  // Row-major access → cache friendly!
+            // Actually this is column-major access (poor cache usage)
+        }
+    }
+    sum
+}
+
+// ✅ GOOD: sequential access (cache friendly)
+fn sum_matrix_rows(matrix: &[[i32; 1024]; 1024]) -> i64 {
+    let mut sum = 0;
+    for row in 0..1024 {
+        for col in 0..1024 {
+            sum += matrix[row][col] as i64;  // Sequential access
+        }
+    }
+    sum
+    // Run each version and compare!
+}
+```
+
+### 28.5 SIMD (Single Instruction, Multiple Data)
+
+```rust
+// Automatic vectorization — the compiler handles this usually
+// But you can use explicit SIMD with the `portable_simd` feature:
+
+#![feature(portable_simd)]
+use std::simd::{f32x4, SimdFloat};
+
+fn simd_sum(a: &[f32; 16], b: &[f32; 16]) -> [f32; 16] {
+    let mut result = [0.0; 16];
+
+    for i in (0..16).step_by(4) {
+        let va = f32x4::from_slice(&a[i..]);
+        let vb = f32x4::from_slice(&b[i..]);
+        (va + vb).write_to_slice(&mut result[i..]);  // 4 operations in one!
+    }
+
+    result
+}
+```
+
+### 28.6 Common Performance Tips
+
+| Tip | Why |
+|-----|-----|
+| Use `cargo build --release` | Debug mode is ~10-100x slower |
+| Pre-allocate collections | Avoid repeated reallocation |
+| Use `#[inline]` on hot functions | Reduce function call overhead (but don't overuse) |
+| Avoid boxing/cloning in hot paths | Heap allocation is expensive |
+| Use iterators over manual loops | Compiler can optimize iterator chains better |
+| Profile before optimizing | Don't guess — measure! |
+| Use `unsafe` only as last resort | Safety outweighs micro-optimization |
+| Consider `#[repr(C)]` for FFI | Control memory layout |
+| Use `#[repr(align(N))]` for cache alignment | Prevent false sharing in concurrent code |

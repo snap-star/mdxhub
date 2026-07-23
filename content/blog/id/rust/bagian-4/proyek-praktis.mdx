@@ -1,0 +1,287 @@
+---
+title: "Proyek Praktis"
+description: "Bangun proyek Rust dunia nyata — CLI task manager, concurrent web scraper, dan key-value store (mini Redis)."
+date: 2026-07-24
+tags: ["Rust", "Panduan"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Menguasai Rust"
+seriesOrder: 6
+---
+
+# Bagian 4: Proyek Praktis
+
+## Proyek 1: CLI Task Manager
+
+<Badge variant="orange">Menengah</Badge>
+
+Membangun CLI task manager yang menyimpan task di file JSON. Proyek ini mencakup: file I/O, serde untuk serialisasi, clap untuk parsing CLI, dan operasi CRUD.
+
+### Setup Proyek
+
+```bash
+cargo new tasky
+cd tasky
+```
+
+```toml
+# Cargo.toml
+[package]
+name = "tasky"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1"
+```
+
+### Model Data
+
+```rust
+use chrono::{NaiveDateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Task {
+    pub id: u64,
+    pub title: String,
+    pub description: String,
+    pub completed: bool,
+    pub priority: Priority,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Priority {
+    Low,
+    Medium,
+    High,
+}
+```
+
+### Task Store
+
+```rust
+use std::collections::HashMap;
+use anyhow::{Context, Result};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaskStore {
+    tasks: HashMap<u64, Task>,
+    next_id: u64,
+}
+
+impl TaskStore {
+    pub fn load(path: &PathBuf) -> Result<Self> {
+        if path.exists() {
+            let content = fs::read_to_string(path)
+                .with_context(|| format!("Gagal membaca {}", path.display()))?;
+            serde_json::from_str(&content)
+                .context("Gagal parse file task")
+        } else {
+            Ok(TaskStore { tasks: HashMap::new(), next_id: 1 })
+        }
+    }
+
+    pub fn add_task(&mut self, title: String, description: String, priority: Priority) -> Task {
+        let now = Utc::now().naive_utc();
+        let id = self.next_id;
+        self.next_id += 1;
+        let task = Task { id, title, description, completed: false, priority, created_at: now, updated_at: now };
+        self.tasks.insert(id, task.clone());
+        task
+    }
+
+    pub fn list_tasks(&self, filter: Option<bool>) -> Vec<&Task> {
+        let mut tasks: Vec<_> = self.tasks.values().collect();
+        tasks.sort_by_key(|t| std::cmp::Reverse(t.id));
+        match filter {
+            Some(completed) => tasks.into_iter().filter(|t| t.completed == completed).collect(),
+            None => tasks,
+        }
+    }
+
+    pub fn complete_task(&mut self, id: u64) -> Option<&Task> {
+        if let Some(task) = self.tasks.get_mut(&id) {
+            task.completed = true;
+            task.updated_at = Utc::now().naive_utc();
+            Some(task)
+        } else { None }
+    }
+
+    pub fn delete_task(&mut self, id: u64) -> Option<Task> {
+        self.tasks.remove(&id)
+    }
+}
+```
+
+### CLI Interface
+
+```rust
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(name = "tasky")]
+#[command(about = "CLI task manager sederhana")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Tambah task baru
+    Add {
+        title: String,
+        #[arg(short, long, default_value = "")]
+        description: String,
+        #[arg(short, long, default_value = "medium")]
+        priority: String,
+    },
+    /// Lihat semua task
+    List {
+        #[arg(short, long)]
+        status: Option<String>,
+    },
+    /// Tandai task selesai
+    Done { id: u64 },
+    /// Hapus task
+    Delete { id: u64 },
+}
+```
+
+### Menjalankan
+
+```bash
+cargo run -- add "Belajar Rust" -d "Selesaikan panduan Rust" -p high
+cargo run -- list
+cargo run -- done 1
+cargo run -- delete 1
+```
+
+---
+
+## Proyek 2: Concurrent Web Scraper
+
+<Badge variant="red">Expert</Badge>
+
+Membangun web scraper konkuren yang mendownload beberapa halaman secara simultan.
+
+```toml
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+scraper = "0.20"
+anyhow = "1"
+futures = "0.3"
+```
+
+```rust
+use anyhow::Result;
+use reqwest::Client;
+use scraper::{Html, Selector};
+
+pub struct Scraper {
+    client: Client,
+    concurrency: usize,
+}
+
+impl Scraper {
+    pub async fn scrape(&self, start_url: &str) -> Result<Vec<ScrapedPage>> {
+        let semaphore = Arc::new(tokio::sync::Semaphore::new(self.concurrency));
+        let mut handles = vec![];
+
+        for url in urls {
+            let permit = semaphore.clone().acquire_owned().await;
+            handles.push(tokio::spawn(async move {
+                let _permit = permit;
+                self.fetch_page(&url).await
+            }));
+        }
+
+        let results = futures::future::join_all(handles).await;
+        // ...
+    }
+}
+```
+
+---
+
+## Proyek 3: Key-Value Store (Mini Redis)
+
+<Badge variant="red">Expert</Badge>
+
+Membangun server key-value in-memory sederhana dengan protokol TCP.
+
+```toml
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+bytes = "1"
+anyhow = "1"
+```
+
+```rust
+// Database in-memory
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
+#[derive(Clone)]
+pub struct Database {
+    inner: Arc<Mutex<HashMap<String, String>>>,
+}
+
+impl Database {
+    pub fn new() -> Self {
+        Database { inner: Arc::new(Mutex::new(HashMap::new())) }
+    }
+
+    pub async fn set(&self, key: String, value: String) {
+        self.inner.lock().await.insert(key, value);
+    }
+
+    pub async fn get(&self, key: &str) -> Option<String> {
+        self.inner.lock().await.get(key).cloned()
+    }
+}
+
+// Server TCP
+use tokio::net::TcpListener;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:6379").await?;
+    let db = Database::new();
+
+    loop {
+        let (stream, _) = listener.accept().await?;
+        let db = db.clone();
+        tokio::spawn(async move {
+            handle_connection(stream, db).await;
+        });
+    }
+}
+```
+
+```bash
+# Test server
+echo -e "SET nama Alice\nGET nama\n" | nc 127.0.0.1 6379
+```
+
+---
+
+## Ringkasan Proyek
+
+| Proyek | Kesulitan | Konsep Kunci | Baris Kode |
+|--------|-----------|-------------|-----------|
+| CLI Task Manager | <Badge variant="orange">Menengah</Badge> | File I/O, serde, clap, CRUD | ~200 |
+| Concurrent Web Scraper | <Badge variant="red">Expert</Badge> | Async/tokio, reqwest, konkurensi | ~300 |
+| Key-Value Store | <Badge variant="red">Expert</Badge> | TCP networking, tokio, Arc<Mutex> | ~250 |
+
+**Langkah Selanjutnya**: Pilih proyek yang sesuai dengan tingkat kenyamananmu. Mulai dengan CLI Task Manager untuk memperkuat konsep menengah. Setelah nyaman, coba Web Scraper atau Mini Redis untuk menguasai Rust async dan konkurensi.

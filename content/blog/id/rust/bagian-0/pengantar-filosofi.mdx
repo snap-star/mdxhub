@@ -1,0 +1,355 @@
+---
+title: "Pengantar & Filosofi"
+description: "Ikhtisar panduan Rust — jalur belajar, mengapa Rust, instalasi, toolchain, dan program Rust pertamamu."
+date: 2026-07-24
+tags: ["Rust", "Panduan"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Menguasai Rust"
+seriesOrder: 2
+---
+
+# Bagian 0: Pengantar & Filosofi
+
+## Apa yang Dicakup Panduan Ini
+
+Panduan ini adalah perjalanan komprehensifmu melalui **Rust** — bahasa pemrograman sistem yang fokus pada keamanan memori, kecepatan, dan konkurensi tanpa garbage collector. Kita akan belajar dari menulis baris pertama kode Rust hingga menguasai konsep terdalamnya.
+
+### Jalur Belajar
+
+| Level | Topik | Tujuan |
+|-------|-------|--------|
+| **Pemula** <Badge variant="green">Newbie</Badge> | Sintaks, ownership, borrowing, struct, enum, pattern matching | Menulis Rust yang aman dengan percaya diri |
+| **Menengah** <Badge variant="orange">Apprentice</Badge> | Error handling, generics, traits, lifetimes, closure, smart pointer | Membangun aplikasi dunia nyata |
+| **Expert** <Badge variant="red">Master</Badge> | Unsafe Rust, konkurensi, async/await, macro, Pin, FFI | Mengarsiteki sistem production-grade |
+
+### Cara Membaca Panduan Ini
+
+Kami menggunakan sistem **badge tingkat kesulitan**:
+
+<Badge variant="green">Pemula</Badge> — Konsep fundamental, pemrograman pertama kali, sintaks dasar  
+<Badge variant="orange">Menengah</Badge> — Pola, skenario dunia nyata, fitur modern  
+<Badge variant="red">Expert</Badge> — Internals, arsitektur, performa, masalah production  
+
+Setiap bagian dibangun di atas bagian sebelumnya. Bagian Pemula harus dikuasai sebelum bagian Menengah. Pola Menengah diasumsikan sudah diketahui di bagian Expert.
+
+**Jalankan setiap contoh.** Rust paling baik dipelajari dengan melakukan. Gunakan `cargo new` untuk membuat proyek dan bereksperimen dengan setiap contoh kode.
+
+---
+
+## Mengapa Rust?
+
+Rust bukan sekadar bahasa pemrograman biasa. Ini mewakili perubahan fundamental dalam cara kita berpikir tentang pemrograman sistem.
+
+### Keamanan Memori Tanpa Garbage Collector
+
+Inovasi terbesar Rust adalah sistem **ownership** — serangkaian aturan yang diperiksa pada waktu kompilasi yang menjamin keamanan memori tanpa perlu garbage collector atau reference counting (di sebagian besar kasus).
+
+```rust
+// Di C/C++, ini akan menjadi bug use-after-free
+fn dangling() -> &String {
+    let s = String::from("hello");
+    &s  // ❌ Error kompilasi: `s` tidak hidup cukup lama
+}
+
+// Rust menangkap ini saat kompilasi — bukan runtime!
+```
+
+| Bahasa | Manajemen Memori | Jaminan Keamanan | Overhead Runtime |
+|--------|-----------------|-----------------|------------------|
+| C/C++ | Manual | Tidak ada | Tidak ada |
+| Java/Go | GC | Aman (dengan biaya GC pause) | Overhead GC |
+| Python/JS | GC + Ref counting | Aman | Overhead tinggi |
+| **Rust** | **Ownership (compile-time)** | **Aman (tanpa GC!)** | **Zero-cost abstractions** |
+
+### Zero-Cost Abstractions
+
+Rust menyediakan abstraksi tingkat tinggi (iterator, closure, generics) yang dikompilasi menjadi kode mesin yang sama efisiennya dengan implementasi manual tingkat rendah.
+
+```rust
+// Rust tingkat tinggi — terbaca seperti pseudocode
+let sum: i32 = (1..=100)
+    .filter(|n| n % 2 == 0)
+    .map(|n| n * n)
+    .sum();
+
+// Dikompilasi menjadi kode mesin yang sama dengan:
+let mut sum = 0;
+for n in 1..=100 {
+    if n % 2 == 0 {
+        sum += n * n;
+    }
+}
+```
+
+### Fearless Concurrency
+
+Sistem tipe Rust menangkap data race pada waktu kompilasi. Trait `Send` dan `Sync` (diimplementasikan secara otomatis untuk sebagian besar tipe) memastikan keamanan thread tanpa pemeriksaan runtime.
+
+```rust
+use std::thread;
+use std::sync::Arc;
+
+fn main() {
+    let data = Arc::new(vec![1, 2, 3]);
+    let mut handles = vec![];
+
+    for i in 0..3 {
+        let data = Arc::clone(&data);
+        handles.push(thread::spawn(move || {
+            println!("Thread {}: {:?}", i, data);
+        }));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+}
+```
+
+### Performa
+
+Rust secara konsisten masuk peringkat teratas sebagai bahasa tercepat, bersaing langsung dengan C dan C++.
+
+| Benchmark | Rust | C | C++ | Go | Python |
+|-----------|------|---|-----|----|--------|
+| Binary trees | 1.0x | 1.0x | 0.9x | 3.6x | 85x |
+| Regex redux | 1.0x | — | 2.0x | 9.0x | 22x |
+| Fannkuch-redux | 1.0x | 0.8x | 1.1x | 1.8x | 100x |
+
+*Sumber: [Benchmarks Game](https://benchmarksgame-team.pages.debian.net/benchmarksgame/) — lebih rendah lebih baik*
+
+---
+
+## Instalasi & Toolchain
+
+### Langkah 1: Instal rustup
+
+**`rustup`** adalah penginstal toolchain resmi Rust. Ini mengelola beberapa versi dan platform Rust.
+
+```bash
+# Di Linux/Mac
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Di Windows, download dari https://rustup.rs
+# Atau: winget install rustup
+
+# Setelah instalasi, restart terminal atau jalankan:
+source "$HOME/.cargo/env"
+```
+
+### Langkah 2: Verifikasi Instalasi
+
+```bash
+# Periksa versi Rust
+rustc --version
+# → rustc 1.85.0 (2024 edition)
+
+# Periksa versi Cargo
+cargo --version
+# → cargo 1.85.0
+
+# Update ke versi terbaru
+rustup update
+```
+
+### Langkah 3: Toolchain Rust
+
+| Alat | Deskripsi | Perintah |
+|------|-----------|---------|
+| **rustc** | Kompiler Rust | `rustc main.rs` |
+| **cargo** | Manajer paket & build system | `cargo build` |
+| **rustfmt** | Pemformat kode | `cargo fmt` |
+| **clippy** | Linter dengan 600+ aturan | `cargo clippy` |
+| **rust-analyzer** | LSP untuk dukungan IDE | Via ekstensi VS Code atau editor |
+| **rustdoc** | Generator dokumentasi | `cargo doc` |
+| **cargo-edit** | Tambah/hapus dependensi | `cargo add serde` |
+
+### Langkah 4: Instal Dukungan LSP (direkomendasikan)
+
+```bash
+# VS Code: Instal ekstensi "rust-analyzer"
+# - Highlight sintaks
+# - Auto-completion
+# - Go-to-definition
+# - Inline type hints
+# - Highlight error
+# - Code actions (auto-import, auto-fix)
+```
+
+### Langkah 5: Buat Proyek Pertama
+
+```bash
+# Ini membuat binary crate baru
+cargo new hello-rust
+cd hello-rust
+```
+
+Struktur proyek:
+
+```
+hello-rust/
+├── Cargo.toml      # Manifest paket (dependensi, metadata)
+├── src/
+│   └── main.rs     # Entry point
+├── .gitignore
+└── target/         # Output build (jangan di-commit)
+    ├── debug/
+    └── release/
+```
+
+**File: `Cargo.toml`**
+
+```toml
+[package]
+name = "hello-rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+```
+
+---
+
+## Program Rust Pertama
+
+### Hello, World!
+
+Buka `src/main.rs` — kamu akan melihat ini sudah di-generate:
+
+```rust
+fn main() {
+    println!("Hello, world!");
+}
+```
+
+Penjelasan:
+
+- `fn main()` — mendeklarasikan fungsi entry point. Setiap binary Rust dimulai di sini.
+- `println!` — sebuah **macro** (perhatikan `!`) yang mencetak dengan newline
+- `"Hello, world!"` — string literal
+- `;` — mengakhiri statement. Hampir setiap statement di Rust diakhiri dengan `;`
+
+### Build dan Run
+
+```bash
+# Build + run dalam satu langkah
+cargo run
+
+# Atau terpisah:
+cargo build    # Kompilasi ke target/debug/hello-rust
+./target/debug/hello-rust  # Jalankan binary
+
+# Release build (dioptimalkan)
+cargo build --release
+./target/release/hello-rust
+```
+
+### Membuatnya Interaktif
+
+```rust
+use std::io::{self, Write};
+
+fn main() {
+    println!("Selamat datang di Rust!");
+
+    // Cetak tanpa newline (flush diperlukan untuk output langsung)
+    print!("Siapa namamu? ");
+    io::stdout().flush().unwrap();
+
+    // Baca input pengguna
+    let mut name = String::new();
+    io::stdin()
+        .read_line(&mut name)
+        .expect("Gagal membaca baris");
+
+    // Hapus karakter newline
+    let name = name.trim();
+
+    // Sambut pengguna
+    println!("Halo, {name}! Kamu sedang mengambil langkah pertama di Rust.");
+    println!("Kamu memasuki: \"{}\"", name);
+    println!("Namamu memiliki {} karakter.", name.len());
+}
+```
+
+### Poin Penting dari Hello World
+
+1. **`println!` adalah macro** — `!` membedakan macro dari fungsi
+2. **Variabel immutable secara default** — `let mut name` secara eksplisit mendeklarasikan mutabilitas
+3. **`String::new()` membuat string kosong yang bisa dikembangkan** — `String` dialokasikan di heap
+4. **`.expect()` menangani error** — jika membaca gagal, program panic dengan pesan kita
+5. **`trim()` menghapus whitespace** — `read_line` menyertakan newline di akhir
+6. **Interpolasi string** — `{name}` dalam format string (Rust 1.58+)
+
+### Cheat Sheet Perintah Umum
+
+```bash
+cargo new <nama-proyek>     # Buat proyek baru
+cargo build                  # Build mode debug
+cargo build --release        # Build mode release (dioptimalkan)
+cargo run                    # Build dan jalankan
+cargo check                  # Periksa error tanpa build (cepat!)
+cargo test                   # Jalankan test
+cargo clippy                 # Jalankan linter
+cargo fmt                    # Format kode
+cargo doc --open             # Build dan buka dokumentasi
+cargo add <crate>            # Tambah dependensi
+cargo remove <crate>         # Hapus dependensi
+cargo tree                   # Tampilkan pohon dependensi
+cargo update                 # Update dependensi
+```
+
+<Callout type="tip" title="Tips Pro">
+Gunakan `cargo check` sering saat coding — jauh lebih cepat daripada `cargo build` karena hanya memverifikasi kebenaran tanpa menghasilkan executable. Jalankan `cargo build` hanya ketika kamu ingin benar-benar menjalankan atau menguji binary.
+</Callout>
+
+---
+
+## Filosofi Rust
+
+### Prinsip Inti
+
+| Prinsip | Makna |
+|---------|-------|
+| **Keamanan memori tanpa GC** | Sistem ownership mencegah use-after-free, double-free, buffer overflow |
+| **Zero-cost abstractions** | Kode tingkat tinggi dikompilasi ke kode mesin tanpa overhead runtime |
+| **Fearless concurrency** | Data race terdeteksi pada waktu kompilasi |
+| **Performa** | Rust harus secepat C, tidak pernah lebih lambat |
+| **Ergonomi** | Pola umum harus mudah; pola tidak umum harus mungkin dilakukan |
+| **Keandalan** | Jika kompilasi berhasil, kode aman (sejauh keamanan memori/konkurensi) |
+
+### Rust vs Bahasa Lain
+
+| Fitur | Rust | C/C++ | Java | Go | Python |
+|-------|------|-------|------|----|--------|
+| Keamanan memori | ✅ Waktu kompilasi | ❌ Manual | ✅ GC | ✅ GC | ✅ GC |
+| Bebas data race | ✅ Waktu kompilasi | ❌ | ✅ Thread-safe by convention | ✅ Built-in | ✅ GIL |
+| Tanpa GC pause | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Zero-cost abstractions | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Pattern matching | ✅ Sangat baik | ❌ | ❌ | ❌ | ❌ Dasar |
+| Tipe aljabar | ✅ Enum + match | ❌ | ❌ | ❌ | ❌ |
+| Tanpa null pointer | ✅ `Option<T>` | ❌ Null | ❌ Null | ❌ Nil | ❌ None |
+| Tanpa exception | ✅ `Result<T,E>` | ❌ | ✅ Checked | ❌ | ✅ Unchecked |
+| Kurva belajar | Curam | Sedang | Sedang | Rendah | Rendah |
+
+<Callout type="warning" title="Saran Umum">
+Kurva belajar Rust itu nyata. Borrow checker akan menolak kode yang akan dikompilasi di C/C++/Python. Ini **disengaja** — setiap penolakan mencegah potensi bug. Setelah perjuangan awal, sebagian besar pengembang melaporkan bahwa aturan Rust menjadi sifat kedua, dan kode yang ditulis dalam bahasa lain mulai terasa \"salah\" sebagai perbandingan.
+</Callout>
+
+---
+
+## Glosarium (Bagian 0)
+
+| Istilah | Definisi |
+|---------|----------|
+| **rustup** | Penginstal dan manajer versi toolchain resmi Rust |
+| **Cargo** | Sistem build dan manajer paket Rust |
+| **Crate** | Paket kode Rust (library atau binary) |
+| **Module** | Namespace dalam crate yang mengontrol visibilitas |
+| **Edition** | Sistem versi Rust untuk evolusi bahasa (2015, 2018, 2021, 2024) |
+| **Macro** | Kode yang menulis kode lain (metaprogramming) |
+| **Trait** | Perilaku / antarmuka bersama di Rust |
+| **Lifetime** | Anotasi waktu kompilasi yang memastikan referensi selalu valid |
+| **Zero-cost abstraction** | Konstruk tingkat tinggi yang dikompilasi menjadi kode tingkat rendah yang efisien |

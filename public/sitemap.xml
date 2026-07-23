@@ -33,6 +33,48 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mdxhub.vercel.app/blog/id/rust/bagian-0/pengantar-filosofi</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/id/rust/bagian-1/dasar-dasar</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/id/rust/bagian-2/membangun-aplikasi-nyata</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/id/rust/bagian-3/menguasai-rust</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/id/rust/bagian-4/proyek-praktis</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/id/rust/bagian-5/jebakan-umum</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/id/rust/panduan-lengkap-rust</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mdxhub.vercel.app/blog/javascript/part-0/introduction-philosophy</loc>
     <lastmod>2026-07-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -315,6 +357,48 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mdxhub.vercel.app/blog/rust/part-0/introduction-philosophy</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/rust/part-1/foundations</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/rust/part-2/building-real-applications</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/rust/part-3/mastering-rust</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/rust/part-4/practical-projects</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/rust/part-5/common-pitfalls</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/blog/rust/the-complete-guide-to-rust</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mdxhub.vercel.app/blog/showcase/demo-faq-component</loc>
     <lastmod>2026-07-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -496,7 +580,7 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/accordion</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -508,25 +592,25 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/badge</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/callout</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/card-grid</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/cc-license</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -550,7 +634,13 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/code-sandbox</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/diff-view</loc>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -591,8 +681,14 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/optimized-image</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/profile-badge</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -616,13 +712,13 @@
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/tooltip</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mdxhub.vercel.app/docs/2-guides/mdx-components/video-embed</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

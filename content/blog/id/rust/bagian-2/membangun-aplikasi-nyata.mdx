@@ -1,0 +1,425 @@
+---
+title: "Tingkat Menengah — Membangun Aplikasi Nyata"
+description: "Pengembangan Rust modern — error handling, generics, traits, lifetimes, closures, iterators, collections, modules, testing, file I/O, dan smart pointers."
+date: 2026-07-24
+tags: ["Rust", "Panduan"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Menguasai Rust"
+seriesOrder: 4
+---
+
+# Bagian 2: Tingkat Menengah — Membangun Aplikasi Nyata
+
+## Bab 11: Error Handling
+
+<Badge variant="orange">Menengah</Badge>
+
+### 11.1 Dua Kategori Error
+
+Rust membagi error menjadi dua kategori:
+
+| Kategori | Mekanisme | Kasus Penggunaan |
+|----------|-----------|-----------------|
+| **Recoverable** | `Result<T, E>` | File tidak ditemukan, input tidak valid, timeout jaringan |
+| **Unrecoverable** | `panic!()` | Array out of bounds, pembagian dengan nol, assertion failure |
+
+### 11.2 `Result<T, E>` — Error Recoverable
+
+```rust
+use std::fs::File;
+
+fn main() {
+    let f = File::open("hello.txt");
+    let f = match f {
+        Ok(file) => file,
+        Err(error) => panic!("Problem membuka file: {error:?}"),
+    };
+}
+```
+
+### 11.3 Operator `?` — Propagasi Error
+
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+
+fn read_username() -> Result<String, io::Error> {
+    let mut f = File::open("user.txt")?;  // Mengembalikan Err jika gagal
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    Ok(s)
+
+    // Atau lebih pendek:
+    // let mut s = String::new();
+    // File::open("user.txt")?.read_to_string(&mut s)?;
+    // Ok(s)
+}
+```
+
+### 11.4 Menggunakan `thiserror` dan `anyhow`
+
+```rust
+// ========== thiserror — Define custom errors dengan derive macro ==========
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum ApiError {
+    #[error("network error: {0}")]
+    Network(#[from] reqwest::Error),
+    #[error("validation error: {field} {message}")]
+    Validation { field: String, message: String },
+    #[error("not found")]
+    NotFound,
+}
+
+// ========== anyhow — Sederhanakan error handling ==========
+use anyhow::{Context, Result};
+
+fn read_config() -> Result<String> {
+    let content = std::fs::read_to_string("config.toml")
+        .with_context(|| "Gagal membaca file config")?;
+    Ok(content)
+}
+```
+
+### Pola Error Handling
+
+| Pola | Kasus Penggunaan |
+|------|-----------------|
+| `.expect("msg")` | Prototyping, test, operasi infallible |
+| `.unwrap_or(default)` | Nilai fallback |
+| `?` operator | Propagasi error (pola utama) |
+| `.context("msg")` | Tambah konteks (anyhow) |
+
+---
+
+## Bab 12: Generics
+
+<Badge variant="orange">Menengah</Badge>
+
+```rust
+// Fungsi generic — bekerja dengan tipe T apapun
+fn largest<T: PartialOrd>(list: &[T]) -> &T {
+    let mut largest = &list[0];
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+    largest
+}
+
+fn main() {
+    let numbers = vec![34, 50, 25, 100, 65];
+    println!("Terbesar: {}", largest(&numbers));  // 100
+
+    let chars = vec!['y', 'm', 'a', 'q'];
+    println!("Terbesar: {}", largest(&chars));    // 'y'
+}
+
+// Struct generic
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+fn main() {
+    let integer = Point { x: 5, y: 10 };
+    let float = Point { x: 1.0, y: 4.0 };
+}
+
+// Monomorfisasi — generics Rust adalah zero-cost
+// Dikompilasi menjadi tipe konkret pada waktu kompilasi
+```
+
+---
+
+## Bab 13: Traits
+
+<Badge variant="orange">Menengah</Badge>
+
+```rust
+// Mendefinisikan trait
+trait Summary {
+    fn summarize(&self) -> String;
+}
+
+struct Article {
+    headline: String,
+    author: String,
+}
+
+impl Summary for Article {
+    fn summarize(&self) -> String {
+        format!("{} oleh {}", self.headline, self.author)
+    }
+}
+
+// Trait sebagai parameter
+fn notify(item: &impl Summary) {
+    println!("Berita: {}", item.summarize());
+}
+
+// Trait bound
+fn notify<T: Summary>(item: &T) {
+    println!("Berita: {}", item.summarize());
+}
+
+// Trait object dengan dyn
+fn process_dynamic(items: &[&dyn Summary]) {
+    for item in items {
+        item.summarize();
+    }
+}
+```
+
+---
+
+## Bab 14: Lifetimes
+
+<Badge variant="orange">Menengah</Badge>
+
+Lifetime memastikan bahwa **reference selalu valid**. Diperiksa pada waktu kompilasi dengan **biaya runtime nol**.
+
+```rust
+// `'a` mengikat return reference ke parameter reference
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
+}
+
+// Lifetime elision — Rust bisa menginferensi lifetime dalam banyak kasus
+fn first_word(s: &str) -> &str {
+    s.split_whitespace().next().unwrap_or("")
+}
+
+// Lifetime dalam struct
+struct Excerpt<'a> {
+    part: &'a str,
+}
+
+// The 'static lifetime
+let s: &'static str = "Saya hidup selamanya";
+```
+
+---
+
+## Bab 15: Closure & Iterator
+
+<Badge variant="orange">Menengah</Badge>
+
+### 15.1 Closure
+
+```rust
+fn main() {
+    // Closure — fungsi anonim yang bisa menangkap lingkungan
+    let add_one = |x| x + 1;
+    println!("{}", add_one(5));  // 6
+
+    // Menangkap lingkungan
+    let x = 42;
+    let print_x = || println!("{x}");
+    print_x();
+}
+```
+
+### 15.2 Iterator
+
+```rust
+fn main() {
+    let nums = vec![1, 2, 3, 4, 5];
+
+    // map — transformasi setiap elemen
+    let doubled: Vec<_> = nums.iter().map(|x| x * 2).collect();
+    println!("{doubled:?}");  // [2, 4, 6, 8, 10]
+
+    // filter — pertahankan elemen yang cocok
+    let evens: Vec<_> = nums.iter().filter(|x| *x % 2 == 0).collect();
+    println!("{evens:?}");  // [2, 4]
+
+    // fold — reduce ke nilai tunggal
+    let sum = nums.iter().fold(0, |acc, x| acc + x);
+    println!("{sum}");  // 15
+
+    // Chaining
+    let result: Vec<_> = nums.iter()
+        .filter(|x| *x % 2 == 0)
+        .map(|x| x * 10)
+        .collect();
+    println!("{result:?}");  // [20, 40]
+}
+```
+
+---
+
+## Bab 16: Collection
+
+<Badge variant="orange">Menengah</Badge>
+
+### Vec, HashMap, HashSet
+
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    // Vec
+    let mut v = vec![1, 2, 3];
+    v.push(4);
+
+    // HashMap
+    let mut scores = HashMap::new();
+    scores.insert(String::from("Biru"), 10);
+    scores.insert(String::from("Kuning"), 50);
+
+    // HashSet
+    use std::collections::HashSet;
+    let mut set = HashSet::new();
+    set.insert(1);
+    set.insert(2);
+}
+```
+
+### String dan UTF-8
+
+```rust
+fn main() {
+    let mut s = String::from("foo");
+    s.push_str("bar");          // "foobar"
+    s.push('!');                // "foobar!"
+
+    // String TIDAK mendukung indexing
+    // let c = s[0];  // ❌ Error!
+
+    // Iterasi aman
+    for c in "halo".chars() {
+        println!("{c}");  // h, a, l, o
+    }
+}
+```
+
+---
+
+## Bab 17: Module, Crate & Package
+
+<Badge variant="orange">Menengah</Badge>
+
+### Cargo Workspace
+
+```toml
+[workspace]
+members = [
+    "crates/parser",
+    "crates/cli",
+    "crates/core",
+]
+```
+
+### Visibilitas dan Re-export
+
+```rust
+// src/lib.rs
+mod formatting;
+pub use formatting::formatter::pretty_print;
+
+// Module private
+mod internal {
+    pub fn helper() {}
+}
+
+// src/formatting.rs
+pub mod formatter {
+    pub fn pretty_print(text: &str) {
+        println!("** {text} **");
+    }
+}
+```
+
+---
+
+## Bab 18: Testing
+
+<Badge variant="orange">Menengah</Badge>
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    #[should_panic(expected = "overflow")]
+    fn overflow_panics() {
+        // Kode yang panic
+    }
+}
+
+// Integration test di tests/integration_test.rs
+// Doc test di komentar ///
+```
+
+---
+
+## Bab 19: File I/O
+
+<Badge variant="orange">Menengah</Badge>
+
+```rust
+use std::fs;
+use std::io::{self, BufRead, BufReader};
+
+fn read_file() -> io::Result<String> {
+    fs::read_to_string("file.txt")
+}
+
+fn write_file() -> io::Result<()> {
+    fs::write("output.txt", "Hello, world!")?;
+    Ok(())
+}
+
+fn read_line_by_line() -> io::Result<()> {
+    let file = fs::File::open("file.txt")?;
+    let reader = BufReader::new(file);
+    for line in reader.lines() {
+        println!("{}", line?);
+    }
+    Ok(())
+}
+```
+
+---
+
+## Bab 20: Smart Pointer
+
+<Badge variant="orange">Menengah</Badge>
+
+| Pointer | Mutabilitas | Kepemilikan | Multi-pemilik | Thread-safe? |
+|---------|------------|-------------|---------------|-------------|
+| `Box<T>` | Immutable/mutable | Tunggal | Tidak | Ya |
+| `Rc<T>` | Immutable | Shared | Ya | Tidak |
+| `RefCell<T>` | Interior mutability | Tunggal | Tidak | Tidak |
+| `Arc<T>` | Immutable | Shared | Ya | Ya |
+| `Arc<Mutex<T>>` | Interior mutability | Shared | Ya | Ya |
+
+```rust
+use std::rc::Rc;
+use std::cell::RefCell;
+
+// Rc — reference counted
+let a = Rc::new(5);
+let b = Rc::clone(&a);  // Increments reference count
+
+// RefCell — interior mutability
+let data = RefCell::new(5);
+*data.borrow_mut() += 1;
+println!("{}", data.borrow());  // 6
+
+// Box — heap allocation
+let b = Box::new(5);
+println!("{}", *b);  // 5
+```

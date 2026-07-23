@@ -1,0 +1,367 @@
+---
+title: "Introduction & Philosophy"
+description: "Overview of the Rust guide — learning path, why Rust, installation, toolchain setup, and your first Rust program."
+date: 2026-07-24
+tags: ["Rust", "Guide"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Mastering Rust"
+seriesOrder: 2
+---
+
+# Part 0: Introduction & Philosophy
+
+## What This Guide Covers
+
+This guide is your comprehensive journey through **Rust** — a systems programming language focused on memory safety, speed, and concurrency without a garbage collector. We progress from writing your first line of Rust through mastering its deepest internals.
+
+### The Learning Path
+
+| Level | Topics | Goal |
+|-------|--------|------|
+| **Junior** <Badge variant="green">Newbie</Badge> | Syntax, ownership, borrowing, structs, enums, pattern matching | Write safe Rust confidently |
+| **Intermediate** <Badge variant="orange">Apprentice</Badge> | Error handling, generics, traits, lifetimes, closures, smart pointers | Build real-world applications |
+| **Expert** <Badge variant="red">Master</Badge> | Unsafe Rust, concurrency, async/await, macros, Pin, FFI | Architect production-grade systems |
+
+### How to Read This Guide
+
+We use a **level badge system** to indicate difficulty:
+
+<Badge variant="green">Junior</Badge> — Fundamental concepts, first-time programming, basic syntax  
+<Badge variant="orange">Intermediate</Badge> — Patterns, real-world scenarios, modern features  
+<Badge variant="red">Expert</Badge> — Internals, architecture, performance, production concerns  
+
+Each section builds on the previous. Junior sections must be mastered before Intermediate. Intermediate patterns are assumed knowledge in Expert sections.
+
+**Run every example.** Rust is best learned by doing. Use `cargo new` to create projects and experiment with each code sample.
+
+---
+
+## Why Rust?
+
+Rust is not just another programming language. It represents a fundamental shift in how we think about systems programming.
+
+### Memory Safety Without a Garbage Collector
+
+Rust's biggest innovation is its **ownership system** — a set of rules checked at compile time that guarantees memory safety without needing a garbage collector or reference counting (in most cases).
+
+```rust
+// In C/C++, this would be a use-after-free bug
+fn dangling() -> &String {
+    let s = String::from("hello");
+    &s  // ❌ Compiler error: `s` does not live long enough
+}
+
+// Rust catches this at compile time — not at runtime!
+```
+
+| Language | Memory Management | Safety Guarantee | Runtime Overhead |
+|----------|------------------|-----------------|------------------|
+| C/C++ | Manual | None | None |
+| Java/Go | GC | Safe (at cost of GC pauses) | GC overhead |
+| Python/JS | GC + Ref counting | Safe | High overhead |
+| **Rust** | **Ownership (compile-time)** | **Safe (no GC!)** | **Zero-cost abstractions** |
+
+### Zero-Cost Abstractions
+
+Rust provides high-level abstractions (iterators, closures, generics) that compile down to the same efficient code as hand-written low-level implementations.
+
+```rust
+// High-level Rust — reads like pseudocode
+let sum: i32 = (1..=100)
+    .filter(|n| n % 2 == 0)
+    .map(|n| n * n)
+    .sum();
+
+// Compiles to the same machine code as:
+let mut sum = 0;
+for n in 1..=100 {
+    if n % 2 == 0 {
+        sum += n * n;
+    }
+}
+```
+
+### Fearless Concurrency
+
+Rust's type system catches data races at compile time. The `Send` and `Sync` traits (auto-implemented for most types) ensure thread safety without runtime checking.
+
+```rust
+use std::thread;
+use std::sync::Arc;
+
+fn main() {
+    let data = Arc::new(vec![1, 2, 3]);
+    let mut handles = vec![];
+
+    for i in 0..3 {
+        let data = Arc::clone(&data);
+        handles.push(thread::spawn(move || {
+            println!("Thread {}: {:?}", i, data);
+        }));
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+}
+```
+
+### Performance
+
+Rust consistently ranks among the fastest languages, competing directly with C and C++.
+
+| Benchmark | Rust | C | C++ | Go | Python |
+|-----------|------|---|-----|----|--------|
+| Binary trees | 1.0x | 1.0x | 0.9x | 3.6x | 85x |
+| Regex redux | 1.0x | — | 2.0x | 9.0x | 22x |
+| Fannkuch-redux | 1.0x | 0.8x | 1.1x | 1.8x | 100x |
+
+*Source: [Benchmarks Game](https://benchmarksgame-team.pages.debian.net/benchmarksgame/) — lower is better*
+
+---
+
+## Installation & Toolchain
+
+### Step 1: Install rustup
+
+**`rustup`** is the official Rust toolchain installer. It manages multiple Rust versions and platforms.
+
+```bash
+# On Linux/Mac
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# On Windows, download from https://rustup.rs
+# Or use: winget install rustup
+
+# After installation, restart your terminal or run:
+source "$HOME/.cargo/env"
+```
+
+### Step 2: Verify Installation
+
+```bash
+# Check installed Rust version
+rustc --version
+# → rustc 1.85.0 (2024 edition)
+
+# Check Cargo version
+cargo --version
+# → cargo 1.85.0
+
+# Update to latest
+rustup update
+```
+
+### Step 3: The Rust Toolchain
+
+| Tool | Description | Command |
+|------|-------------|---------|
+| **rustc** | Rust compiler | `rustc main.rs` |
+| **cargo** | Package manager & build system | `cargo build` |
+| **rustfmt** | Code formatter | `cargo fmt` |
+| **clippy** | Linter with 600+ rules | `cargo clippy` |
+| **rust-analyzer** | LSP for IDE support | Via VS Code or editor plugin |
+| **rustdoc** | Documentation generator | `cargo doc` |
+| **cargo-edit** | Add/remove dependencies | `cargo add serde` |
+
+### Step 4: Install LSP Support (recommended)
+
+```bash
+# VS Code: Install "rust-analyzer" extension
+# - Syntax highlighting
+# - Auto-completion
+# - Go-to-definition
+# - Inline type hints
+# - Error highlighting
+# - Code actions (auto-import, auto-fix)
+
+# Or for Neovim:
+# :LspInstall rust_analyzer
+
+# For other editors:
+# https://rust-analyzer.github.io/manual.html
+```
+
+### Step 5: Create Your First Project
+
+```bash
+# This creates a new binary crate
+cargo new hello-rust
+cd hello-rust
+```
+
+The project structure:
+
+```
+hello-rust/
+├── Cargo.toml      # Package manifest (dependencies, metadata)
+├── src/
+│   └── main.rs     # Entry point
+├── .gitignore
+└── target/         # Build output (don't commit this)
+    ├── debug/
+    └── release/
+```
+
+**File: `Cargo.toml`**
+
+```toml
+[package]
+name = "hello-rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+# [dev-dependencies]
+# rand = "0.8"      # Only for tests/examples
+
+# [profile.release]
+# opt-level = 3     # Optimize for speed in release builds
+```
+
+---
+
+## Your First Rust Program
+
+### Hello, World!
+
+Open `src/main.rs` — you'll see this already generated:
+
+```rust
+fn main() {
+    println!("Hello, world!");
+}
+```
+
+Let's break it down:
+
+- `fn main()` — declares the entry point function. Every Rust binary starts here.
+- `println!` — a **macro** (note the `!`) that prints with a newline
+- `"Hello, world!"` — a string literal
+- `;` — ends the statement. Almost every statement in Rust ends with `;`
+
+### Build and Run
+
+```bash
+# Build + run in one step
+cargo run
+
+# Or separately:
+cargo build    # Compile to target/debug/hello-rust
+./target/debug/hello-rust  # Run the binary
+
+# Release build (optimized)
+cargo build --release
+./target/release/hello-rust
+```
+
+### Making It Interactive
+
+```rust
+use std::io::{self, Write};
+
+fn main() {
+    println!("Welcome to Rust!");
+
+    // Print without newline (flush needed for immediate output)
+    print!("What's your name? ");
+    io::stdout().flush().unwrap();
+
+    // Read user input
+    let mut name = String::new();
+    io::stdin()
+        .read_line(&mut name)
+        .expect("Failed to read line");
+
+    // Trim the newline character
+    let name = name.trim();
+
+    // Greet the user
+    println!("Hello, {name}! You're taking your first steps in Rust.");
+    println!("You entered: \"{}\"", name);
+    println!("Your name has {} characters.", name.len());
+}
+```
+
+### Key Takeaways from Hello World
+
+1. **`println!` is a macro** — the `!` distinguishes macros from functions
+2. **Variables are immutable by default** — `let mut name` explicitly declares mutability
+3. **`String::new()` creates an empty, growable string** — `String` is heap-allocated
+4. **`.expect()` handles errors** — if reading fails, the program panics with our message
+5. **`trim()` removes whitespace** — `read_line` includes the trailing newline
+6. **String interpolation** — `{name}` in format strings (Rust 1.58+)
+
+### Common Commands Cheat Sheet
+
+```bash
+cargo new <project-name>     # Create new project
+cargo build                  # Build in debug mode
+cargo build --release        # Build in release mode (optimized)
+cargo run                    # Build and run
+cargo check                  # Check for errors without building (fast!)
+cargo test                   # Run tests
+cargo clippy                 # Run linter
+cargo fmt                    # Format code
+cargo doc --open             # Build and open documentation
+cargo add <crate>            # Add dependency (cargo-edit)
+cargo remove <crate>         # Remove dependency
+cargo tree                   # Show dependency tree
+cargo update                 # Update dependencies
+```
+
+<Callout type="tip" title="Pro Tip">
+Use `cargo check` frequently while coding — it's much faster than `cargo build` because it only verifies correctness without producing an executable. Run `cargo build` only when you want to actually run or test the binary.
+</Callout>
+
+---
+
+## The Rust Philosophy
+
+### Core Principles
+
+| Principle | Meaning |
+|-----------|---------|
+| **Memory safety without GC** | Ownership system prevents use-after-free, double-free, buffer overflow |
+| **Zero-cost abstractions** | High-level code compiles to low-level machine code with no runtime overhead |
+| **Fearless concurrency** | Data races are caught at compile time |
+| **Performance** | Rust should be as fast as C, never slower |
+| **Ergonomics** | Common patterns should be easy; uncommon patterns should be possible |
+| **Reliability** | If it compiles, it works (as far as memory/concurrency safety goes) |
+
+### Rust vs Other Languages
+
+| Feature | Rust | C/C++ | Java | Go | Python |
+|---------|------|-------|------|----|--------|
+| Memory safety | ✅ Compile-time | ❌ Manual | ✅ GC | ✅ GC | ✅ GC |
+| Data race freedom | ✅ Compile-time | ❌ | ✅ Thread-safe by convention | ✅ Built-in | ✅ GIL |
+| No GC pauses | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Zero-cost abstractions | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Pattern matching | ✅ Excellent | ❌ | ❌ | ❌ | ❌ Basic |
+| Algebraic types | ✅ Enums + match | ❌ | ❌ | ❌ | ❌ |
+| No null pointers | ✅ `Option<T>` | ❌ Null | ❌ Null | ❌ Nil | ❌ None |
+| No exceptions | ✅ `Result<T,E>` | ❌ | ✅ Checked | ❌ | ✅ Unchecked |
+| Learning curve | Steep | Medium | Medium | Low | Low |
+
+<Callout type="warning" title="Common Advice">
+Rust's learning curve is real. The borrow checker will reject code that would compile in C/C++/Python. This is **intentional** — each rejection prevents a potential bug. After the initial struggle, most developers report that Rust's rules become second nature, and code written in other languages starts to feel "wrong" by comparison.
+</Callout>
+
+---
+
+## Glossary (Part 0)
+
+| Term | Definition |
+|------|------------|
+| **rustup** | Official Rust toolchain installer and version manager |
+| **Cargo** | Rust's build system and package manager |
+| **Crate** | A package of Rust code (library or binary) |
+| **Module** | Namespace within a crate controlling visibility |
+| **Edition** | Rust's versioning system for language evolution (2015, 2018, 2021, 2024) |
+| **Macro** | Code that writes other code (metaprogramming) |
+| **Trait** | Shared behavior / interface in Rust |
+| **Lifetime** | Compile-time annotations ensuring references are always valid |
+| **Zero-cost abstraction** | High-level construct that compiles to efficient low-level code |

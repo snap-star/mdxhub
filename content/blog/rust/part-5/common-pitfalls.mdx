@@ -1,0 +1,778 @@
+---
+title: "Common Pitfalls & Best Practices"
+description: "Common Rust pitfalls, best practices, a quick reference card, Rust edition history, glossary, and resources for continued learning."
+date: 2026-07-24
+tags: ["Rust", "Guide"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Mastering Rust"
+seriesOrder: 7
+---
+
+# Part 5: Common Pitfalls & Best Practices
+
+## Chapter 1: Borrow Checker Struggles
+
+<Badge variant="red">Expert</Badge>
+
+### 1.1 Double Borrow
+
+```rust
+// ❌ Problem: attempting to borrow as mutable while immutable exists
+fn main() {
+    let mut v = vec![1, 2, 3];
+
+    let first = &v[0];  // Immutable borrow #1
+    v.push(4);          // ❌ Cannot borrow `v` as mutable
+    println!("{first}"); // Immutable borrow #1 still used here
+}
+
+// ✅ Solution: reorder operations
+fn main() {
+    let mut v = vec![1, 2, 3];
+    let first = v[0];   // Copy the value (no borrow)
+    v.push(4);          // ✅ Works
+    println!("{first}");
+}
+
+// Or: restructure so the immutable borrow ends before mutation
+fn main() {
+    let mut v = vec![1, 2, 3];
+    {
+        let first = &v[0];
+        println!("{first}");
+    }  // Immutable borrow ends here
+    v.push(4);  // ✅ Works
+}
+```
+
+### 1.2 Self-Referential Structs
+
+```rust
+// ❌ Problem: struct field referencing another field
+// struct SelfRef {
+//     data: String,
+//     reference: &str,  // Would point to data
+// }
+
+// Non-solution: using lifetimes won't help
+// struct SelfRef<'a> {
+//     data: String,
+//     reference: &'a str,  // What lifetime?
+// }
+
+// ✅ Solution 1: Use indices instead of references
+struct SelfRefIdiomatic {
+    data: Vec<String>,
+    index: usize,  // Index into data instead of reference
+}
+
+impl SelfRefIdiomatic {
+    fn get_current(&self) -> &str {
+        &self.data[self.index]
+    }
+}
+
+// ✅ Solution 2: Use Rc + RefCell (for shared ownership)
+use std::cell::RefCell;
+use std::rc::Rc;
+
+struct Graph {
+    nodes: Vec<Rc<RefCell<Node>>>,
+    current: Option<Rc<RefCell<Node>>>,
+}
+
+// ✅ Solution 3: Use Pin (for async/self-referential futures)
+// See Chapter 27 in Part 3
+```
+
+### 1.3 Borrow Across Multiple Fields
+
+```rust
+struct Point { x: i32, y: i32 }
+
+// ❌ Problem: cannot borrow `p.x` and `p.y` separately through a reference
+fn set_x_and_y(p: &mut Point) {
+    let x = &mut p.x;   // Mutable borrow of *p
+    let y = &mut p.y;   // ❌ Can't borrow *p as mutable again
+    *x += 1;
+    *y += 1;
+}
+
+// ✅ Rust's borrow checker IS smart enough for struct field splitting:
+fn works() {
+    let mut p = Point { x: 0, y: 0 };
+    let x = &mut p.x;  // ✅ Borrows only p.x
+    let y = &mut p.y;  // ✅ Borrows only p.y (separate!)
+    *x += 1;
+    *y += 1;
+}
+
+// For function arguments, use two separate references:
+fn fixed(x: &mut i32, y: &mut i32) {
+    *x += 1;
+    *y += 1;
+}
+
+fn call_fixed() {
+    let mut p = Point { x: 0, y: 0 };
+    fixed(&mut p.x, &mut p.y);  // ✅ Splits the borrow
+}
+```
+
+### 1.4 NLL (Non-Lexical Lifetime) Confusion
+
+```rust
+// Before NLL (Rust ≤2015), this code wouldn't compile:
+fn main() {
+    let mut x = 5;
+
+    let y = &x;       // Immutable borrow
+    println!("{y}");  // y last used here
+
+    // y is no longer needed — NLL ends the borrow here
+    let z = &mut x;   // ✅ Works with NLL (Rust 2018+)
+    *z += 1;
+}
+```
+
+**Key Insight**: The borrow checker tracks **when** a reference is last used, not just the scope where it's declared. References that are no longer used can't interfere with other borrows.
+
+---
+
+## Chapter 2: Lifetime Annotation Mistakes
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 2.1 Over-Annotation
+
+```rust
+// ❌ Unnecessary — Rust already elides this correctly
+fn first_word<'a>(s: &'a str) -> &'a str {
+    s.split_whitespace().next().unwrap_or("")
+}
+
+// ✅ Better — let elision work
+fn first_word(s: &str) -> &str {
+    s.split_whitespace().next().unwrap_or("")
+}
+
+// ❌ Over-annotating struct fields
+struct Config<'a> {
+    name: &'a str,        // Necessary — reference
+    version: String,      // ❌ No lifetime needed
+    debug: bool,          // ❌ No lifetime needed
+}
+```
+
+### 2.2 Lifetime Elision Gotchas
+
+```rust
+// Rule: each input reference gets its own lifetime
+// fn foo(x: &str, y: &str) -> &str  // ❌ Ambiguous
+// does NOT elide to: fn foo<'a>(x: &'a str, y: &'a str) -> &'a str
+// Because it's ambiguous which input reference the output refers to
+
+fn foo<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
+}
+
+// But this WORKS (single lifetime):
+fn bar(x: &str, y: &str) -> String {  // Returns owned → no lifetime needed
+    format!("{x}{y}")
+}
+```
+
+### 2.3 Lifetime Coercion
+
+```rust
+// Longer lifetimes can be coerced to shorter ones
+fn takes_str<'a>(s: &'a str) -> &'a str { s }
+
+fn main() {
+    let long_lived: &'static str = "hello";
+
+    // Coercion: 'static is longer than any specific lifetime
+    let result = takes_str(long_lived);  // ✅ Coerces to shorter lifetime
+
+    // But this doesn't work the other way:
+    let s = String::from("hello");
+    // let static_ref: &'static str = &s;  // ❌ Can't extend lifetime
+}
+```
+
+### 2.4 `'static` Misuse
+
+```rust
+// ❌ Common mistake: thinking 'static means "lives forever"
+// It means "lives as long as the program" — not "immortal"
+
+use std::thread;
+
+// ✅ 'static bound is needed for thread::spawn
+fn spawn_task() {
+    let data = vec![1, 2, 3];
+
+    // ❌ This won't compile:
+    // thread::spawn(|| {
+    //     println!("{data:?}");
+    // });
+
+    // ✅ Move ownership:
+    thread::spawn(move || {
+        println!("{data:?}");
+    });
+    // data is now owned by the closure — 'static bound satisfied
+}
+```
+
+---
+
+## Chapter 3: Async Pitfalls
+
+<Badge variant="red">Expert</Badge>
+
+### 3.1 Async Trait Bounds
+
+```rust
+// ❌ Problem: async fn in traits (not stable until Rust 1.75+)
+// trait Fetcher {
+//     async fn fetch(&self) -> Result<String>;
+// }
+
+// ✅ Solution 1: Return impl Future (nightly)
+trait Fetcher {
+    fn fetch(&self) -> impl std::future::Future<Output = Result<String>>;
+}
+
+// ✅ Solution 2: Use async-trait crate
+// use async_trait::async_trait;
+//
+// #[async_trait]
+// trait Fetcher {
+//     async fn fetch(&self) -> Result<String>;
+// }
+```
+
+### 3.2 Blocking in Async Contexts
+
+```rust
+// ❌ BAD: blocks the entire async runtime
+async fn handle_request() {
+    expensive_cpu_operation();  // Blocks the thread!
+    // Other tasks waiting on this thread can't make progress
+}
+
+// ✅ GOOD: offload to blocking thread pool
+async fn handle_request() {
+    let result = tokio::task::spawn_blocking(|| {
+        expensive_cpu_operation()
+    }).await.unwrap();
+}
+
+// ❌ BAD: std::thread::sleep in async
+async fn bad_sleep() {
+    std::thread::sleep(std::time::Duration::from_secs(5));  // Blocks!
+}
+
+// ✅ GOOD: use tokio::time::sleep
+async fn good_sleep() {
+    tokio::time::sleep(std::time::Duration::from_secs(5)).await;  // Yields
+}
+```
+
+### 3.3 Recursive Async Functions
+
+```rust
+// ❌ Problem: async recursive functions need Box-pinned futures
+async fn recursive(n: u32) {
+    if n > 0 {
+        recursive(n - 1).await;  // ❌ Compiler can't determine future size
+    }
+}
+
+// ✅ Solution: use Box<dyn Future>
+use std::future::Future;
+use std::pin::Pin;
+
+fn recursive(n: u32) -> Pin<Box<dyn Future<Output = ()>>> {
+    Box::pin(async move {
+        if n > 0 {
+            recursive(n - 1).await;
+        }
+    })
+}
+```
+
+### 3.4 Cancellation and Resource Leaks
+
+```rust
+// ⚠️ Problem: dropped futures drop their resources
+async fn acquire_and_use() -> Result<()> {
+    let lock = some_mutex.lock().await;  // Acquires mutex
+
+    // If this future is cancelled here, the lock is released
+    // (Drop runs, which releases the MutexGuard)
+
+    do_work().await?;  // If cancelled, lock is dropped ✅
+
+    Ok(())
+}
+
+// ⚠️ Problem: holding resources across .await points
+async fn problem() {
+    // This is fine:
+    let file = tokio::fs::File::open("data.txt").await?;
+
+    // Reaching an await point while holding resources that shouldn't be held:
+    let buffer = vec![0u8; 1024];
+    file.read(&mut buffer).await?;  // Holding buffer across await
+
+    // In this case, not holding a lock across await is more important.
+    // But if it's a Mutex, DON'T hold it across .await:
+    // let guard = mutex.lock().await;  // ❌ Don't do this!
+    // some_async_op().await;
+    // drop(guard);  // Too late — lock held during .await!
+}
+```
+
+---
+
+## Chapter 4: Common Panics & Errors
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 4.1 Index Out of Bounds
+
+```rust
+fn main() {
+    let v = vec![1, 2, 3];
+
+    // ❌ Panics if index out of bounds
+    let val = v[5];  // Panic: index out of bounds
+
+    // ✅ Safe alternative
+    if let Some(val) = v.get(5) {
+        println!("{val}");
+    } else {
+        println!("Index out of bounds");
+    }
+}
+```
+
+### 4.2 Unwrap on None/Err
+
+```rust
+// ❌ Fragile — panics if None
+let value = some_option.unwrap();
+
+// ✅ Better — provide context
+let value = some_option.expect("Value should be present");
+
+// ✅ Even better — handle both cases
+match some_option {
+    Some(v) => println!("{v}"),
+    None => println!("No value found"),
+}
+
+// Or with if let
+if let Some(v) = some_option {
+    println!("{v}");
+}
+```
+
+### 4.3 Integer Overflow
+
+```rust
+// Debug mode: panics on overflow
+// Release mode: wraps around (two's complement)
+
+// ✅ Explicit overflow handling
+let x: u8 = 255;
+
+// Wrapping
+let wrapped = x.wrapping_add(1);  // 0
+
+// Saturating
+let saturated = x.saturating_add(1);  // 255 (clamped)
+
+// Overflow check
+let (result, overflowed) = x.overflowing_add(1);  // (0, true)
+
+// Checked (returns Option)
+let checked = x.checked_add(1);  // None
+
+// Or use explicit flags:
+// In Cargo.toml:
+// [profile.release]
+// overflow-checks = true  # Enable overflow checks in release
+```
+
+### 4.4 Unwrap on Mutex Poison
+
+```rust
+use std::sync::Mutex;
+
+// ❌ Problem: if another thread panicked while holding the lock
+let guard = my_mutex.lock().unwrap();  // Panics if poisoned
+
+// ✅ Better: handle poisoned state
+let guard = match my_mutex.lock() {
+    Ok(guard) => guard,
+    Err(poisoned) => {
+        // The lock is poisoned — we can still use the data
+        let guard = poisoned.into_inner();
+        // ... but we might have inconsistent state
+        guard
+    }
+};
+
+// Or use .lock().unwrap() and let it panic if you can't recover
+```
+
+---
+
+## Chapter 5: Performance Anti-Patterns
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 5.1 Clone Obsession
+
+```rust
+// ❌ BAD: unnecessary cloning in hot path
+fn process(data: Vec<String>) -> Vec<String> {
+    let mut result = Vec::new();
+    for item in &data {
+        result.push(item.clone());  // AHA! Using clone everywhere
+    }
+    result
+}
+
+// ✅ GOOD: borrow or move instead
+fn process(data: Vec<String>) -> Vec<String> {
+    data  // Just return it directly!
+}
+
+// ✅ GOOD: iterate by reference
+fn process(data: &[String]) -> Vec<String> {
+    data.to_vec()  // Only clone when you need owned data
+}
+```
+
+### 5.2 Unnecessary Allocations
+
+```rust
+// ❌ BAD: String allocation when &str works
+fn examine(s: String) {  // Caller forced to own
+    println!("{s}");
+}
+
+// ✅ GOOD: use &str
+fn examine(s: &str) {
+    println!("{s}");
+}
+
+// ❌ BAD: allocating inside loops
+fn process(items: &[i32]) {
+    for item in items {
+        let s = format!("Item: {item}");  // Allocates every iteration
+        println!("{s}");
+    }
+}
+
+// ✅ GOOD: use fixed buffer or reuse
+fn process(items: &[i32]) {
+    for item in items {
+        println!("Item: {item}");  // No allocation
+    }
+}
+```
+
+### 5.3 Using `collect()` Unnecessarily
+
+```rust
+// ❌ BAD: collecting to intermediate Vec
+let sum: i32 = vec![1, 2, 3, 4, 5]
+    .iter()
+    .map(|x| x * 2)
+    .collect::<Vec<_>>()  // Unnecessary intermediate allocation!
+    .iter()
+    .sum();
+
+// ✅ GOOD: chain directly
+let sum: i32 = vec![1, 2, 3, 4, 5]
+    .iter()
+    .map(|x| x * 2)
+    .sum();  // Direct, no allocation
+```
+
+### 5.4 BTreeMap vs HashMap
+
+```rust
+use std::collections::{BTreeMap, HashMap};
+
+// ✅ HashMap: faster (O(1)), use when order doesn't matter
+// ✅ BTreeMap: sorted (O(log n)), use when you need ordered iteration
+
+// ❌ BAD: using BTreeMap when order doesn't matter
+// BTreeMap: O(log n) per operation
+// HashMap: O(1) per operation
+
+// For small collections (<100 entries), the difference is negligible.
+// For large collections, HashMap is significantly faster.
+```
+
+### 5.5 Premature Optimization
+
+```rust
+// ❌ BAD: over-engineering before measuring
+// Using unsafe, complex generics, or exotic data structures
+// before profiling shows they're needed
+
+// ✅ GOOD: measure first with profiling tools
+// Then optimize the hot spots (Pareto principle: 20% of code = 80% of time)
+
+// Basic profiling approach:
+fn main() {
+    let start = std::time::Instant::now();
+    // Code to measure
+    let elapsed = start.elapsed();
+    println!("Time: {:?}", elapsed);
+}
+```
+
+---
+
+## Appendix A: Quick Reference Card
+
+### Common Traits
+
+| Trait | Methods | Usage |
+|-------|---------|-------|
+| `Clone` | `.clone()` | Deep copy |
+| `Copy` | Implicit bitwise copy | Stack-only types |
+| `Debug` | `{:?}` formatting | Debug output |
+| `Display` | `{}` formatting | User-facing output |
+| `PartialEq` | `==`, `!=` | Equality comparison |
+| `Eq` | (no methods) | Full equivalence |
+| `PartialOrd` | `<`, `>`, `<=`, `>=` | Partial ordering |
+| `Ord` | `.cmp()`, `.min()`, `.max()` | Total ordering |
+| `Hash` | `.hash()` | Hash computation |
+| `Default` | `T::default()` | Default value |
+| `Iterator` | `.next()` | Iteration |
+| `IntoIterator` | `.into_iter()` | Convert to iterator |
+| `From` / `Into` | `.from()` / `.into()` | Type conversion |
+| `Deref` | `.deref()` | Smart pointer behavior |
+| `Drop` | `.drop()` | Cleanup on scope exit |
+| `Send` | (marker) | Thread safety for transfer |
+| `Sync` | (marker) | Thread safety for sharing |
+
+### Type Conversion
+
+```rust
+// Numeric conversion
+let x: i32 = 42;
+let y: f64 = x as f64;           // Explicit cast
+let z: i32 = 3.14_f64 as i32;    // 3 (truncation)
+
+// String to number
+let n: i32 = "42".parse().unwrap();
+let n = "42".parse::<i32>().unwrap();
+
+// Number to string
+let s = 42.to_string();
+let s = format!("{42}");
+
+// String to &str
+let s = String::from("hello");
+let r: &str = &s;                 // Deref coercion
+
+// &str to String
+let r = "hello";
+let s: String = r.to_string();
+let s = r.to_owned();
+let s = String::from(r);
+
+// Vec to slice
+let v = vec![1, 2, 3];
+let s: &[i32] = &v;
+
+// Array to Vec
+let arr = [1, 2, 3];
+let v: Vec<i32> = arr.to_vec();
+
+// From/Into
+let s: String = "hello".into();   // Using Into
+let s = String::from("hello");    // Using From (more explicit)
+```
+
+### Standard Library Quick Reference
+
+```rust
+// === String ===
+String::new("")
+String::from("hello")
+s.push_str(" world")
+s.push('!')
+format!("{a} and {b}")
+s.trim()  s.len()  s.is_empty()
+s.contains("needle")
+s.starts_with("prefix")
+s.replace("old", "new")
+s.split(' ').collect::<Vec<_>>()
+s.chars().nth(0)  // Safe char access
+
+// === Vec ===
+vec![1, 2, 3]
+v.push(4)  v.pop()  v.len()
+v.is_empty()  v.contains(&1)
+v.get(0)  // Returns Option
+v.sort()  v.sort_by(|a,b| b.cmp(a))
+v.reverse()  v.dedup()
+v.iter().map(|x| x * 2).collect()
+
+// === HashMap ===
+HashMap::new()
+map.insert(key, value)
+map.get(&key)  // Option<&V>
+map.entry(key).or_insert(default)
+map.contains_key(&key)
+map.remove(&key)
+for (k, v) in &map { }
+
+// === Option ===
+None
+Some(value)
+opt.unwrap_or(default)
+opt.unwrap_or_else(|| compute())
+opt.map(|x| x * 2)
+opt.and_then(|x| x.more())
+opt.ok_or("error")?  // Convert to Result
+
+// === Result ===
+Ok(value)
+Err(error)
+result?  // Propagate error
+result.unwrap_or(default)
+result.map_err(|e| MyError::from(e))
+result.and_then(|x| x.process())
+```
+
+---
+
+## Appendix B: Rust Edition Features
+
+| Edition | Year | Key Features |
+|---------|------|-------------|
+| **2015** | 2015 | Initial stable Rust |
+| **2018** | 2018 | NLL, modules rework, `impl Trait`, `dyn Trait`, const generics (min), async/await (min) |
+| **2021** | 2021 | Prelude additions, disjoint capture, `IntoIterator` for arrays, const generics (MVP) |
+| **2024** | 2024 | `gen` blocks, `unsafe` extern blocks, `impl Trait` in RPIT positions, never type, `#[expect]` lint attribute |
+
+### Key Language Features by Version
+
+| Feature | Edition / Version | Description |
+|---------|------------------|-------------|
+| `?` operator | 2015 (1.13) | Error propagation |
+| `impl Trait` | 2015 (1.26) | Return-position abstract types |
+| `dyn Trait` | 2018 | Explicit trait object syntax |
+| NLL | 2018 | Non-lexical lifetimes |
+| `async`/`await` | 2018 (1.39) | Async/await syntax |
+| `const` generics | 2021 (1.51) | Generic over constant values |
+| `try` blocks | nightly | Scope-level error handling |
+| `let` chains | nightly | `if let` in conditions |
+| GATs | 2021 (1.65) | Generic associated types |
+| `let` else | 2021 (1.65) | Refutable patterns with else |
+| `impl Trait` in traits | 2024 (1.75) | RPITIT — return position impl trait in traits |
+| `async fn` in traits | 2024 (1.75) | Native async trait methods |
+| `cfg` accessible | 2024 (1.79) | Conditional compilation for items |
+| Never type `!` | 2024 (1.82) | Stabilized empty type |
+
+---
+
+## Glossary
+
+| Term | Definition |
+|------|-----------|
+| **Ownership** | Rust's system for managing memory — each value has exactly one owner |
+| **Borrow** | Temporary access to a value without taking ownership |
+| **Reference** | A borrowed pointer (`&T` or `&mut T`) |
+| **Lifetime** | Compile-time scope ensuring references remain valid |
+| **Move** | Transfer of ownership from one variable to another |
+| **Trait** | Shared behavior interface (similar to interfaces in other languages) |
+| **Generic** | Type parameter that makes functions/structs work with multiple types |
+| **Associated type** | A type connected to a trait (not parameterized) |
+| **Enum** | Algebraic data type — value can be one of several variants |
+| **Pattern matching** | `match` / `if let` — destructure and branch on structure |
+| **Panic** | Unrecoverable error that unwinds the stack |
+| **Result** | Recoverable error handling — `Ok(T)` or `Err(E)` |
+| **Option** | Optional value — `Some(T)` or `None` |
+| **Module** | Namespace organizing code and controlling visibility |
+| **Crate** | A package of Rust code (library or binary) |
+| **Macro** | Code that generates code at compile time |
+| **Closure** | Anonymous function that captures its environment |
+| **Iterator** | Trait for producing a sequence of values |
+| **Smart pointer** | Type that manages heap memory (Box, Rc, Arc) |
+| **Future** | An asynchronous computation that hasn't completed yet |
+| **Pin** | Ensures a value cannot be moved in memory |
+| **Unsafe** | Rust mode that bypasses some safety guarantees |
+| **FFI** | Foreign Function Interface — calling code in other languages |
+| **Monomorphization** | Compile-time expansion of generics into concrete types |
+| **Zero-cost abstraction** | Abstraction that compiles away to nothing (no runtime overhead) |
+| **NLL** | Non-Lexical Lifetimes — borrow checker that tracks per-use lifetimes |
+| **GAT** | Generic Associated Type — associated type with its own generics |
+| **SIMD** | Single Instruction, Multiple Data — parallel CPU instructions |
+
+---
+
+## Resources & Further Reading
+
+### Official Resources
+
+- **[The Rust Book](https://doc.rust-lang.org/book/)** — The official introductory book (free)
+- **[Rust by Example](https://doc.rust-lang.org/rust-by-example/)** — Learn by doing (free)
+- **[Rust Reference](https://doc.rust-lang.org/reference/)** — The language specification (free)
+- **[Rustonomicon](https://doc.rust-lang.org/nomicon/)** — Unsafe Rust deep dive (free)
+- **[Rust Edition Guide](https://doc.rust-lang.org/edition-guide/)** — Edition migration guide (free)
+- **[Standard Library Docs](https://doc.rust-lang.org/std/)** — API documentation (free)
+- **[Rustc Book](https://doc.rust-lang.org/rustc/)** — Compiler documentation (free)
+- **[Cargo Book](https://doc.rust-lang.org/cargo/)** — Package manager docs (free)
+
+### Advanced Books
+
+- **Programming Rust** by Jim Blandy, Jason Orendorff, and Leonora F.S. Tindall (O'Reilly)
+- **Rust for Rustaceans** by Jon Gjengset (No Starch Press)
+- **Effective Rust** by David Drysdale (free online)
+- **Rust Design Patterns** ([patterns](https://rust-unofficial.github.io/patterns/))
+
+### Practice Platforms
+
+- **[Rustlings](https://github.com/rust-lang/rustlings/)** — Small exercises (install: `rustlings` via cargo)
+- **[Rust Gym](https://github.com/warycat/rustgym)** — LeetCode solutions in Rust
+- **[Exercism Rust Track](https://exercism.org/tracks/rust)** — Mentored exercises
+- **[Advent of Code](https://adventofcode.com/)** — Annual coding puzzles
+- **[Project Euler](https://projecteuler.net/)** — Mathematical problem solving
+
+### Tooling
+
+- **rust-analyzer** — LSP for IDE integration (VS Code, Vim/Neovim, EMACS)
+- **Clippy** — Linter with 600+ rules (`cargo clippy`)
+- **Rustfmt** — Code formatter (`cargo fmt`)
+- **Cargo Audit** — Security vulnerability scanner (`cargo install cargo-audit`)
+- **Cargo Expand** — Expand macros (`cargo install cargo-expand`)
+- **Cargo Bloat** — Binary size analyzer (`cargo install cargo-bloat`)
+
+### Community
+
+- **[Users Forum](https://users.rust-lang.org/)** — Q&A and discussion
+- **[Internals Forum](https://internals.rust-lang.org/)** — Language design discussion
+- **[r/rust](https://reddit.com/r/rust)** — Reddit community
+- **[Rust Discord](https://discord.gg/rust-lang)** — Real-time chat
+- **[This Week in Rust](https://this-week-in-rust.org/)** — Weekly newsletter
+
+<Callout type="warning" title="Read me">
+*This guide is a living document. Rust evolves through Editions every three years. Check the official [Rust Documentation](https://doc.rust-lang.org/) for the latest features.*
+</Callout>
+
+<Badge variant="info" icon="info">Last updated: July 2026</Badge>

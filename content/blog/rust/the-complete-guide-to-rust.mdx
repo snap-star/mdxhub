@@ -1,0 +1,120 @@
+---
+title: "The Complete Guide to Rust"
+description: "Mastering Rust Programming From Newbie to Expert"
+date: 2026-07-24
+tags: ["Rust", "Guide"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Mastering Rust"
+seriesOrder: 1
+---
+
+> <Badge variant="tip" icon="book">**Rust Edition 2024**</Badge> <Badge variant="warning" icon="info">**Last Updated**: July 2026</Badge>
+
+In this guide, we progress from writing your first line of Rust through mastering its deepest internals — covering ownership, borrowing, lifetimes, async programming, concurrency, unsafe Rust, and practical projects.
+
+## Table of Contents
+
+### Part 0: Introduction & Philosophy
+
+| Section | Key Topics |
+|---------|-----------|
+| [What This Guide Covers](/blog/rust/part-0/introduction-philosophy) | Learning path, skill levels, how to read |
+| [Why Rust?](/blog/rust/part-0/introduction-philosophy) | Memory safety, zero-cost abstractions, ecosystem |
+| [Installation & Toolchain](/blog/rust/part-0/introduction-philosophy) | rustup, cargo, rustc, rustfmt, clippy, rust-analyzer |
+| [Your First Rust Program](/blog/rust/part-0/introduction-philosophy) | Hello World, Cargo project, project structure |
+
+### Part 1: Junior Level — Foundations
+
+| # | Section | Key Topics |
+|---|---------|-----------|
+| 1 | [Variables and Mutability](/blog/rust/part-1/foundations) | `let`, `mut`, `const`, `shadowing`, `scope` |
+| 2 | [Data Types](/blog/rust/part-1/foundations) | `Integers`, `floats`, `bool`, `char`, `tuples`, `arrays`, `type` inference |
+| 3 | [Functions](/blog/rust/part-1/foundations) | Parameters, return values, expressions vs statements |
+| 4 | [Control Flow](/blog/rust/part-1/foundations) | `if/else`, `loops`, `while`, `for`, `loop`, `match` basics |
+| 5 | [Ownership](/blog/rust/part-1/foundations) | Stack vs heap, move semantics, copy traits, clone |
+| 6 | [Borrowing & References](/blog/rust/part-1/foundations) | `&T`, `&mut T`, borrowing rules, dangling references |
+| 7 | [Slices](/blog/rust/part-1/foundations) | String slices, array slices, `&str` vs `String` |
+| 8 | [Structs](/blog/rust/part-1/foundations) | Defining, instantiating, tuple structs, unit structs, methods |
+| 9 | [Enums & Pattern Matching](/blog/rust/part-1/foundations) | Option, Result, match arms, `if let`, `while let` |
+| 10 | [Basic I/O & Modules](/blog/rust/part-1/foundations) | `println!`, `stdin`, `use`, `mod`, `pub` |
+
+### Part 2: Intermediate Level — Building Real Applications
+
+| # | Section | Key Topics |
+|---|---------|-----------|
+| 11 | [Error Handling](/blog/rust/part-2/building-real-applications) | `panic!`,`Result<T,E>`, `?` operator, custom errors, thiserror, anyhow |
+| 12 | [Generics](/blog/rust/part-2/building-real-applications) | Generic functions, structs, enums, monomorphization |
+| 13 | [Traits](/blog/rust/part-2/building-real-applications) | Defining traits, implementing, default methods, trait bounds, `impl` Trait |
+| 14 | [Lifetimes](/blog/rust/part-2/building-real-applications) | Lifetime annotations, elision rules, struct lifetimes, 'static |
+| 15 | [Closures & Iterators](/blog/rust/part-2/building-real-applications) | Closure syntax, `Fn`/`FnMut`/`FnOnce`, iterator adapters, lazy evaluation |
+| 16 | [Collections](/blog/rust/part-2/building-real-applications) | Vec, HashMap, HashSet, String, performance characteristics |
+| 17 | [Modules, Crates & Packages](/blog/rust/part-2/building-real-applications) | Cargo workspace, pub visibility, re-exports, external crates |
+| 18 | [Testing](/blog/rust/part-2/building-real-applications) | #[test], assertions, #[should_panic], integration tests, doc tests |
+| 19 | [File I/O](/blog/rust/part-2/building-real-applications) | `std::fs`, `std::io`, reading/writing files, paths, BufRead |
+| 20 | [Smart Pointers](/blog/rust/part-2/building-real-applications) | `Box<T>`, `Rc<T>`, `RefCell<T>`, interior mutability, reference cycles |
+
+### Part 3: Expert Level — Mastering Rust
+
+| # | Section | Key Topics |
+|---|---------|-----------|
+| 21 | [Unsafe Rust](/blog/rust/part-3/mastering-rust) | Raw pointers, unsafe functions, FFI basics, invariants |
+| 22 | [Advanced Traits](/blog/rust/part-3/mastering-rust) | Associated types, GATs, supertraits, fully qualified syntax, `dyn traits` |
+| 23 | [Concurrency](/blog/rust/part-3/mastering-rust) | `Send/Sync`, `Arc`, `Mutex`, `RwLock`, channels, scoped threads |
+| 24 | [Async/Await](/blog/rust/part-3/mastering-rust) | Futures, `async/await`, `tokio`, `executors`, streams`, `select!` |
+| 25 | [Macros](/blog/rust/part-3/mastering-rust) | Declarative macros (macro_rules!), procedural macros, derive macros |
+| 26 | [Advanced Lifetimes & Variance](/blog/rust/part-3/mastering-rust) | Subtyping, covariance/contravariance, NLL, higher-ranked bounds |
+| 27 | [Pin & Self-Referential Structs](/blog/rust/part-3/mastering-rust) | `Pin<P>`, `unpin`, `pin` projection, `async` futures internals |
+| 28 | [Performance Optimization](/blog/rust/part-3/mastering-rust) | Profiling (perf, flamegraph), allocators, SIMD, cache-friendly code |
+
+### Part 4: Practical Projects
+
+| # | Project | Key Concepts Used |
+|---|---------|-----------------|
+| 1 | [CLI Task Manager](/blog/rust/part-4/practical-projects) | `clap`, `serde`, file I/O, Result handling |
+| 2 | [Concurrent Web Scraper](/blog/rust/part-4/practical-projects) | `reqwest`, `tokio`, `async`, `channels`, concurrency |
+| 3 | [Key-Value Store (Mini Redis)](/blog/rust/part-4/practical-projects) | TCP networking, protocol parsing, `Arc<Mutex>`, benchmarking |
+
+### Part 5: Common Pitfalls & Best Practices
+
+| # | Section | Key Topics |
+|---|---------|-----------|
+| 1 | [Borrow Checker Struggles](/blog/rust/part-5/common-pitfalls) | Double borrows, self-referential structs, NLL limitations |
+| 2 | [Lifetime Annotation Mistakes](/blog/rust/part-5/common-pitfalls) | Over-annotation, elision gotchas, lifetime coercion |
+| 3 | [Async Pitfalls](/blog/rust/part-5/common-pitfalls) | Send bounds, recursive async, cancellation, blocking in async |
+| 4 | [Common Panics & Errors](/blog/rust/part-5/common-pitfalls) | Index out of bounds, unwrap on None, overflow |
+| 5 | [Performance Anti-Patterns](/blog/rust/part-5/common-pitfalls) | Clone obsession, unnecessary allocations, premature optimization |
+
+### Appendices
+
+| Appendix | Content |
+|----------|---------|
+| [A: Quick Reference Card](/blog/rust/part-5/common-pitfalls) | Type conversions, common traits, standard library |
+| [B: Rust Edition Features](/blog/rust/part-5/common-pitfalls) | 2015 → 2024 feature summary |
+| [Glossary](/blog/rust/part-5/common-pitfalls) | Key terms and definitions |
+| [Resources & Further Reading](/blog/rust/part-5/common-pitfalls) | Books, docs, practice platforms |
+
+---
+
+## Learning Path
+
+| Level | Topics | Goal |
+|-------|--------|------|
+| **Junior** <Badge variant="green">Newbie</Badge> | Variables, types, ownership, borrowing, structs, enums, pattern matching | Write safe Rust programs confidently |
+| **Intermediate** <Badge variant="orange">Apprentice</Badge> | Error handling, generics, traits, lifetimes, closures, iterators, testing, smart pointers | Build real-world applications |
+| **Expert** <Badge variant="red">Master</Badge> | Unsafe Rust, concurrency, async/await, macros, Pin, FFI, performance | Architect production-grade systems |
+
+## How to Read This Guide
+
+We use a <Badge variant="green">Junior</Badge> → <Badge variant="orange">Intermediate</Badge> → <Badge variant="red">Expert</Badge> badge system to indicate difficulty levels. Each section builds on the previous. Junior sections must be mastered before Intermediate. Intermediate patterns are assumed knowledge in Expert sections.
+
+**Run every example.** Rust is best learned by doing. Use the Rust Playground or create a local project with `cargo new` to experiment.
+
+<Callout type="tip" title="Pro Tip">
+Rust has a famously steep learning curve, especially around ownership and lifetimes. Don't be discouraged if concepts take time to click — this is normal! The borrow checker is your ally, not your enemy.
+</Callout>
+
+*This guide is a living document. Rust evolves through Editions every three years. Check the official [Rust Documentation](https://doc.rust-lang.org/) for the latest features.*
+
+*Last updated: July 2026*

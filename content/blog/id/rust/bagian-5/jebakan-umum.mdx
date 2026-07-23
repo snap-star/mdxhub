@@ -1,0 +1,465 @@
+---
+title: "Jebakan Umum & Praktik Terbaik"
+description: "Jebakan umum Rust, praktik terbaik, kartu referensi cepat, riwayat edition Rust, glosarium, dan sumber daya untuk belajar lanjutan."
+date: 2026-07-24
+tags: ["Rust", "Panduan"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Menguasai Rust"
+seriesOrder: 7
+---
+
+# Bagian 5: Jebakan Umum & Praktik Terbaik
+
+## Bab 1: Masalah Borrow Checker
+
+<Badge variant="red">Expert</Badge>
+
+### 1.1 Double Borrow
+
+```rust
+// ❌ Masalah: meminjam sebagai mutable saat immutable masih ada
+fn main() {
+    let mut v = vec![1, 2, 3];
+    let first = &v[0];  // Immutable borrow
+    v.push(4);          // ❌ Tidak bisa borrow v sebagai mutable
+    println!("{first}");
+}
+
+// ✅ Solusi: copy nilai (tanpa borrow)
+fn main() {
+    let mut v = vec![1, 2, 3];
+    let first = v[0];   // Copy nilai
+    v.push(4);          // ✅ Bekerja
+    println!("{first}");
+}
+```
+
+### 1.2 Struktur Self-Referential
+
+```rust
+// ❌ Struct dengan field yang mereferensi field lain
+// struct SelfRef {
+//     data: String,
+//     reference: &str,  // Akan menunjuk ke data
+// }
+
+// ✅ Solusi 1: Gunakan index
+struct SelfRefIdiomatic {
+    data: Vec<String>,
+    index: usize,
+}
+
+// ✅ Solusi 2: Gunakan Rc + RefCell
+use std::cell::RefCell;
+use std::rc::Rc;
+
+struct Graph {
+    nodes: Vec<Rc<RefCell<Node>>>,
+}
+```
+
+### 1.3 NLL (Non-Lexical Lifetime)
+
+```rust
+// Sebelum NLL (Rust ≤2015), kode ini tidak akan kompilasi:
+fn main() {
+    let mut x = 5;
+    let y = &x;
+    println!("{y}");  // y terakhir digunakan di sini
+    let z = &mut x;   // ✅ Bekerja dengan NLL (Rust 2018+)
+    *z += 1;
+}
+```
+
+---
+
+## Bab 2: Kesalahan Lifetime
+
+<Badge variant="orange">Menengah</Badge>
+
+### 2.1 Over-Annotation
+
+```rust
+// ❌ Tidak perlu — Rust sudah mengelide ini dengan benar
+fn first_word<'a>(s: &'a str) -> &'a str { ... }
+
+// ✅ Biarkan elision bekerja
+fn first_word(s: &str) -> &str { ... }
+```
+
+### 2.2 Lifetime Elision Gotchas
+
+```rust
+// Aturan: setiap input reference mendapat lifetime sendiri
+// fn foo(x: &str, y: &str) -> &str  // ❌ Ambigu
+// Tidak dielide karena ambigu mana input yang outputnya referensi
+
+fn foo<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
+}
+```
+
+### 2.3 Penyalahgunaan `'static`
+
+```rust
+// 'static berarti "hidup selama program" — bukan "abadi"
+use std::thread;
+
+fn spawn_task() {
+    let data = vec![1, 2, 3];
+
+    // ✅ Pindahkan kepemilikan ke closure:
+    thread::spawn(move || {
+        println!("{data:?}");
+    });
+    // data sekarang dimiliki oleh closure
+}
+```
+
+---
+
+## Bab 3: Jebakan Async
+
+<Badge variant="red">Expert</Badge>
+
+### 3.1 Blocking di Konteks Async
+
+```rust
+// ❌ BURUK: memblokir seluruh runtime async
+async fn handle_request() {
+    expensive_cpu_operation();  // Memblokir thread!
+}
+
+// ✅ BAIK: offload ke thread pool blocking
+async fn handle_request() {
+    let result = tokio::task::spawn_blocking(|| {
+        expensive_cpu_operation()
+    }).await.unwrap();
+}
+```
+
+### 3.2 Fungsi Async Rekursif
+
+```rust
+// ❌ Future rekursif perlu Box-pinned
+async fn recursive(n: u32) {
+    if n > 0 {
+        recursive(n - 1).await;  // ❌ Ukuran future tidak bisa ditentukan
+    }
+}
+
+// ✅ Solusi: gunakan Box<dyn Future>
+fn recursive(n: u32) -> Pin<Box<dyn Future<Output = ()>>> {
+    Box::pin(async move {
+        if n > 0 {
+            recursive(n - 1).await;
+        }
+    })
+}
+```
+
+### 3.3 Memegang Lock di `.await`
+
+```rust
+// ❌ Jangan pegang Mutex lock di .await!
+// let guard = mutex.lock().await;
+// some_async_op().await;  // ❌ Lock dipegang selama await!
+// drop(guard);
+```
+
+---
+
+## Bab 4: Panic & Error Umum
+
+<Badge variant="orange">Menengah</Badge>
+
+### 4.1 Index Out of Bounds
+
+```rust
+fn main() {
+    let v = vec![1, 2, 3];
+
+    // ❌ Panic jika index di luar batas
+    // let val = v[5];
+
+    // ✅ Alternatif aman
+    if let Some(val) = v.get(5) {
+        println!("{val}");
+    } else {
+        println!("Index di luar batas");
+    }
+}
+```
+
+### 4.2 Unwrap pada None/Err
+
+```rust
+// ❌ Rapuh — panic jika None
+let value = some_option.unwrap();
+
+// ✅ Lebih baik — berikan konteks
+let value = some_option.expect("Nilai harus ada");
+
+// ✅ Atau handle kedua kasus
+match some_option {
+    Some(v) => println!("{v}"),
+    None => println!("Tidak ada nilai"),
+}
+```
+
+### 4.3 Integer Overflow
+
+```rust
+// Debug mode: panic pada overflow
+// Release mode: wrapping (two's complement)
+
+let x: u8 = 255;
+let wrapped = x.wrapping_add(1);   // 0
+let saturated = x.saturating_add(1);  // 255
+let checked = x.checked_add(1);   // None
+```
+
+---
+
+## Bab 5: Anti-Pattern Performa
+
+<Badge variant="orange">Menengah</Badge>
+
+### 5.1 Obsesi Clone
+
+```rust
+// ❌ BURUK: cloning tidak perlu di hot path
+fn process(data: Vec<String>) -> Vec<String> {
+    let mut result = Vec::new();
+    for item in &data {
+        result.push(item.clone());
+    }
+    result
+}
+
+// ✅ BAIK: pinjam atau pindahkan
+fn process(data: &[String]) -> Vec<String> {
+    data.to_vec()
+}
+```
+
+### 5.2 Alokasi Tidak Perlu
+
+```rust
+// ❌ BURUK: alokasi String ketika &str sudah cukup
+fn examine(s: String) { println!("{s}"); }
+
+// ✅ BAIK: gunakan &str
+fn examine(s: &str) { println!("{s}"); }
+```
+
+### 5.3 Menggunakan `collect()` Tidak Perlu
+
+```rust
+// ❌ BURUK: mengumpulkan ke Vec antara
+let sum: i32 = vec![1, 2, 3, 4, 5]
+    .iter()
+    .map(|x| x * 2)
+    .collect::<Vec<_>>()  // Alokasi antara tidak perlu!
+    .iter()
+    .sum();
+
+// ✅ BAIK: chain langsung
+let sum: i32 = vec![1, 2, 3, 4, 5]
+    .iter()
+    .map(|x| x * 2)
+    .sum();  // Langsung, tanpa alokasi
+```
+
+### 5.4 Optimasi Prematur
+
+```rust
+// ❌ BURUK: over-engineering sebelum mengukur
+// Gunakan unsafe, generics kompleks, atau struktur data eksotis
+// sebelum profiling menunjukkan mereka diperlukan
+
+// ✅ BAIK: ukur dulu dengan alat profiling
+// Kemudian optimasi hot spots (Prinsip Pareto: 20% kode = 80% waktu)
+```
+
+---
+
+## Lampiran A: Kartu Referensi Cepat
+
+### Trait Umum
+
+| Trait | Method | Penggunaan |
+|-------|--------|-----------|
+| `Clone` | `.clone()` | Deep copy |
+| `Copy` | Implicit bitwise copy | Tipe stack-only |
+| `Debug` | Format `{:?}` | Debug output |
+| `Display` | Format `{}` | User-facing output |
+| `PartialEq` | `==`, `!=` | Perbandingan kesamaan |
+| `Eq` | (tanpa method) | Kesamaan penuh |
+| `Hash` | `.hash()` | Komputasi hash |
+| `Default` | `T::default()` | Nilai default |
+| `Iterator` | `.next()` | Iterasi |
+| `From` / `Into` | `.from()` / `.into()` | Konversi tipe |
+
+### Konversi Tipe
+
+```rust
+// Numerik
+let y: f64 = 42 as f64;
+
+// String ke number
+let n: i32 = "42".parse().unwrap();
+let n = "42".parse::<i32>().unwrap();
+
+// Number ke string
+let s = 42.to_string();
+
+// String ke &str
+let r: &str = &String::from("hello");
+
+// &str ke String
+let s = "hello".to_string();
+let s = String::from("hello");
+
+// Vec ke slice
+let s: &[i32] = &vec![1, 2, 3];
+```
+
+### Standard Library Quick Reference
+
+```rust
+// String
+String::new(); String::from("hello");
+s.push_str(" world"); s.push('!');
+format!("{a} dan {b}");
+s.trim(); s.len(); s.is_empty();
+s.contains("needle"); s.replace("old", "new");
+
+// Vec
+vec![1, 2, 3];
+v.push(4); v.pop(); v.len();
+v.sort(); v.reverse();
+v.iter().map(|x| x * 2).collect();
+
+// HashMap
+HashMap::new();
+map.insert(key, value);
+map.get(&key);
+map.entry(key).or_insert(default);
+for (k, v) in &map { }
+
+// Option
+None; Some(value);
+opt.unwrap_or(default);
+opt.map(|x| x * 2);
+opt.ok_or("error")?;
+
+// Result
+Ok(value); Err(error);
+result?;
+result.unwrap_or(default);
+result.map_err(|e| MyError::from(e));
+```
+
+---
+
+## Lampiran B: Fitur Edition Rust
+
+| Edition | Tahun | Fitur Utama |
+|---------|-------|-------------|
+| **2015** | 2015 | Rust stable awal |
+| **2018** | 2018 | NLL, module rework, `impl Trait`, `dyn Trait`, async/await (min) |
+| **2021** | 2021 | Prelude additions, disjoint capture, `IntoIterator` untuk array |
+| **2024** | 2024 | `gen` blocks, `unsafe` extern blocks, `impl Trait` di RPIT, never type |
+
+### Fitur Bahasa Kunci
+
+| Fitur | Versi | Deskripsi |
+|-------|-------|-----------|
+| Operator `?` | 2015 (1.13) | Propagasi error |
+| `impl Trait` | 2015 (1.26) | Return-position abstract types |
+| `dyn Trait` | 2018 | Sintaks trait object eksplisit |
+| NLL | 2018 | Non-lexical lifetimes |
+| `async`/`await` | 2018 (1.39) | Sintaks async/await |
+| Const generics | 2021 (1.51) | Generic atas nilai konstanta |
+| GATs | 2021 (1.65) | Generic associated types |
+| `let` else | 2021 (1.65) | Refutable patterns dengan else |
+| `async fn` di traits | 2024 (1.75) | Method async native di trait |
+| Never type `!` | 2024 (1.82) | Tipe kosong yang stabil |
+
+---
+
+## Glosarium
+
+| Istilah | Definisi |
+|---------|----------|
+| **Ownership** | Sistem Rust untuk mengelola memori — setiap nilai memiliki tepat satu pemilik |
+| **Borrow** | Akses sementara ke nilai tanpa mengambil kepemilikan |
+| **Reference** | Pointer yang dipinjam (`&T` atau `&mut T`) |
+| **Lifetime** | Scope waktu kompilasi yang memastikan reference tetap valid |
+| **Move** | Transfer kepemilikan dari satu variabel ke variabel lain |
+| **Trait** | Antarmuka perilaku bersama (mirip interface di bahasa lain) |
+| **Generics** | Parameter tipe yang membuat fungsi/struct bekerja dengan banyak tipe |
+| **Enum** | Tipe data aljabar — nilai bisa salah satu dari beberapa varian |
+| **Panic** | Error unrecoverable yang meng-unwind stack |
+| **Result** | Error handling recoverable — `Ok(T)` atau `Err(E)` |
+| **Option** | Nilai opsional — `Some(T)` atau `None` |
+| **Module** | Namespace yang mengatur kode dan mengontrol visibilitas |
+| **Crate** | Paket kode Rust (library atau binary) |
+| **Macro** | Kode yang menghasilkan kode saat kompilasi |
+| **Closure** | Fungsi anonim yang menangkap lingkungannya |
+| **Iterator** | Trait untuk menghasilkan urutan nilai |
+| **Smart pointer** | Tipe yang mengelola memori heap (Box, Rc, Arc) |
+| **Future** | Komputasi asinkron yang belum selesai |
+| **Pin** | Memastikan nilai tidak bisa dipindahkan di memori |
+| **Unsafe** | Mode Rust yang melewati beberapa jaminan keamanan |
+| **FFI** | Foreign Function Interface — memanggil kode di bahasa lain |
+| **Monomorfisasi** | Ekspansi waktu kompilasi dari generics ke tipe konkret |
+| **NLL** | Non-Lexical Lifetimes — borrow checker per penggunaan |
+| **GAT** | Generic Associated Type — associated type dengan generics sendiri |
+| **SIMD** | Single Instruction, Multiple Data — instruksi CPU paralel |
+
+---
+
+## Sumber Daya & Bacaan Lanjutan
+
+### Sumber Daya Resmi
+
+- **[The Rust Book](https://doc.rust-lang.org/book/)** — Buku pengantar resmi (gratis)
+- **[Rust by Example](https://doc.rust-lang.org/rust-by-example/)** — Belajar dengan melakukan (gratis)
+- **[Rust Reference](https://doc.rust-lang.org/reference/)** — Spesifikasi bahasa (gratis)
+- **[Rustonomicon](https://doc.rust-lang.org/nomicon/)** — Pendalaman Unsafe Rust (gratis)
+- **[Standard Library Docs](https://doc.rust-lang.org/std/)** — Dokumentasi API (gratis)
+- **[Cargo Book](https://doc.rust-lang.org/cargo/)** — Dokumentasi manajer paket (gratis)
+
+### Buku Lanjutan
+
+- **Programming Rust** oleh Jim Blandy, Jason Orendorff, dan Leonora F.S. Tindall (O'Reilly)
+- **Rust for Rustaceans** oleh Jon Gjengset (No Starch Press)
+
+### Platform Latihan
+
+- **[Rustlings](https://github.com/rust-lang/rustlings/)** — Latihan kecil (install: `rustlings` via cargo)
+- **[Exercism Rust Track](https://exercism.org/tracks/rust)** — Latihan dengan mentor
+- **[Advent of Code](https://adventofcode.com/)** — Puzzle coding tahunan
+
+### Tools
+
+- **rust-analyzer** — LSP untuk integrasi IDE
+- **Clippy** — Linter dengan 600+ aturan (`cargo clippy`)
+- **Rustfmt** — Pemformat kode (`cargo fmt`)
+
+### Komunitas
+
+- **[Users Forum](https://users.rust-lang.org/)** — Tanya jawab dan diskusi
+- **[r/rust](https://reddit.com/r/rust)** — Komunitas Reddit
+- **[Rust Discord](https://discord.gg/rust-lang)** — Chat real-time
+- **[This Week in Rust](https://this-week-in-rust.org/)** — Newsletter mingguan
+
+<Callout type="warning" title="Bacaan Penting">
+*Panduan ini adalah dokumen hidup. Rust berevolusi melalui Editions setiap tiga tahun. Periksa [Dokumentasi Rust](https://doc.rust-lang.org/) resmi untuk fitur terbaru.*
+</Callout>
+
+<Badge variant="info" icon="info">Terakhir diperbarui: Juli 2026</Badge>

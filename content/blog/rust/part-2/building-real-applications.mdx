@@ -1,0 +1,1426 @@
+---
+title: "Intermediate Level — Building Real Applications"
+description: "Modern Rust development — error handling, generics, traits, lifetimes, closures, iterators, collections, modules, testing, file I/O, and smart pointers."
+date: 2026-07-24
+tags: ["Rust", "Guide"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Mastering Rust"
+seriesOrder: 4
+---
+
+# Part 2: Intermediate Level — Building Real Applications
+
+## Chapter 11: Error Handling
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 11.1 Two Categories of Errors
+
+Rust divides errors into two categories:
+
+| Category | Mechanism | Use Case |
+|----------|-----------|----------|
+| **Recoverable** | `Result<T, E>` | File not found, invalid input, network timeout |
+| **Unrecoverable** | `panic!()` | Array out of bounds, division by zero, assertion failure |
+
+### 11.2 `panic!` — Unrecoverable Errors
+
+```rust
+fn main() {
+    // panic!("Something went wrong!");  // Prints message, unwinds stack, exits
+
+    // Common panic scenarios:
+    let v = vec![1, 2, 3];
+    // v[99];  // ❌ Panic: index out of bounds
+
+    // Unwinding vs aborting:
+    // By default, Rust unwinds the stack (runs destructors).
+    // For embedded/size-critical, you can abort instead:
+    // Cargo.toml: [profile.release] panic = "abort"
+}
+```
+
+### 11.3 `Result<T, E>` — Recoverable Errors
+
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+
+fn main() {
+    // Result enum:
+    // enum Result<T, E> {
+    //     Ok(T),
+    //     Err(E),
+    // }
+
+    let f = File::open("hello.txt");
+
+    let f = match f {
+        Ok(file) => file,
+        Err(error) => panic!("Problem opening file: {error:?}"),
+    };
+}
+```
+
+### 11.4 Matching on Different Errors
+
+```rust
+use std::fs::File;
+use std::io::ErrorKind;
+
+fn main() {
+    let f = File::open("hello.txt");
+
+    let f = match f {
+        Ok(file) => file,
+        Err(error) => match error.kind() {
+            ErrorKind::NotFound => match File::create("hello.txt") {
+                Ok(fc) => fc,
+                Err(e) => panic!("Couldn't create file: {e:?}"),
+            },
+            other => panic!("Couldn't open file: {other:?}"),
+        },
+    };
+}
+```
+
+### 11.5 The `?` Operator — Propagating Errors
+
+The `?` operator is **the most ergonomic way** to handle errors in Rust:
+
+```rust
+use std::fs::File;
+use std::io::{self, Read};
+
+fn read_username() -> Result<String, io::Error> {
+    // Instead of:
+    // let mut f = match File::open("user.txt") {
+    //     Ok(file) => file,
+    //     Err(e) => return Err(e),
+    // };
+
+    // Write:
+    let mut f = File::open("user.txt")?;  // Returns Err if failed
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;             // Returns Err if failed
+    Ok(s)
+
+    // Or even shorter (chaining):
+    // let mut s = String::new();
+    // File::open("user.txt")?.read_to_string(&mut s)?;
+    // Ok(s)
+}
+```
+
+### 11.6 The `?` Operator with Different Error Types
+
+```rust
+use std::fs;
+use std::io;
+use std::num::ParseIntError;
+
+// Option 1: Use Box<dyn Error> for heterogeneous errors
+fn parse_file_1() -> Result<i32, Box<dyn std::error::Error>> {
+    let content = fs::read_to_string("number.txt")?;  // io::Error → Box<dyn Error>
+    let num: i32 = content.trim().parse()?;             // ParseIntError → Box<dyn Error>
+    Ok(num)
+}
+
+// Option 2: Define a custom error type (recommended for real projects)
+#[derive(Debug)]
+enum MyError {
+    Io(io::Error),
+    Parse(ParseIntError),
+}
+
+impl From<io::Error> for MyError {
+    fn from(err: io::Error) -> MyError {
+        MyError::Io(err)
+    }
+}
+
+impl From<ParseIntError> for MyError {
+    fn from(err: ParseIntError) -> MyError {
+        MyError::Parse(err)
+    }
+}
+
+fn parse_file_2() -> Result<i32, MyError> {
+    let content = fs::read_to_string("number.txt")?;  // Auto-converted via From
+    let num: i32 = content.trim().parse()?;
+    Ok(num)
+}
+```
+
+### 11.7 Using `thiserror` and `anyhow` Crates
+
+For real projects, use these crates to simplify error handling:
+
+```rust
+// ========== thiserror — Define custom errors with derive macro ==========
+// Add to Cargo.toml: thiserror = "2"
+
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum ApiError {
+    #[error("network error: {0}")]
+    Network(#[from] reqwest::Error),
+    #[error("validation error: {field} {message}")]
+    Validation { field: String, message: String },
+    #[error("not found")]
+    NotFound,
+    #[error("unauthorized: {0}")]
+    Unauthorized(String),
+    #[error("unknown error")]
+    Unknown,
+}
+
+fn fetch_user(id: u32) -> Result<String, ApiError> {
+    if id == 0 {
+        return Err(ApiError::Validation {
+            field: "id".into(),
+            message: "must be positive".into(),
+        });
+    }
+    // let resp = reqwest::get(format!("/users/{id}")).await?; // Auto-converts
+    Ok(format!("User {id}"))
+}
+
+// ========== anyhow — Simplifies error handling in applications ==========
+// Add to Cargo.toml: anyhow = "1"
+
+use anyhow::{Context, Result, bail};
+
+fn read_config() -> Result<String> {
+    let content = std::fs::read_to_string("config.toml")
+        .with_context(|| "Failed to read config file")?;  // Adds context!
+    Ok(content)
+}
+
+fn parse_port() -> Result<u16> {
+    let port_str = std::env::var("PORT")
+        .context("PORT environment variable not set")?;
+    let port: u16 = port_str.parse()
+        .context("PORT must be a valid number between 0-65535")?;
+    Ok(port)
+}
+
+fn run_app() -> Result<()> {
+    let config = read_config()?;
+    let port = parse_port()?;
+    println!("Running on port {port} with config: {config}");
+    Ok(())
+}
+```
+
+### 11.8 Error Handling Patterns Summary
+
+| Pattern | Use Case |
+|---------|----------|
+| `.expect("msg")` | Prototyping, tests, infallible operations |
+| `.unwrap()` | Same as expect but with generic message — avoid in production |
+| `.unwrap_or(default)` | Provide fallback value |
+| `.unwrap_or_else(fn)` | Compute fallback lazily |
+| `?` operator | Propagate errors (main pattern) |
+| `.context("msg")` | Add context (anyhow) |
+| `match` | Handle specific error variants |
+| `map_err()` | Transform one error type to another |
+
+---
+
+## Chapter 12: Generics
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 12.1 Generic Functions
+
+```rust
+// Generic function — works with any type T
+fn largest<T: PartialOrd>(list: &[T]) -> &T {
+    let mut largest = &list[0];
+    for item in list {
+        if item > largest {  // Requires PartialOrd trait bound
+            largest = item;
+        }
+    }
+    largest
+}
+
+fn main() {
+    let numbers = vec![34, 50, 25, 100, 65];
+    println!("Largest: {}", largest(&numbers));  // 100
+
+    let chars = vec!['y', 'm', 'a', 'q'];
+    println!("Largest: {}", largest(&chars));    // 'y'
+}
+```
+
+### 12.2 Generic Structs
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+// Both types must be the same (T)
+fn main() {
+    let integer = Point { x: 5, y: 10 };
+    let float = Point { x: 1.0, y: 4.0 };
+    // let mixed = Point { x: 5, y: 4.0 };  // ❌ Both must be same type T
+}
+
+// Multiple generic types:
+struct Point2<T, U> {
+    x: T,
+    y: U,
+}
+
+fn main() {
+    let mixed = Point2 { x: 5, y: 4.0 };  // ✅ Different types
+}
+```
+
+### 12.3 Generic Methods
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+impl<T> Point<T> {
+    fn x(&self) -> &T {
+        &self.x
+    }
+}
+
+// Method only available for Point<f64>
+impl Point<f64> {
+    fn distance_from_origin(&self) -> f64 {
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
+}
+
+// Mix generic and concrete types
+impl<T, U> Point<T, U> {
+    fn mix_up<V, W>(self, other: Point<V, W>) -> Point<T, W> {
+        Point {
+            x: self.x,
+            y: other.y,
+        }
+    }
+}
+```
+
+### 12.4 Monomorphization
+
+Rust's generics are **zero-cost** — they're compiled away at compile time:
+
+```rust
+// You write:
+let integer = Some(5);
+let float = Some(5.0);
+
+// Rust expands this to (approximately):
+enum Option_i32 {
+    Some(i32),
+    None,
+}
+enum Option_f64 {
+    Some(f64),
+    None,
+}
+let integer = Option_i32::Some(5);
+let float = Option_f64::Some(5.0);
+```
+
+No runtime overhead — just code duplication at compile time (which is optimized).
+
+---
+
+## Chapter 13: Traits
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 13.1 Defining and Implementing Traits
+
+```rust
+// Define a trait — shared behavior
+trait Summary {
+    fn summarize(&self) -> String;  // Method signature (no body)
+
+    // Default implementation — can be overridden
+    fn summarize_author(&self) -> String {
+        String::from("(unknown author)")
+    }
+}
+
+// Implement the trait for a struct
+struct Article {
+    headline: String,
+    author: String,
+    content: String,
+}
+
+impl Summary for Article {
+    fn summarize(&self) -> String {
+        format!("{} by {}", self.headline, self.author)
+    }
+
+    // Optional: override default
+    fn summarize_author(&self) -> String {
+        format!("@{}", self.author)
+    }
+}
+
+impl Summary for Tweet {
+    fn summarize(&self) -> String {
+        format!("{}: {}", self.username, self.content)
+    }
+    // Uses default summarize_author
+}
+
+fn main() {
+    let article = Article { /* ... */ };
+    println!("{}", article.summarize());
+}
+```
+
+### 13.2 Traits as Parameters
+
+```rust
+// Syntax 1: impl Trait (sugar)
+fn notify(item: &impl Summary) {
+    println!("Breaking: {}", item.summarize());
+}
+
+// Syntax 2: Trait bound (more explicit)
+fn notify<T: Summary>(item: &T) {
+    println!("Breaking: {}", item.summarize());
+}
+
+// Multiple bounds:
+fn notify(item: &(impl Summary + Display)) { }
+fn notify<T: Summary + Display>(item: &T) { }
+
+// where clause (cleaner for complex bounds):
+fn some_function<T, U>(t: &T, u: &U)
+where
+    T: Display + Clone,
+    U: Clone + Debug,
+{
+    // ...
+}
+```
+
+### 13.3 Returning Types That Implement Traits
+
+```rust
+// Return type must be a single concrete type:
+fn returns_summarizable() -> impl Summary {
+    Tweet {
+        username: String::from("alice"),
+        content: String::from("Hello world!"),
+        reply: false,
+        retweet: false,
+    }
+}
+
+// ❌ Can't return different types conditionally:
+// fn returns_conditional(switch: bool) -> impl Summary {
+//     if switch {
+//         Article { ... }
+//     } else {
+//         Tweet { ... }  // ❌ Different types!
+//     }
+// }
+// ✅ Solution: use Box<dyn Summary>
+```
+
+### 13.4 Trait Objects with `dyn`
+
+```rust
+// Static dispatch (impl Trait) — compile-time, no overhead
+fn process_static(item: &impl Summary) {
+    item.summarize();
+}
+
+// Dynamic dispatch (dyn Trait) — runtime, slight overhead
+fn process_dynamic(items: &[&dyn Summary]) {
+    for item in items {
+        item.summarize();
+    }
+}
+
+// Trait objects allow heterogeneous collections:
+let tweet = Tweet { /* ... */ };
+let article = Article { /* ... */ };
+
+let items: Vec<&dyn Summary> = vec![&tweet, &article];
+for item in items {
+    println!("{}", item.summarize());
+}
+```
+
+### 13.5 Important Standard Library Traits
+
+| Trait | Purpose | Derive? |
+|-------|---------|---------|
+| `Clone` | Deep copy via `.clone()` | ✅ `#[derive(Clone)]` |
+| `Copy` | Bitwise copy (stack-only) | ✅ `#[derive(Copy, Clone)]` |
+| `Debug` | Format with `{:?}` | ✅ `#[derive(Debug)]` |
+| `PartialEq` | Equality `==`, `!=` | ✅ `#[derive(PartialEq)]` |
+| `Eq` | Full equivalence | ✅ `#[derive(PartialEq, Eq)]` |
+| `PartialOrd` | Partial ordering `<`, `>` | ✅ `#[derive(PartialOrd)]` |
+| `Ord` | Total ordering | ✅ `#[derive(Ord, PartialOrd, Eq, PartialEq)]` |
+| `Hash` | Hashing | ✅ `#[derive(Hash)]` |
+| `Default` | Default value | ✅ `#[derive(Default)]` |
+| `Display` | User-facing formatting | ❌ (must implement manually) |
+| `From` | Type conversion | ❌ (`thiserror` can auto-derive) |
+| `Into` | Type conversion (automatic via From) | ❌ |
+| `Iterator` | Making your own iterators | ❌ |
+| `Deref` | Smart pointer behavior | ❌ |
+| `Drop` | Cleanup when value goes out of scope | ❌ (opt-out: `#[derive(Clone)]` doesn't work) |
+
+---
+
+## Chapter 14: Lifetimes
+
+<Badge variant="orange">Intermediate</Badge>
+
+Lifetimes ensure that **references are always valid**. They're checked at compile time with **zero runtime cost**.
+
+### 14.1 Preventing Dangling References
+
+```rust
+// ❌ This would compile in C/C++ but Rust prevents it:
+// fn dangling() -> &String {  // Missing lifetime annotation
+//     let s = String::from("hello");
+//     &s  // s goes out of scope — reference invalid!
+// }
+
+// Lifetimes prevent this at compile time:
+// `'a` ties the return reference to the parameter reference
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
+}
+
+fn main() {
+    let string1 = String::from("long string is long");
+    let result;
+    {
+        let string2 = String::from("xyz");
+        result = longest(&string1, &string2);  // ✅ Valid
+    }
+    // println!("{result}");  // ❌ string2 dropped — result would be dangling
+}
+```
+
+### 14.2 Lifetime Annotation Syntax
+
+```rust
+// &i32        — a reference
+// &'a i32     — a reference with an explicit lifetime
+// &'a mut i32 — a mutable reference with an explicit lifetime
+
+fn first_word<'a>(s: &'a str) -> &'a str {
+    let bytes = s.as_bytes();
+    for (i, &byte) in bytes.iter().enumerate() {
+        if byte == b' ' {
+            return &s[..i];
+        }
+    }
+    &s[..]
+}
+```
+
+### 14.3 Lifetime Elision Rules
+
+In most cases, Rust can **infer lifetimes** — you don't need to annotate them.
+
+```rust
+// These compile without annotations:
+fn first_word(s: &str) -> &str { ... }
+fn foo(x: &i32) -> &i32 { ... }
+
+// The three elision rules (applied automatically):
+// 1. Each input reference gets its own lifetime
+// 2. If there's exactly one input lifetime, it's assigned to all output references
+// 3. If &self or &mut self, its lifetime is assigned to all output references
+
+// Rule 2 in action:
+fn first_word(s: &str) -> &str
+// → fn first_word<'a>(s: &'a str) -> &'a str
+
+// Rule 3 in action (methods):
+impl<'a> ImportantExcerpt<'a> {
+    fn level(&self) -> i32 { 3 }
+    // → fn level<'b>(&'b self) -> i32  (lifetime of &self inferred)
+
+    fn announce_and_return(&self, announcement: &str) -> &str {
+        // → fn announce_and_return<'b, 'c>(&'b self, announcement: &'c str) -> &'b str
+        // Rule 3: output lifetime = &self lifetime (not announcement)
+        println!("Attention: {announcement}");
+        self.important_part
+    }
+}
+```
+
+### 14.4 Lifetime Annotations in Structs
+
+```rust
+struct Excerpt<'a> {
+    part: &'a str,  // This reference must not outlive the Excerpt
+}
+
+fn main() {
+    let novel = String::from("Call me Ishmael. Some years ago...");
+    let first_sentence = novel.split('.').next().expect("No '.' found");
+    let excerpt = Excerpt { part: first_sentence };
+
+    // excerpt cannot outlive novel
+    // drop(novel);  // ❌ Can't drop novel while excerpt still borrows it
+    println!("{excerpt}");
+}
+```
+
+### 14.5 The `'static` Lifetime
+
+`'static` means the reference lives for the **entire program duration**.
+
+```rust
+// String literals are &'static str
+let s: &'static str = "I live forever";  // Stored in the binary, never dropped
+
+// Static constants
+static HELLO: &str = "Hello, world!";  // Also 'static
+
+// Using 'static as a trait bound (common in async)
+fn run<T: 'static>(task: T) {
+    // T must not contain any non-'static references
+    std::thread::spawn(move || {
+        // Something with task
+    });
+}
+```
+
+### 14.6 Lifetime Bounds
+
+```rust
+// T: 'a — T must live at least as long as 'a
+struct Ref<'a, T: 'a> {
+    value: &'a T,
+}
+
+// You can specify bounds on generic types:
+fn print_ref<'a, T>(value: &'a T)
+where
+    T: std::fmt::Debug + 'a,
+{
+    println!("{:?}", value);
+}
+```
+
+---
+
+## Chapter 15: Closures & Iterators
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 15.1 Closure Basics
+
+```rust
+fn main() {
+    // Closures — anonymous functions that can capture their environment
+    let add_one = |x| x + 1;
+    println!("{}", add_one(5));  // 6
+
+    // With type annotations (rarely needed):
+    let add_one = |x: i32| -> i32 { x + 1 };
+}
+```
+
+### 15.2 Capturing the Environment
+
+```rust
+fn main() {
+    let x = 42;
+
+    // Closure captures x by reference (&T) — does NOT take ownership
+    let print_x = || println!("{x}");
+    print_x();  // ✅ Works
+    println!("{x}");  // ✅ Still accessible
+
+    // Capture by mutable reference (&mut T)
+    let mut count = 0;
+    let mut increment = || {
+        count += 1;
+        println!("Count: {count}");
+    };
+    increment();  // Count: 1
+    // println!("{count}");  // ❌ Borrowed mutably by closure
+
+    // Capture by value (move ownership)
+    let name = String::from("Alice");
+    let greet = || {
+        println!("Hello, {name}!");
+        // name would be dropped here if we didn't need it after
+    };
+    greet();
+    println!("{name}");  // ✅ Still works (captured by reference)
+
+    let name2 = String::from("Bob");
+    let move_greet = move || {  // Force move!
+        println!("Hello, {name2}!");
+    };
+    move_greet();
+    // println!("{name2}");  // ❌ name2 was moved into the closure
+}
+```
+
+### 15.3 The Three Fn Traits
+
+| Trait | Capture | Can call multiple times? |
+|-------|---------|-------------------------|
+| `FnOnce` | Consumes captured values | Once |
+| `FnMut` | Mutable borrow | Multiple times (not concurrently) |
+| `Fn` | Immutable borrow | Multiple times (anytime) |
+
+```rust
+fn main() {
+    let x = String::from("hello");
+
+    // Fn — captures by immutable reference
+    let fn_closure = || println!("{x}");
+    fn_closure();  // ✅ Any number of times
+
+    // FnMut — captures by mutable reference
+    let mut y = vec![1, 2, 3];
+    let mut fnmut_closure = || y.push(4);
+    fnmut_closure();  // ✅ Multiple times (but not concurrently)
+    fnmut_closure();
+
+    // FnOnce — captures by value (moves out)
+    let z = String::from("world");
+    let fnonce_closure = || drop(z);  // Can only be called once!
+    fnonce_closure();
+    // fnonce_closure();  // ❌ z is already dropped
+}
+```
+
+### 15.4 Closures as Parameters
+
+```rust
+fn apply<F>(f: F) where F: FnOnce() {
+    f();
+}
+
+fn apply_twice<F>(mut f: F) where F: FnMut() {
+    f();
+    f();
+}
+
+fn apply_many<F>(f: F, times: u32) where F: Fn(i32) -> i32 {
+    for _ in 0..times {
+        f(42);
+    }
+}
+
+fn main() {
+    let msg = String::from("Hi!");
+    apply(|| println!("{msg}"));  // FnOnce
+
+    let mut counter = 0;
+    apply_twice(|| counter += 1);  // FnMut
+    println!("{counter}");  // 2
+}
+```
+
+### 15.5 Iterator Basics
+
+```rust
+fn main() {
+    let v1 = vec![1, 2, 3];
+
+    // Three forms of iteration:
+    for val in &v1 { }       // iter() — immutable references
+    for val in &mut v1 { }   // iter_mut() — mutable references
+    for val in v1 { }        // into_iter() — owned values (consumes)
+
+    // Iterator adapters are lazy — nothing happens until consumed:
+    let v1 = vec![1, 2, 3];
+    let iter = v1.iter();  // No computation yet!
+    let mapped = iter.map(|x| x + 1);  // Still lazy!
+    // let sum: Vec<_> = mapped.collect();  // Now it runs
+}
+```
+
+### 15.6 Common Iterator Adapters
+
+```rust
+fn main() {
+    let nums = vec![1, 2, 3, 4, 5];
+
+    // === map — transform each element ===
+    let doubled: Vec<_> = nums.iter().map(|x| x * 2).collect();
+    println!("{doubled:?}");  // [2, 4, 6, 8, 10]
+
+    // === filter — keep elements matching predicate ===
+    let evens: Vec<_> = nums.iter().filter(|x| *x % 2 == 0).collect();
+    println!("{evens:?}");  // [2, 4]
+
+    // === take — take first n elements ===
+    let first_three: Vec<_> = nums.iter().take(3).collect();
+
+    // === skip — skip first n elements ===
+    let last_two: Vec<_> = nums.iter().skip(3).collect();  // [4, 5]
+
+    // === chain — combine two iterators ===
+    let a = vec![1, 2];
+    let b = vec![3, 4];
+    let chained: Vec<_> = a.iter().chain(b.iter()).collect();  // [1, 2, 3, 4]
+
+    // === enumerate — add indices ===
+    for (index, value) in nums.iter().enumerate() {
+        println!("nums[{index}] = {value}");
+    }
+
+    // === zip — combine two iterators ===
+    let names = vec!["Alice", "Bob", "Carol"];
+    let ages = vec![30, 25, 35];
+    let pairs: Vec<_> = names.iter().zip(ages.iter()).collect();
+    // [("Alice", 30), ("Bob", 25), ("Carol", 35)]
+
+    // === fold — reduce to single value (like reduce) ===
+    let sum = nums.iter().fold(0, |acc, x| acc + x);
+    println!("{sum}");  // 15
+
+    // === any / all — boolean checks ===
+    nums.iter().any(|x| *x > 3);  // true
+    nums.iter().all(|x| *x > 0);  // true
+
+    // === find — find first matching element ===
+    let result = nums.iter().find(|x| *x == 3);
+    println!("{:?}", result);  // Some(3)
+
+    // === position — find index of first match ===
+    let pos = nums.iter().position(|x| *x == 3);
+    println!("{:?}", pos);  // Some(2)
+
+    // === flat_map — map then flatten ===
+    let words = vec!["hello world", "good bye"];
+    let flat: Vec<_> = words.iter()
+        .flat_map(|s| s.split_whitespace())
+        .collect();
+    // ["hello", "world", "good", "bye"]
+}
+```
+
+### 15.7 Consuming Adapters
+
+```rust
+fn main() {
+    let nums = vec![1, 2, 3, 4, 5];
+
+    // collect — collect into a collection
+    let vec: Vec<_> = nums.iter().map(|x| x * 2).collect();
+    let set: std::collections::HashSet<_> = nums.iter().collect();
+    let map: std::collections::HashMap<_, _> = nums.iter()
+        .map(|x| (*x, x * 2))
+        .collect();
+
+    // count — count elements
+    let count = nums.iter().filter(|x| *x % 2 == 0).count();
+    println!("{count}");  // 2
+
+    // sum — sum all elements (needs turbofish)
+    let total: i32 = nums.iter().sum();
+    let product: i32 = nums.iter().product();
+
+    // reduce — fold without initial value
+    let max = nums.iter().copied().reduce(std::cmp::max);
+
+    // min / max
+    let min = nums.iter().min();
+    let max = nums.iter().max();
+
+    // for_each — side effect for each element
+    nums.iter().for_each(|x| println!("{x}"));
+
+    // last / nth
+    let last = nums.iter().last();  // Some(5)
+    let third = nums.iter().nth(2);  // Some(3)
+}
+```
+
+---
+
+## Chapter 16: Collections
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 16.1 `Vec<T>` — Dynamic Array
+
+```rust
+fn main() {
+    // Creating vectors
+    let v1 = vec![1, 2, 3];
+    let mut v2 = Vec::new();
+    v2.push(1);
+    v2.push(2);
+
+    // Reading elements
+    // Method 1: Index (panic on out-of-bounds)
+    let third = &v1[2];
+    println!("Third: {third}");
+
+    // Method 2: get (returns Option — safe)
+    match v1.get(2) {
+        Some(val) => println!("Got: {val}"),
+        None => println!("Out of bounds"),
+    }
+
+    // Iterating
+    for i in &v1 {
+        println!("{i}");
+    }
+    for i in &mut v2 {
+        *i *= 2;
+    }
+
+    // Vec methods
+    v2.pop();               // Remove last
+    v2.insert(0, 10);       // Insert at index
+    v2.remove(0);           // Remove at index
+    v2.clear();             // Remove all
+    v2.contains(&1);        // Check if contains
+    v2.append(&mut vec![4, 5]);  // Move elements from another vec
+    v2.resize(10, 0);       // Resize with default value
+
+    // Capacity management
+    let mut v = Vec::with_capacity(100);
+    println!("Len: {}, Cap: {}", v.len(), v.capacity());  // 0, 100
+    v.shrink_to_fit();  // Reduce capacity to match length
+}
+```
+
+### 16.2 `HashMap<K, V>` — Key-Value Store
+
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    // Create
+    let mut scores = HashMap::new();
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yellow"), 50);
+
+    // Create from iterator
+    let teams = vec![String::from("Blue"), String::from("Yellow")];
+    let scores = vec![10, 50];
+    let map: HashMap<_, _> = teams.into_iter().zip(scores.into_iter()).collect();
+
+    // Access
+    let score = scores.get("Blue");
+    match score {
+        Some(val) => println!("Blue: {val}"),
+        None => println!("Team not found"),
+    }
+
+    // Iterate
+    for (key, value) in &scores {
+        println!("{key}: {value}");
+    }
+
+    // Update strategies
+    // 1. Overwrite existing
+    scores.insert("Blue".to_string(), 25);
+
+    // 2. Insert if key doesn't exist
+    scores.entry("Red".to_string()).or_insert(5);
+
+    // 3. Update based on old value
+    scores.entry("Blue".to_string())
+        .and_modify(|e| *e += 10)
+        .or_insert(0);
+
+    // // 4. Word count example
+    let text = "hello world hello";
+    let mut word_counts = HashMap::new();
+    for word in text.split_whitespace() {
+        let count = word_counts.entry(word).or_insert(0);
+        *count += 1;
+    }
+    println!("{word_counts:?}");  // {"hello": 2, "world": 1}
+}
+```
+
+### 16.3 `HashSet<T>` — Unique Elements
+
+```rust
+use std::collections::HashSet;
+
+fn main() {
+    let mut set = HashSet::new();
+    set.insert(1);
+    set.insert(2);
+    set.insert(2);  // No effect (already present)
+
+    // Set operations
+    let a: HashSet<_> = vec![1, 2, 3].into_iter().collect();
+    let b: HashSet<_> = vec![2, 3, 4].into_iter().collect();
+
+    let union: HashSet<_> = a.union(&b).cloned().collect();      // {1, 2, 3, 4}
+    let intersection: HashSet<_> = a.intersection(&b).cloned().collect();  // {2, 3}
+    let diff: HashSet<_> = a.difference(&b).cloned().collect();  // {1}
+    let sym_diff: HashSet<_> = a.symmetric_difference(&b).cloned().collect();  // {1, 4}
+}
+```
+
+### 16.4 `String` — UTF-8 Text
+
+```rust
+fn main() {
+    // Creating
+    let s1 = String::from("hello");
+    let s2 = "world".to_string();
+    let s3 = format!("{s1} {s2}");
+
+    // Appending
+    let mut s = String::from("foo");
+    s.push_str("bar");          // "foobar"
+    s.push('!');                // "foobar!"
+
+    // Concatenation
+    let s1 = String::from("Hello, ");
+    let s2 = String::from("world!");
+    let s3 = s1 + &s2;  // s1 is MOVED here (can't use after)
+    // Note: + uses the add(self, &str) method
+
+    // Better: format! macro
+    let s = format!("{s2} {s3}");  // Doesn't take ownership
+
+    // Indexing — Rust strings DON'T support indexing by byte position
+    // let c = s[0];  // ❌ String is not indexable
+    // Why? Unicode! 'é' is 2 bytes, emoji are 4 bytes
+
+    // Slicing — be careful with boundary!
+    let hello = "Здравствуйте";
+    // let slice = &hello[0..4];    // "Зд" (valid 4 bytes = 2 chars)
+    // let bad = &hello[0..1];      // ❌ Panic! Not on char boundary
+
+    // Iterating
+    for c in "你好".chars() {
+        println!("{c}");  // 你, 好
+    }
+    for b in "你好".bytes() {
+        println!("{b}");  // UTF-8 bytes
+    }
+}
+```
+
+### 16.5 Performance Characteristics
+
+| Collection | Get | Insert | Remove | Iteration Order |
+|-----------|-----|--------|--------|----------------|
+| `Vec<T>` | O(1) index | O(1) push/amortized | O(n) remove | Insertion order |
+| `HashMap<K,V>` | O(1) avg | O(1) avg | O(1) avg | Arbitrary |
+| `HashSet<T>` | O(1) avg | O(1) avg | O(1) avg | Arbitrary |
+| `BTreeMap<K,V>` | O(log n) | O(log n) | O(log n) | Sorted by key |
+| `VecDeque<T>` | O(1) front/back | O(1) push front/back | O(1) pop front/back | Insertion order |
+| `LinkedList<T>` | O(n) | O(1) at ends | O(1) at ends | Insertion order |
+| `BinaryHeap<T>` | O(1) max | O(log n) | O(log n) max | Sorted (max first) |
+
+---
+
+## Chapter 17: Modules, Crates & Packages
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 17.1 Cargo Workspaces
+
+```toml
+# Cargo.toml (workspace root)
+[workspace]
+members = [
+    "crates/parser",
+    "crates/cli",
+    "crates/core",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+```
+
+### 17.2 Binary + Library Crate
+
+```toml
+# Cargo.toml — both a binary and a library
+[package]
+name = "myapp"
+version = "0.1.0"
+edition = "2024"
+
+# src/main.rs = binary entry point
+# src/lib.rs = library root
+```
+
+### 17.3 Visibility and Re-exports
+
+```rust
+// src/lib.rs
+mod formatting;
+
+// Re-export for external users
+pub use formatting::formatter::pretty_print;
+
+// Private module — internal implementation
+mod internal {
+    pub fn helper() {}  // pub within crate only
+}
+
+// src/formatting/mod.rs or src/formatting.rs
+pub mod formatter {
+    pub fn pretty_print(text: &str) {
+        println!("** {text} **");
+    }
+
+    fn internal_helper() {}  // Private
+}
+```
+
+### 17.4 Adding Dependencies
+
+```toml
+# Cargo.toml
+[dependencies]
+serde = { version = "1", features = ["derive"] }   # With features
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+
+# Only for tests
+[dev-dependencies]
+criterion = "0.5"
+
+# Only for certain platforms
+[target.'cfg(target_os = "linux")'.dependencies]
+inotify = "0.10"
+
+# Git dependency
+regex = { git = "https://github.com/rust-lang/regex" }
+
+# Local dependency
+mylib = { path = "../mylib" }
+```
+
+---
+
+## Chapter 18: Testing
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 18.1 Unit Tests
+
+```rust
+// Usually in the same file, in a tests module
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn it_fails() {
+        panic!("This test fails!");
+    }
+
+    #[test]
+    fn using_assert() {
+        assert!(true);
+        assert!(1 + 1 == 2, "1 + 1 should equal 2");
+    }
+
+    #[test]
+    fn not_equal() {
+        assert_ne!(add(2, 2), 5);
+    }
+
+    #[test]
+    #[should_panic(expected = "overflow")]  // Expected panic message
+    fn overflow_panics() {
+        let _ = add(u64::MAX, 1);
+    }
+
+    #[test]
+    fn returns_result() -> Result<(), String> {
+        if add(2, 2) == 4 {
+            Ok(())
+        } else {
+            Err(String::from("two plus two doesn't equal four"))
+        }
+    }
+
+    #[test]
+    #[ignore = "expensive"]
+    fn expensive_test() {
+        // Run with: cargo test -- --ignored
+    }
+}
+```
+
+### 18.2 Integration Tests
+
+```rust
+// tests/integration_test.rs (separate file)
+// Each file in tests/ is compiled as a separate crate
+
+use myapp;  // Import your library
+
+#[test]
+fn integration_test() {
+    let result = myapp::add(2, 2);
+    assert_eq!(result, 4);
+}
+```
+
+### 18.3 Doc Tests
+
+```rust
+/// Adds two numbers together.
+///
+/// # Examples
+///
+/// ```
+/// use mylib::add;
+///
+/// let result = add(2, 3);
+/// assert_eq!(result, 5);
+/// ```
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+// Run with: cargo test (doc tests run automatically)
+// Or: cargo test --doc
+```
+
+---
+
+## Chapter 19: File I/O
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 19.1 Reading Files
+
+```rust
+use std::fs;
+use std::io::{self, BufRead, BufReader, Read};
+
+fn read_entire_file() -> io::Result<String> {
+    fs::read_to_string("file.txt")  // Simple, but loads entire file into memory
+}
+
+fn read_line_by_line() -> io::Result<()> {
+    let file = fs::File::open("file.txt")?;
+    let reader = BufReader::new(file);
+
+    for line in reader.lines() {
+        let line = line?;
+        println!("{line}");
+    }
+    Ok(())
+}
+
+fn read_as_raw_bytes() -> io::Result<Vec<u8>> {
+    fs::read("file.bin")  // Binary mode
+}
+```
+
+### 19.2 Writing Files
+
+```rust
+use std::fs;
+use std::io::Write;
+
+fn write_examples() -> io::Result<()> {
+    fs::write("output.txt", "Hello, world!")?;  // Simple write (overwrites!)
+
+    let mut file = fs::File::create("output.txt")?;  // Creates or truncates
+    file.write_all(b"Hello, world!\n")?;
+    file.write_all("More content\n".as_bytes())?;
+    Ok(())
+}
+
+fn append_to_file() -> io::Result<()> {
+    let mut file = fs::OpenOptions::new()
+        .append(true)
+        .open("log.txt")?;
+    file.write_all(b"Log entry\n")?;
+    Ok(())
+}
+```
+
+### 19.3 Working with Paths
+
+```rust
+use std::path::{Path, PathBuf};
+
+fn path_examples() {
+    // PathBuf — owned, mutable path (like String)
+    let mut path = PathBuf::new();
+    path.push("src");
+    path.push("main.rs");
+    println!("{}", path.display());  // src/main.rs
+
+    // Path — borrowed, immutable (like &str)
+    let p = Path::new("/usr/local/bin");
+    println!("{:?}", p.components());
+
+    // Common path operations
+    let p = Path::new("a/b/c.txt");
+    println!("Parent: {:?}", p.parent());    // Some("a/b")
+    println!("File: {:?}", p.file_stem());   // Some("c")
+    println!("Ext: {:?}", p.extension());    // Some("txt")
+
+    // Check existence and type
+    println!("Exists: {}", p.exists());
+    println!("Is file: {}", p.is_file());
+    println!("Is dir: {}", p.is_dir());
+}
+```
+
+---
+
+## Chapter 20: Smart Pointers
+
+<Badge variant="orange">Intermediate</Badge>
+
+### 20.1 `Box<T>` — Heap Allocation
+
+```rust
+fn main() {
+    // Box stores data on the heap, pointer on the stack
+    let b = Box::new(5);
+    println!("{}", *b);  // Dereference to get the value
+
+    // Useful for recursive types (size unknown at compile time)
+    #[derive(Debug)]
+    enum List {
+        Cons(i32, Box<List>),
+        Nil,
+    }
+
+    let list = List::Cons(1, Box::new(List::Cons(2, Box::new(List::Nil))));
+    println!("{list:?}");
+}
+```
+
+### 20.2 `Rc<T>` — Reference Counted (Single-Threaded)
+
+```rust
+use std::rc::Rc;
+
+enum List {
+    Cons(i32, Rc<List>),
+    Nil,
+}
+
+fn main() {
+    let a = Rc::new(List::Cons(5, Rc::new(List::Cons(10, Rc::new(List::Nil)))));
+    println!("Reference count: {}", Rc::strong_count(&a));  // 1
+
+    let b = List::Cons(3, Rc::clone(&a));  // Clone the Rc (increments count)
+    println!("Reference count: {}", Rc::strong_count(&a));  // 2
+
+    {
+        let c = List::Cons(4, Rc::clone(&a));
+        println!("Reference count: {}", Rc::strong_count(&a));  // 3
+    }
+    println!("Reference count: {}", Rc::strong_count(&a));  // 2 (c dropped)
+}
+```
+
+### 20.3 `RefCell<T>` — Interior Mutability
+
+`RefCell<T>` allows **mutable borrows checked at runtime** (not compile time):
+
+```rust
+use std::cell::RefCell;
+
+fn main() {
+    let data = RefCell::new(5);
+
+    // borrow() — returns Ref<T> (immutable borrow)
+    let r1 = data.borrow();
+    let r2 = data.borrow();  // Multiple immutable borrows OK
+    println!("{r1}, {r2}");
+
+    // borrow_mut() — returns RefMut<T> (mutable borrow)
+    let mut r3 = data.borrow_mut();
+    *r3 += 1;
+    // drop(r3);  // Explicitly end mutable borrow
+
+    // ❌ Runtime panic (not compile error):
+    // let r1 = data.borrow();  // Already mutably borrowed!
+    // println!("{r1}");
+}
+```
+
+### 20.4 `Rc<RefCell<T>>` — Shared Mutable Data
+
+```rust
+use std::cell::RefCell;
+use std::rc::Rc;
+
+#[derive(Debug)]
+enum List {
+    Cons(Rc<RefCell<i32>>, Rc<List>),
+    Nil,
+}
+
+fn main() {
+    let value = Rc::new(RefCell::new(5));
+
+    let a = Rc::new(List::Cons(
+        Rc::clone(&value),
+        Rc::new(List::Nil),
+    ));
+
+    let b = List::Cons(Rc::new(RefCell::new(3)), Rc::clone(&a));
+    let c = List::Cons(Rc::new(RefCell::new(4)), Rc::clone(&a));
+
+    // Modify value through the shared reference
+    *value.borrow_mut() += 10;
+
+    // Changes visible in a, b, and c!
+    println!("value: {}", value.borrow());  // 15
+}
+```
+
+### 20.5 Smart Pointer Comparison
+
+| Pointer | Mutability | Ownership | Multiple Owners | Thread-safe? |
+|---------|-----------|-----------|----------------|-------------|
+| `Box<T>` | Immutable or mutable | Single | No | Yes |
+| `Rc<T>` | Immutable | Shared (counted) | Yes | No |
+| `RefCell<T>` | Interior mutability | Single | No | No |
+| `Rc<RefCell<T>>` | Interior mutability | Shared | Yes | No |
+| `Arc<T>` | Immutable | Shared | Yes | Yes |
+| `Arc<Mutex<T>>` | Interior mutability | Shared | Yes | Yes |
+
+<Callout type="warning" title="Important">
+Use the simplest smart pointer that meets your needs. Don't use `Rc` or `RefCell` unless you genuinely need multiple owners or interior mutability. Prefer `Arc<Mutex<T>>` for thread-safe shared mutable state.
+</Callout>

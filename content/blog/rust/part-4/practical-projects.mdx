@@ -1,0 +1,837 @@
+---
+title: "Practical Projects"
+description: "Build real-world Rust projects — a CLI task manager, a concurrent web scraper, and a key-value store (mini Redis)."
+date: 2026-07-24
+tags: ["Rust", "Guide"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Mastering Rust"
+seriesOrder: 6
+---
+
+# Part 4: Practical Projects
+
+## Project 1: CLI Task Manager
+
+<Badge variant="orange">Intermediate</Badge>
+
+Build a command-line task manager that stores tasks in a JSON file. This project covers: file I/O, serde for serialization, clap for CLI parsing, and CRUD operations.
+
+### Step 1: Project Setup
+
+```bash
+cargo new tasky
+cd tasky
+```
+
+```toml
+# Cargo.toml
+[package]
+name = "tasky"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+anyhow = "1"
+```
+
+### Step 2: Data Model
+
+```rust
+use chrono::{NaiveDateTime, Utc};
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Task {
+    pub id: u64,
+    pub title: String,
+    pub description: String,
+    pub completed: bool,
+    pub priority: Priority,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Priority {
+    Low,
+    Medium,
+    High,
+}
+
+impl std::fmt::Display for Priority {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Priority::Low => write!(f, "low"),
+            Priority::Medium => write!(f, "medium"),
+            Priority::High => write!(f, "high"),
+        }
+    }
+}
+```
+
+### Step 3: Task Store
+
+```rust
+use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
+use anyhow::{Context, Result};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaskStore {
+    tasks: HashMap<u64, Task>,
+    next_id: u64,
+}
+
+impl TaskStore {
+    pub fn load(path: &PathBuf) -> Result<Self> {
+        if path.exists() {
+            let content = fs::read_to_string(path)
+                .with_context(|| format!("Failed to read {}", path.display()))?;
+            serde_json::from_str(&content)
+                .context("Failed to parse task file")
+        } else {
+            Ok(TaskStore {
+                tasks: HashMap::new(),
+                next_id: 1,
+            })
+        }
+    }
+
+    pub fn save(&self, path: &PathBuf) -> Result<()> {
+        let content = serde_json::to_string_pretty(self)?;
+        fs::write(path, content)
+            .with_context(|| format!("Failed to write {}", path.display()))?;
+        Ok(())
+    }
+
+    pub fn add_task(&mut self, title: String, description: String, priority: Priority) -> Task {
+        let now = Utc::now().naive_utc();
+        let id = self.next_id;
+        self.next_id += 1;
+
+        let task = Task {
+            id,
+            title,
+            description,
+            completed: false,
+            priority,
+            created_at: now,
+            updated_at: now,
+        };
+
+        self.tasks.insert(id, task.clone());
+        task
+    }
+
+    pub fn complete_task(&mut self, id: u64) -> Option<&Task> {
+        if let Some(task) = self.tasks.get_mut(&id) {
+            task.completed = true;
+            task.updated_at = Utc::now().naive_utc();
+            Some(task)
+        } else {
+            None
+        }
+    }
+
+    pub fn list_tasks(&self, filter: Option<bool>) -> Vec<&Task> {
+        let mut tasks: Vec<_> = self.tasks.values().collect();
+        tasks.sort_by_key(|t| std::cmp::Reverse(t.id));
+
+        match filter {
+            Some(completed) => tasks.into_iter().filter(|t| t.completed == completed).collect(),
+            None => tasks,
+        }
+    }
+
+    pub fn delete_task(&mut self, id: u64) -> Option<Task> {
+        self.tasks.remove(&id)
+    }
+}
+```
+
+### Step 4: CLI Interface
+
+```rust
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(name = "tasky")]
+#[command(about = "A simple CLI task manager")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Add a new task
+    Add {
+        /// Task title
+        title: String,
+        /// Task description
+        #[arg(short, long, default_value = "")]
+        description: String,
+        /// Priority: low, medium, high
+        #[arg(short, long, default_value = "medium")]
+        priority: String,
+    },
+    /// List all tasks
+    List {
+        /// Show completed or pending tasks only
+        #[arg(short, long)]
+        status: Option<String>,
+    },
+    /// Mark a task as completed
+    Done {
+        /// Task ID to complete
+        id: u64,
+    },
+    /// Delete a task
+    Delete {
+        /// Task ID to delete
+        id: u64,
+    },
+}
+```
+
+### Step 5: Main Function
+
+```rust
+use anyhow::{Context, Result};
+use clap::Parser;
+use std::path::PathBuf;
+
+const DATA_FILE: &str = "tasks.json";
+
+fn main() -> Result<()> {
+    let cli = Cli::parse();
+    let data_path = PathBuf::from(DATA_FILE);
+
+    let mut store = TaskStore::load(&data_path)?;
+
+    match cli.command {
+        Commands::Add { title, description, priority } => {
+            let priority = match priority.to_lowercase().as_str() {
+                "low" => Priority::Low,
+                "high" => Priority::High,
+                _ => Priority::Medium,
+            };
+            let task = store.add_task(title, description, priority);
+            println!("✅ Task #{} created: {}", task.id, task.title);
+        }
+        Commands::List { status } => {
+            let filter = match status.as_deref() {
+                Some("done" | "completed") => Some(true),
+                Some("pending" | "active" | "todo") => Some(false),
+                _ => None,
+            };
+            let tasks = store.list_tasks(filter);
+            if tasks.is_empty() {
+                println!("📋 No tasks found.");
+            } else {
+                for task in tasks {
+                    let status = if task.completed { "✅" } else { "⬜" };
+                    println!(
+                        "{} #{} [{}] {} — {}",
+                        status, task.id, task.priority, task.title, task.description
+                    );
+                }
+            }
+        }
+        Commands::Done { id } => {
+            match store.complete_task(id) {
+                Some(task) => println!("✅ Task #{} completed: {}", task.id, task.title),
+                None => eprintln!("❌ Task #{} not found", id),
+            }
+        }
+        Commands::Delete { id } => {
+            match store.delete_task(id) {
+                Some(task) => println!("🗑️ Task #{} deleted: {}", task.id, task.title),
+                None => eprintln!("❌ Task #{} not found", id),
+            }
+        }
+    }
+
+    store.save(&data_path)?;
+    Ok(())
+}
+```
+
+### Run It
+
+```bash
+# Add tasks
+cargo run -- add "Learn Rust" -d "Complete the Rust guide" -p high
+cargo run -- add "Build a project" -d "Apply what I've learned" -p medium
+cargo run -- add "Write docs" -d "Document the Rust project"
+
+# List tasks
+cargo run -- list
+cargo run -- list --status pending
+
+# Complete a task
+cargo run -- done 1
+
+# Delete a task
+cargo run -- delete 3
+```
+
+---
+
+## Project 2: Concurrent Web Scraper
+
+<Badge variant="red">Expert</Badge>
+
+Build a concurrent web scraper that downloads multiple pages simultaneously, extracting links and titles.
+
+### Step 1: Setup
+
+```bash
+cargo new scrappy
+cd scrappy
+```
+
+```toml
+# Cargo.toml
+[package]
+name = "scrappy"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json"] }
+scraper = "0.20"
+anyhow = "1"
+url = "2"
+futures = "0.3"
+indicatif = "0.17"
+```
+
+### Step 2: Core Scraper
+
+```rust
+use anyhow::Result;
+use reqwest::Client;
+use scraper::{Html, Selector};
+use url::Url;
+use std::sync::Arc;
+
+#[derive(Debug, Clone)]
+pub struct ScrapedPage {
+    pub url: Url,
+    pub title: String,
+    pub links: Vec<Url>,
+    pub status_code: u16,
+    pub content_length: usize,
+}
+
+pub struct Scraper {
+    client: Client,
+    max_depth: u32,
+    concurrency: usize,
+}
+
+impl Scraper {
+    pub fn new(max_depth: u32, concurrency: usize) -> Self {
+        let client = Client::builder()
+            .user_agent("Scrappy/1.0")
+            .timeout(std::time::Duration::from_secs(10))
+            .build()
+            .unwrap();
+
+        Scraper { client, max_depth, concurrency }
+    }
+
+    pub async fn scrape(&self, start_url: &str) -> Result<Vec<ScrapedPage>> {
+        let base_url = Url::parse(start_url)?;
+        let visited = Arc::new(std::sync::Mutex::new(std::collections::HashSet::new()));
+        let results = Arc::new(std::sync::Mutex::new(Vec::new()));
+
+        let mut tasks = Vec::new();
+        let semaphore = Arc::new(tokio::sync::Semaphore::new(self.concurrency));
+
+        self.scrape_recursive(
+            base_url.clone(),
+            0,
+            visited.clone(),
+            results.clone(),
+            semaphore.clone(),
+            &mut tasks,
+        ).await;
+
+        // Wait for all tasks
+        futures::future::join_all(tasks).await;
+
+        let final_results = results.lock().unwrap().clone();
+        Ok(final_results)
+    }
+
+    fn scrape_recursive(
+        &self,
+        url: Url,
+        depth: u32,
+        visited: Arc<std::sync::Mutex<std::collections::HashSet<String>>>,
+        results: Arc<std::sync::Mutex<Vec<ScrapedPage>>>,
+        semaphore: Arc<tokio::sync::Semaphore>,
+        tasks: &mut Vec<tokio::task::JoinHandle<()>>,
+    ) {
+        if depth > self.max_depth {
+            return;
+        }
+
+        {
+            let mut visited = visited.lock().unwrap();
+            if !visited.insert(url.as_str().to_string()) {
+                return; // Already visited
+            }
+        }
+
+        let client = self.client.clone();
+        let base_domain = url.host_str().unwrap_or("").to_string();
+
+        let permit = semaphore.clone().acquire_owned().await;
+
+        let handle = tokio::spawn(async move {
+            let _permit = permit;
+            match Self::fetch_page(&client, &url).await {
+                Ok(page) => {
+                    {
+                        let mut res = results.lock().unwrap();
+                        res.push(page.clone());
+                    }
+                    // Don't crawl further in this simplified version
+                    println!("Scraped: {}", url);
+                }
+                Err(e) => {
+                    eprintln!("Error scraping {}: {}", url, e);
+                }
+            }
+        });
+
+        tasks.push(handle);
+    }
+
+    async fn fetch_page(client: &Client, url: &Url) -> Result<ScrapedPage> {
+        let response = client.get(url.as_str()).send().await?;
+        let status_code = response.status().as_u16();
+        let body = response.text().await?;
+        let content_length = body.len();
+
+        let document = Html::parse_document(&body);
+
+        // Extract title
+        let title_selector = Selector::parse("title").unwrap();
+        let title = document
+            .select(&title_selector)
+            .next()
+            .map(|el| el.inner_html())
+            .unwrap_or_default()
+            .trim()
+            .to_string();
+
+        // Extract links
+        let link_selector = Selector::parse("a[href]").unwrap();
+        let links: Vec<Url> = document
+            .select(&link_selector)
+            .filter_map(|el| {
+                let href = el.value().attr("href")?;
+                url.join(href).ok()
+            })
+            .filter(|u| u.scheme() == "http" || u.scheme() == "https")
+            .take(50)  // Limit links per page
+            .collect();
+
+        Ok(ScrapedPage {
+            url: url.clone(),
+            title,
+            links,
+            status_code,
+            content_length,
+        })
+    }
+}
+```
+
+### Step 3: Main + Report
+
+```rust
+use anyhow::Result;
+use clap::Parser;
+
+#[derive(Parser)]
+struct Args {
+    /// URL to start scraping from
+    url: String,
+    /// Maximum crawl depth
+    #[arg(short, long, default_value = "2")]
+    depth: u32,
+    /// Number of concurrent requests
+    #[arg(short, long, default_value = "10")]
+    concurrency: usize,
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args = Args::parse();
+    let scraper = Scraper::new(args.depth, args.concurrency);
+
+    println!("🚀 Starting scrape of {}", args.url);
+    println!("   Max depth: {}", args.depth);
+    println!("   Concurrency: {}", args.concurrency);
+    println!();
+
+    let results = scraper.scrape(&args.url).await?;
+
+    println!();
+    println!("📊 Scraping complete! {} pages scraped.", results.len());
+    println!();
+    println!("{:<5} {:<60} {:<30} {}", "#", "Title", "URL", "Links");
+    println!("{}", "-".repeat(120));
+
+    for (i, page) in results.iter().enumerate() {
+        let url_str = page.url.as_str();
+        let display_url = if url_str.len() > 58 {
+            format!("{}...", &url_str[..55])
+        } else {
+            url_str.to_string()
+        };
+
+        let title = if page.title.len() > 27 {
+            format!("{}...", &page.title[..27])
+        } else {
+            page.title.clone()
+        };
+
+        println!("{:<5} {:<60} {:<30} {}", i + 1, title, display_url, page.links.len());
+    }
+
+    Ok(())
+}
+```
+
+### Run It
+
+```bash
+cargo run -- "https://example.com" --depth 1 --concurrency 5
+```
+
+---
+
+## Project 3: Key-Value Store (Mini Redis)
+
+<Badge variant="red">Expert</Badge>
+
+Build a simple in-memory key-value server with a TCP protocol, demonstrating networking, concurrency, parsing, and benchmarking.
+
+### Step 1: Setup
+
+```bash
+cargo new minidb
+cd minidb
+```
+
+```toml
+# Cargo.toml
+[package]
+name = "minidb"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+bytes = "1"
+anyhow = "1"
+```
+
+### Step 2: Protocol
+
+```rust
+// src/protocol.rs
+use bytes::BytesMut;
+use std::str;
+
+#[derive(Debug, Clone)]
+pub enum Command {
+    Set { key: String, value: String },
+    Get { key: String },
+    Del { key: String },
+    Ping,
+}
+
+impl Command {
+    pub fn parse(input: &str) -> Option<Command> {
+        let parts: Vec<&str> = input.trim().split_whitespace().collect();
+        if parts.is_empty() {
+            return None;
+        }
+
+        match parts[0].to_uppercase().as_str() {
+            "SET" if parts.len() >= 3 => Some(Command::Set {
+                key: parts[1].to_string(),
+                value: parts[2..].join(" "),
+            }),
+            "GET" if parts.len() == 2 => Some(Command::Get {
+                key: parts[1].to_string(),
+            }),
+            "DEL" if parts.len() == 2 => Some(Command::Del {
+                key: parts[1].to_string(),
+            }),
+            "PING" | "" => Some(Command::Ping),
+            _ => None,
+        }
+    }
+}
+```
+
+### Step 3: Database
+
+```rust
+// src/db.rs
+use std::collections::HashMap;
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
+#[derive(Debug, Clone)]
+pub struct Database {
+    inner: Arc<Mutex<HashMap<String, String>>>,
+}
+
+impl Database {
+    pub fn new() -> Self {
+        Database {
+            inner: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+
+    pub async fn set(&self, key: String, value: String) {
+        let mut db = self.inner.lock().await;
+        db.insert(key, value);
+    }
+
+    pub async fn get(&self, key: &str) -> Option<String> {
+        let db = self.inner.lock().await;
+        db.get(key).cloned()
+    }
+
+    pub async fn del(&self, key: &str) -> bool {
+        let mut db = self.inner.lock().await;
+        db.remove(key).is_some()
+    }
+
+    pub async fn len(&self) -> usize {
+        let db = self.inner.lock().await;
+        db.len()
+    }
+}
+```
+
+### Step 4: Server
+
+```rust
+// src/server.rs
+use tokio::net::{TcpListener, TcpStream};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use crate::db::Database;
+use crate::protocol::Command;
+use anyhow::Result;
+
+pub struct Server {
+    db: Database,
+}
+
+impl Server {
+    pub fn new(db: Database) -> Self {
+        Server { db }
+    }
+
+    pub async fn run(&self, addr: &str) -> Result<()> {
+        let listener = TcpListener::bind(addr).await?;
+        println!("🟢 Minidb listening on {addr}");
+
+        loop {
+            let (stream, peer) = listener.accept().await?;
+            let db = self.db.clone();
+            println!("📡 New connection from {peer}");
+
+            tokio::spawn(async move {
+                if let Err(e) = Self::handle_connection(stream, db).await {
+                    eprintln!("❌ Connection error: {e}");
+                }
+            });
+        }
+    }
+
+    async fn handle_connection(stream: TcpStream, db: Database) -> Result<()> {
+        let (reader, mut writer) = stream.into_split();
+        let mut buf_reader = BufReader::new(reader);
+        let mut line = String::new();
+
+        // Send welcome
+        writer.write_all(b"Minidb v0.1.0\n").await?;
+        writer.write_all(b"> ").await?;
+
+        loop {
+            line.clear();
+            let bytes_read = buf_reader.read_line(&mut line).await?;
+
+            if bytes_read == 0 {
+                // Connection closed
+                break;
+            }
+
+            let response = match Command::parse(&line) {
+                Some(Command::Set { key, value }) => {
+                    db.set(key.clone(), value.clone()).await;
+                    format!("OK set {key}\n")
+                }
+                Some(Command::Get { key }) => {
+                    match db.get(&key).await {
+                        Some(value) => format!("{value}\n"),
+                        None => format!("(nil)\n"),
+                    }
+                }
+                Some(Command::Del { key }) => {
+                    if db.del(&key).await {
+                        format!("OK deleted {key}\n")
+                    } else {
+                        format!("(not found)\n")
+                    }
+                }
+                Some(Command::Ping) => {
+                    "PONG\n".to_string()
+                }
+                None => {
+                    "ERR unknown command\n".to_string()
+                }
+            };
+
+            writer.write_all(response.as_bytes()).await?;
+            writer.write_all(b"> ").await?;
+        }
+
+        Ok(())
+    }
+}
+```
+
+### Step 5: Main
+
+```rust
+// src/main.rs
+mod db;
+mod protocol;
+mod server;
+
+use anyhow::Result;
+use clap::Parser;
+
+#[derive(Parser)]
+struct Args {
+    /// Server address
+    #[arg(default_value = "127.0.0.1:6379")]
+    addr: String,
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let args = Args::parse();
+    let db = db::Database::new();
+    let server = server::Server::new(db);
+    server.run(&args.addr).await
+}
+```
+
+### Step 6: Test the Server
+
+```bash
+# Start the server
+cargo run -- 127.0.0.1:6379
+
+# In another terminal:
+echo -e "SET name Alice\nGET name\nPING\nDEL name\nGET name\n" | nc 127.0.0.1 6379
+
+# Expected output:
+# Minidb v0.1.0
+# > OK set name
+# > Alice
+# > PONG
+# > OK deleted name
+# > (nil)
+# > 
+```
+
+### Step 7: Benchmark
+
+```rust
+// src/bin/bench.rs
+use anyhow::Result;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::net::TcpStream;
+use std::time::Instant;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let mut stream = TcpStream::connect("127.0.0.1:6379").await?;
+    let (reader, mut writer) = stream.split();
+    let mut buf_reader = BufReader::new(reader);
+
+    // Read welcome
+    let mut line = String::new();
+    buf_reader.read_line(&mut line).await?;
+    buf_reader.read_line(&mut line).await?;
+
+    // Benchmark SET
+    let start = Instant::now();
+    let n = 10_000;
+
+    for i in 0..n {
+        writer.write_all(format!("SET key{i} value{i}\n").as_bytes()).await?;
+        line.clear();
+        buf_reader.read_line(&mut line).await?;
+    }
+
+    let elapsed = start.elapsed();
+    println!("SET {n} operations: {elapsed:?} ({:.0} ops/sec)", n as f64 / elapsed.as_secs_f64());
+
+    // Benchmark GET
+    let start = Instant::now();
+    for i in 0..n {
+        writer.write_all(format!("GET key{i}\n").as_bytes()).await?;
+        line.clear();
+        buf_reader.read_line(&mut line).await?;
+    }
+
+    let elapsed = start.elapsed();
+    println!("GET {n} operations: {elapsed:?} ({:.0} ops/sec)", n as f64 / elapsed.as_secs_f64());
+
+    writer.write_all(b"PING\n").await?;
+    println!("Done! DB size: {}", line.trim());
+
+    Ok(())
+}
+```
+
+```bash
+# Run benchmark (requires server running on port 6379)
+cargo run --bin bench
+```
+
+---
+
+## Project Summary
+
+| Project | Difficulty | Key Concepts | Lines of Code |
+|---------|-----------|-------------|---------------|
+| CLI Task Manager | <Badge variant="orange">Intermediate</Badge> | File I/O, serde, clap, CRUD | ~200 |
+| Concurrent Web Scraper | <Badge variant="red">Expert</Badge> | Async/tokio, reqwest, concurrency | ~300 |
+| Key-Value Store | <Badge variant="red">Expert</Badge> | TCP networking, tokio, Arc<Mutex> | ~250 |
+
+**Next Steps**: Pick the project that matches your current comfort level. Start with the CLI Task Manager to reinforce intermediate concepts. Once comfortable, try the Web Scraper or Mini Redis to master async Rust and concurrency.

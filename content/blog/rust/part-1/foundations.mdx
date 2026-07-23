@@ -1,0 +1,1178 @@
+---
+title: "Junior Level — Foundations"
+description: "Rust fundamentals — variables, data types, functions, control flow, ownership, borrowing, slices, structs, enums, pattern matching, and basic I/O."
+date: 2026-07-24
+tags: ["Rust", "Guide"]
+category: "Rust"
+author: chigusa-asuha
+cc: "CC-BY-SA-4.0"
+series: "Mastering Rust"
+seriesOrder: 3
+---
+
+# Part 1: Junior Level — Foundations
+
+## Chapter 1: Variables and Mutability
+
+<Badge variant="green">Junior</Badge>
+
+### 1.1 Declaring Variables
+
+Rust variables are **immutable by default** — a deliberate design choice for safety and concurrency.
+
+```rust
+fn main() {
+    // Immutable (default) — cannot change after assignment
+    let x = 5;
+    // x = 6;  // ❌ Compile error: cannot assign twice to immutable variable
+
+    // Mutable — explicitly declared with `mut`
+    let mut y = 5;
+    println!("y = {}", y);  // y = 5
+    y = 6;
+    println!("y = {}", y);  // y = 6
+
+    // Constants — always immutable, must have type annotation
+    const MAX_USERS: u32 = 1000;
+    const PI: f64 = 3.1415926535;
+
+    // Constants can be declared in any scope
+    // They're inlined at compile time (no runtime overhead)
+}
+```
+
+### 1.2 Shadowing
+
+Rust allows **shadowing** — declaring a new variable with the same name as a previous one. The new variable **shadows** the old one.
+
+```rust
+fn main() {
+    let x = 5;
+    let x = x + 1;  // Shadow — creates a NEW variable
+    println!("x = {}", x);  // x = 6
+
+    // Shadowing is different from mutation!
+    // We can change the TYPE of a variable through shadowing:
+    let spaces = "   ";      // &str type
+    let spaces = spaces.len();  // usize type — valid!
+    println!("{} spaces", spaces);  // 3 spaces
+
+    // With `mut`, you CANNOT change type:
+    // let mut spaces = "   ";
+    // spaces = spaces.len();  // ❌ Compile error: expected &str, found usize
+}
+```
+
+### 1.3 Variable Scope
+
+```rust
+fn main() {
+    let outer = 42;
+
+    {  // Inner block — creates a new scope
+        let inner = 10;
+        println!("Inner: {}, Outer: {}", inner, outer);  // Works
+    }
+
+    // println!("{}", inner);  // ❌ Compile error: inner not in scope
+    println!("Outer: {}", outer);  // Works
+}
+```
+
+### Comparison with Other Languages
+
+| Concept | Rust | C/C++ | JavaScript | Python |
+|---------|------|-------|-----------|--------|
+| Default mutability | Immutable (`let`) | Mutable | Mutable (`let`) | Mutable |
+| Explicit mutability | `let mut` | Default | `const` (for primitives) | `const` (incomplete) |
+| Shadowing | ✅ Same scope | ❌ | ✅ In different scopes | ❌ |
+| Constants | `const` with types | `const` | `const` (block-scoped) | No real const |
+| Global variables | `static` (unsafe) | `static` | `globalThis` | `global` |
+
+---
+
+## Chapter 2: Data Types
+
+<Badge variant="green">Junior</Badge>
+
+### 2.1 Scalar Types
+
+Rust has four primary scalar types: integers, floating-point numbers, booleans, and characters.
+
+```rust
+fn main() {
+    // === Integers ===
+    // Signed: i8, i16, i32, i64, i128, isize (arch-dependent)
+    // Unsigned: u8, u16, u32, u64, u128, usize (arch-dependent)
+    let a: i8 = -128;       // -128 to 127
+    let b: u8 = 255;        // 0 to 255
+    let c: i32 = -1000;     // Most common type (default)
+    let d: usize = 100;     // Used for indexing collections
+    let e = 42;             // Default: i32
+
+    // Integer literals
+    let dec = 98_222;       // Underscores for readability: 98,222
+    let hex = 0xff;         // 255
+    let oct = 0o77;         // 63
+    let bin = 0b1111_0000;  // 240
+    let byte = b'A';        // 65 (u8 only)
+
+    // === Floating Point ===
+    let f: f64 = 3.14;      // Default: f64 (double precision)
+    let g: f32 = 2.5;       // f32 (single precision)
+    let h = 2.0;            // Default: f64
+
+    // === Boolean ===
+    let active: bool = true;
+    let complete = false;
+    // Booleans are NOT integers — Rust has no truthiness coercion
+
+    // === Character ===
+    let c = 'z';            // 4 bytes! (Unicode scalar value)
+    let heart_eyed_cat = '😻';  // Emoji is valid!
+    let japanese = '人';    // CJK character is valid!
+    // char is always 4 bytes (Unicode), NOT 1 byte like C char
+}
+```
+
+### 2.2 Compound Types
+
+```rust
+fn main() {
+    // === Tuples — Fixed-length, heterogeneous ===
+    let tup: (i32, f64, char) = (500, 6.4, 'A');
+    println!("{}, {}, {}", tup.0, tup.1, tup.2);  // 500, 6.4, A
+
+    // Destructuring
+    let (x, y, z) = tup;
+    println!("x = {x}, y = {y}");
+
+    // Unit tuple — represents "no value"
+    let unit: () = ();
+    // Functions without a return value implicitly return ()
+
+    // === Arrays — Fixed-length, homogeneous ===
+    let arr: [i32; 3] = [1, 2, 3];       // [type; length]
+    let zeros = [0; 5];                   // [0, 0, 0, 0, 0]
+    println!("First: {}, Last: {}", arr[0], arr[arr.len() - 1]);
+
+    // Array access is bounds-checked at runtime
+    // println!("{}", arr[10]);  // ❌ Runtime panic: index out of bounds
+}
+```
+
+### 2.3 Type Inference
+
+Rust infers types when possible, but you can annotate explicitly:
+
+```rust
+fn main() {
+    let guess = "42".parse::<i32>().expect("Not a number!");
+    // Or with type annotation:
+    let guess: i32 = "42".parse().expect("Not a number!");
+
+    // Type annotations are required when inference is ambiguous
+    // let x = 42;       // i32 (default)
+    // let y = 3.14;     // f64 (default)
+    // let z = 42;       // Still i32
+    // let w = 3.14;     // Still f64
+}
+```
+
+### 2.4 Type Conversion (Casting)
+
+Rust requires **explicit casts** between numeric types — no silent truncation:
+
+```rust
+fn main() {
+    let a: i32 = 10;
+    let b: u8 = a as u8;           // Explicit cast
+    let c: f64 = 3.14;
+    let d: i32 = c as i32;         // 3 (truncates, doesn't round)
+    let e: u8 = 255;
+    let f: i8 = e as i8;           // -1 (wraps around) — be careful!
+}
+```
+
+---
+
+## Chapter 3: Functions
+
+<Badge variant="green">Junior</Badge>
+
+### 3.1 Function Syntax
+
+```rust
+fn main() {
+    greet("Alice");         // "Hello, Alice!"
+    print_sum(5, 3);        // "5 + 3 = 8"
+}
+
+// Parameters MUST have type annotations
+fn greet(name: &str) {
+    println!("Hello, {name}!");
+}
+
+// Multiple parameters
+fn print_sum(a: i32, b: i32) {
+    let sum = a + b;
+    println!("{a} + {b} = {sum}");
+}
+```
+
+### 3.2 Return Values
+
+The **last expression** in a function is its return value (no semicolon!).
+
+```rust
+fn five() -> i32 {
+    5  // No semicolon = expression = return value
+}
+
+fn add(x: i32, y: i32) -> i32 {
+    x + y  // Expression — returns the result
+}
+
+// Equivalent with explicit return (use sparingly):
+fn add_explicit(x: i32, y: i32) -> i32 {
+    return x + y;
+}
+
+fn main() {
+    println!("{}", five());  // 5
+    println!("{}", add(3, 4));  // 7
+}
+```
+
+### 3.3 Expressions vs Statements
+
+This is one of Rust's most important distinctions:
+
+```rust
+fn main() {
+    // Statement — performs an action, doesn't return a value
+    let x = 5;
+
+    // Expression — evaluates to a value
+    let y = {
+        let a = 3;
+        let b = 4;
+        a + b  // No semicolon — this is the expression value
+    };
+    println!("y = {}", y);  // y = 7
+
+    // if is an expression!
+    let condition = true;
+    let number = if condition { 5 } else { 6 };
+    println!("number = {}", number);  // number = 5
+
+    // Blocks and match arms are expressions too
+    let description = match number {
+        5 => "five",
+        6 => "six",
+        _ => "other",
+    };
+}
+```
+
+---
+
+## Chapter 4: Control Flow
+
+<Badge variant="green">Junior</Badge>
+
+### 4.1 `if` / `else if` / `else`
+
+```rust
+fn main() {
+    let number = 7;
+
+    if number < 5 {
+        println!("Less than 5");
+    } else if number == 5 {
+        println!("Exactly 5");
+    } else {
+        println!("Greater than 5");  // This runs
+    }
+
+    // Rust does NOT auto-convert to bool — conditions must be bool:
+    // if number { }  // ❌ Compile error: expected `bool`, found `i32`
+    if number != 0 { }  // ✅ Must be explicit
+}
+```
+
+### 4.2 Loops
+
+Rust has three kinds of loops: `loop`, `while`, and `for`.
+
+```rust
+fn main() {
+    // === loop — infinite until break ===
+    let mut counter = 0;
+    let result = loop {
+        counter += 1;
+        if counter == 10 {
+            break counter * 2;  // break can return a value!
+        }
+    };
+    println!("Result: {result}");  // Result: 20
+
+    // === while — conditional loop ===
+    let mut number = 3;
+    while number > 0 {
+        println!("{number}...");
+        number -= 1;
+    }
+    println!("Go!");
+
+    // === for — iterate over collection ===
+    let arr = [10, 20, 30, 40, 50];
+    for element in arr {
+        println!("Value: {element}");
+    }
+
+    // Range syntax (exclusive end)
+    for number in 1..4 {
+        println!("{number}");  // 1, 2, 3
+    }
+
+    // Range syntax (inclusive end)
+    for number in 1..=3 {
+        println!("{number}");  // 1, 2, 3
+    }
+
+    // Loop with index (using .enumerate())
+    for (index, value) in arr.iter().enumerate() {
+        println!("arr[{index}] = {value}");
+    }
+
+    // Loop labels — break outer loops
+    'outer: for i in 1..=3 {
+        for j in 1..=3 {
+            if i == 2 && j == 2 {
+                break 'outer;  // Breaks BOTH loops
+            }
+            println!("i = {i}, j = {j}");
+        }
+    }
+}
+```
+
+---
+
+## Chapter 5: Ownership
+
+<Badge variant="green">Junior</Badge>
+
+This is **the most important concept in Rust**. Take your time with this chapter.
+
+### 5.1 Stack vs Heap
+
+| Aspect | Stack | Heap |
+|--------|-------|------|
+| Speed | Very fast | Slower (allocation overhead) |
+| Size | Fixed at compile time | Dynamic |
+| Management | PUSH/POP | Allocate/Free |
+| Rust data | Primitives, fixed arrays, tuples of primitives | String, Vec, Box, HashMap |
+| Memory layout | LIFO (Last In, First Out) | Arbitrary (requires pointer) |
+
+### 5.2 The Ownership Rules
+
+1. **Each value in Rust has exactly one owner.**
+2. **There can only be one owner at a time.**
+3. **When the owner goes out of scope, the value is dropped** (memory is freed).
+
+```rust
+fn main() {
+    // s is NOT valid here (not yet declared)
+    let s = String::from("hello");  // s becomes owner of the string
+    // s IS valid from this point forward
+    println!("{s}");  // Use s
+}  // Scope ends → s is dropped → memory is freed automatically
+```
+
+### 5.3 Move Semantics
+
+When you assign a heap-allocated value to another variable, the **ownership is moved** — the original variable is no longer valid.
+
+```rust
+fn main() {
+    let s1 = String::from("hello");
+    let s2 = s1;  // s1 is MOVED to s2
+
+    // println!("{s1}");  // ❌ Compile error: value borrowed after move
+    println!("{s2}");  // ✅ s2 is the new owner
+
+    // What happens in memory:
+    // Before move: s1 (ptr, len, cap) → heap: ['h','e','l','l','o']
+    // After move:  s1 is INVALID, s2 (ptr, len, cap) → heap: ['h','e','l','l','o']
+    // (The heap data is NOT copied — only the stack pointer is moved)
+}
+
+// With primitives (fixed size, stored on stack):
+fn main() {
+    let x = 5;
+    let y = x;  // Copy — x is still valid!
+    println!("x = {x}, y = {y}");  // ✅ Works!
+    // Primitives implement the Copy trait — they're always copied, never moved
+}
+```
+
+### 5.4 The Copy Trait
+
+Types that implement the `Copy` trait are **automatically copied** when assigned or passed to functions:
+
+```rust
+fn main() {
+    // Copy types (stack-only storage):
+    let a: i32 = 42;     // Copy
+    let b: bool = true;  // Copy
+    let c: f64 = 3.14;   // Copy
+    let d: char = 'Z';   // Copy
+    let e: (i32, f64) = (1, 2.0);  // Copy (all elements are Copy)
+
+    // Non-Copy types (heap-allocated):
+    let s: String = String::from("hello");  // Move
+    let v: Vec<i32> = vec![1, 2, 3];        // Move
+
+    // Tuples: Copy only if all elements are Copy
+    let t1: (i32, bool) = (42, true);     // Copy
+    let t2: (String, i32) = (String::from("hi"), 5);  // Move
+}
+```
+
+### 5.5 Ownership in Functions
+
+Passing a value to a function **transfers ownership** to the function's parameter.
+
+```rust
+fn take_ownership(s: String) {
+    println!("Inside function: {s}");
+    // s is dropped here
+}
+
+fn make_copy(x: i32) {
+    println!("Inside function: {x}");
+    // x is dropped here (but main's copy is fine)
+}
+
+fn main() {
+    let s = String::from("hello");
+    let n = 42;
+
+    take_ownership(s);
+    // println!("{s}");  // ❌ s was moved into the function
+
+    make_copy(n);
+    println!("{n}");  // ✅ n is Copy, so it's still valid
+}
+```
+
+### 5.6 Returning Ownership
+
+```rust
+fn give_ownership() -> String {
+    let s = String::from("hello");
+    s  // Ownership moves to caller
+}
+
+fn take_and_give(s: String) -> String {
+    println!("Got: {s}");
+    s  // Ownership moves back to caller
+}
+
+fn main() {
+    let s1 = give_ownership();
+    let s2 = take_and_give(s1);
+    println!("{s2}");  // ✅ s2 owns the string now
+}
+```
+
+This pattern (taking ownership and giving it back) is tedious — that's why we have **references** in the next chapter.
+
+### Ownership Visual Summary
+
+```
+Stack                 Heap
+─────                 ────
+s1 → [ptr] ─────────→ ['h','e','l','l','o']
+                        ↑
+s2 → [ptr] ─────────────┘  (after move: s1 invalid)
+```
+
+---
+
+## Chapter 6: Borrowing & References
+
+<Badge variant="green">Junior</Badge>
+
+### 6.1 References (`&T`)
+
+A **reference** lets you use a value without taking ownership.
+
+```rust
+fn calculate_length(s: &String) -> usize {
+    s.len()
+}  // s goes out of scope, but doesn't drop the value it refers to
+
+fn main() {
+    let s = String::from("hello");
+    let len = calculate_length(&s);  // &s creates a reference to s
+    println!("'{s}' has length {len}");  // ✅ s still owns the value
+    // len = 5
+}
+```
+
+### 6.2 Mutable References (`&mut T`)
+
+To modify a borrowed value, use a mutable reference.
+
+```rust
+fn change(s: &mut String) {
+    s.push_str(", world");
+}
+
+fn main() {
+    let mut s = String::from("hello");
+    change(&mut s);
+    println!("{s}");  // "hello, world"
+}
+```
+
+### 6.3 The Borrowing Rules
+
+**At any given time, you can have EITHER one mutable reference OR any number of immutable references.**
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    // ❌ Cannot have both immutable and mutable references
+    let r1 = &s;       // immutable borrow
+    let r2 = &s;       // immutable borrow (OK — multiple immutable allowed)
+    let r3 = &mut s;   // ❌ Cannot borrow as mutable while immutable exists
+    println!("{r1}, {r2}, {r3}");
+
+    // ✅ This works — immutable borrows end before mutable starts
+    let r1 = &s;
+    let r2 = &s;
+    println!("{r1} and {r2}");  // r1 and r2 are no longer used after this
+    let r3 = &mut s;             // ✅
+    println!("{r3}");
+
+    // ❌ Cannot have two mutable references
+    let mut data = String::from("data");
+    let ref1 = &mut data;
+    let ref2 = &mut data;  // ❌ Cannot borrow as mutable more than once
+    println!("{ref1}, {ref2}");
+}
+```
+
+### 6.4 Dangling References
+
+Rust's compiler guarantees that references will **never be dangling** — they always point to valid data.
+
+```rust
+// This function would create a dangling reference:
+// fn dangle() -> &String {
+//     let s = String::from("hello");
+//     &s  // ❌ s goes out of scope — reference would be dangling!
+// }
+
+// Solution: return the String itself (ownership moves to caller)
+fn no_dangle() -> String {
+    let s = String::from("hello");
+    s  // Ownership moves out — safe!
+}
+```
+
+### 6.5 Reference Rules Summary
+
+| Rule | Code | Allowed? |
+|------|------|----------|
+| One mutable reference | `let r = &mut x;` | ✅ |
+| Multiple immutable references | `let r1 = &x; let r2 = &x;` | ✅ |
+| Immutable + mutable simultaneously | `let r1 = &x; let r2 = &mut x;` | ❌ |
+| Two mutable references simultaneously | `let r1 = &mut x; let r2 = &mut x;` | ❌ |
+| Dangling reference | Returning `&x` where `x` is local | ❌ (checked at compile time) |
+
+---
+
+## Chapter 7: Slices
+
+<Badge variant="green">Junior</Badge>
+
+A **slice** is a reference to a contiguous sequence of elements in a collection. Slices don't have ownership.
+
+### 7.1 String Slices
+
+```rust
+fn main() {
+    let s = String::from("hello world");
+
+    let hello = &s[0..5];   // "hello"
+    let world = &s[6..11];  // "world"
+
+    // Slice syntax shortcuts:
+    let slice1 = &s[0..2];   // First 2 characters
+    let slice2 = &s[..2];    // Same — start from 0
+    let slice3 = &s[3..s.len()];  // From index 3 to end
+    let slice4 = &s[3..];         // Same — go to end
+    let whole = &s[..];           // Entire string
+
+    println!("{hello} {world}");  // "hello world"
+}
+```
+
+### 7.2 String Literals Are Slices
+
+```rust
+fn main() {
+    // String literal type is &str (a slice pointing to the binary)
+    let s: &str = "hello, world!";
+
+    // &str is immutable — you can't modify a string literal
+    // s.push_str("!");  // ❌ &str has no push_str method
+
+    // &str as parameter is more flexible than &String
+    // (works with both String and &str)
+    fn first_word(s: &str) -> &str {
+        let bytes = s.as_bytes();
+        for (i, &byte) in bytes.iter().enumerate() {
+            if byte == b' ' {
+                return &s[..i];
+            }
+        }
+        &s[..]
+    }
+
+    let my_string = String::from("hello world");
+    let word1 = first_word(&my_string);    // Works with &String
+    let word2 = first_word("hello world"); // Works with &str
+    println!("{word1}, {word2}");  // "hello, hello"
+}
+```
+
+### 7.3 Array Slices
+
+```rust
+fn main() {
+    let arr = [1, 2, 3, 4, 5];
+    let slice = &arr[1..3];  // &[i32] — length 2
+    println!("{slice:?}");  // [2, 3]
+
+    // Slices are dynamically sized — stored as (ptr, length)
+    assert_eq!(slice.len(), 2);
+    assert_eq!(slice[0], 2);
+}
+```
+
+### 7.4 &str vs String
+
+| Aspect | `String` | `&str` |
+|--------|----------|--------|
+| Owned? | Yes (owner) | No (borrower) |
+| Mutable? | Yes | No |
+| Heap allocated? | Yes | Points to existing data |
+| Size | 24 bytes (ptr, len, cap) | 16 bytes (ptr, len) |
+| Use case | Creating/modifying text | Reading text |
+
+**Best practice: use `&str` for function parameters unless you need ownership.**
+
+```rust
+// Prefer this:
+fn process(text: &str) { /* reads text */ }
+
+// Over this:
+fn process(text: &String) { /* limited to String references only */ }
+```
+
+---
+
+## Chapter 8: Structs
+
+<Badge variant="green">Junior</Badge>
+
+### 8.1 Defining and Using Structs
+
+```rust
+// Define a struct
+struct User {
+    active: bool,
+    username: String,
+    email: String,
+    sign_in_count: u64,
+}
+
+fn main() {
+    // Create an instance (all fields required)
+    let user1 = User {
+        active: true,
+        username: String::from("alice"),
+        email: String::from("alice@example.com"),
+        sign_in_count: 1,
+    };
+
+    // Access fields with dot notation
+    println!("{}", user1.email);
+
+    // Mutable instance (all fields become mutable)
+    let mut user2 = User {
+        username: String::from("bob"),
+        email: String::from("bob@example.com"),
+        ..user1  // Struct update syntax — fill remaining from user1
+    };
+    user2.email = String::from("bob_new@example.com");
+
+    // Field init shorthand (when variable and field have same name)
+    let username = String::from("carol");
+    let email = String::from("carol@example.com");
+    let user3 = User {
+        username,  // shorthand for username: username
+        email,     // shorthand for email: email
+        active: true,
+        sign_in_count: 1,
+    };
+}
+```
+
+### 8.2 Tuple Structs
+
+```rust
+struct Color(i32, i32, i32);
+struct Point(i32, i32, i32);
+
+fn main() {
+    let black = Color(0, 0, 0);
+    let origin = Point(0, 0, 0);
+
+    // Color and Point are DIFFERENT types (even though they have same shape)
+    // let mix: Color = origin;  // ❌ Type mismatch
+
+    // Destructure tuple structs
+    let Color(r, g, b) = black;
+    println!("RGB({r}, {g}, {b})");
+    // Access by index
+    println!("Red: {}", black.0);
+}
+```
+
+### 8.3 Unit-Like Structs
+
+```rust
+struct AlwaysEqual;  // No fields — similar to ()
+
+fn main() {
+    let subject = AlwaysEqual;
+    // Useful for marker traits or when you need a type but no data
+}
+```
+
+### 8.4 Methods
+
+Methods are functions defined within the context of a struct using `impl` blocks.
+
+```rust
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    // Method — takes &self as first parameter
+    fn area(&self) -> u32 {
+        self.width * self.height
+    }
+
+    // Method with parameters
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
+    }
+
+    // Associated function (no self) — like a static method
+    // Called with Rectangle::square(...)
+    fn square(size: u32) -> Self {
+        Self {
+            width: size,
+            height: size,
+        }
+    }
+}
+
+fn main() {
+    let rect1 = Rectangle {
+        width: 30,
+        height: 50,
+    };
+    let rect2 = Rectangle::square(20);
+
+    println!("Area: {}", rect1.area());  // 1500
+    println!("Can hold square: {}", rect1.can_hold(&rect2));  // true
+}
+```
+
+### 8.5 Automatic Referencing/Dereferencing
+
+Rust automatically adds `&` and `&mut` when calling methods:
+
+```rust
+fn main() {
+    let rect = Rectangle { width: 30, height: 50 };
+
+    // These are equivalent:
+    rect.area();              // Rust auto-references: (&rect).area()
+    (&rect).area();           // Explicit — same thing
+    // Rectangle::area(&rect);  // Full syntax
+}
+```
+
+---
+
+## Chapter 9: Enums & Pattern Matching
+
+<Badge variant="green">Junior</Badge>
+
+### 9.1 Defining Enums
+
+Enums in Rust are **algebraic data types** — each variant can hold different data.
+
+```rust
+enum Message {
+    Quit,                        // No data
+    Move { x: i32, y: i32 },    // Named fields (like a struct)
+    Write(String),               // Tuple variant
+    ChangeColor(i32, i32, i32),  // Tuple variant
+}
+
+fn main() {
+    let msg1 = Message::Quit;
+    let msg2 = Message::Move { x: 10, y: 20 };
+    let msg3 = Message::Write(String::from("hello"));
+    let msg4 = Message::ChangeColor(255, 0, 0);
+}
+```
+
+### 9.2 Enums with Methods
+
+```rust
+impl Message {
+    fn call(&self) {
+        match self {
+            Message::Quit => println!("Quit"),
+            Message::Move { x, y } => println!("Move to ({x}, {y})"),
+            Message::Write(text) => println!("Write: {text}"),
+            Message::ChangeColor(r, g, b) => println!("Color: ({r}, {g}, {b})"),
+        }
+    }
+}
+```
+
+### 9.3 The `Option<T>` Enum
+
+Rust has **no `null`**. Instead, it uses `Option<T>`:
+
+```rust
+enum Option<T> {
+    Some(T),  // Contains a value
+    None,     // No value
+}
+
+fn main() {
+    let some_number = Some(5);           // Option<i32>
+    let some_char = Some('A');            // Option<char>
+    let absent: Option<i32> = None;       // Must specify type
+
+    // You must handle both cases before using the value:
+    let x: i32 = 5;
+    let y: Option<i32> = Some(10);
+    // let sum = x + y;  // ❌ Cannot add i32 and Option<i32>
+    // You must unwrap Option first:
+    let sum = x + y.unwrap_or(0);  // 15, or use 0 if None
+}
+```
+
+### 9.4 The `match` Control Flow
+
+```rust
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter,
+}
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => 1,
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter => 25,
+    }
+}
+
+// match with Option<T>
+fn plus_one(x: Option<i32>) -> Option<i32> {
+    match x {
+        None => None,
+        Some(i) => Some(i + 1),
+    }
+}
+
+fn main() {
+    let five = Some(5);
+    let six = plus_one(five);    // Some(6)
+    let none = plus_one(None);   // None
+}
+```
+
+### 9.5 Catch-All Patterns
+
+```rust
+fn main() {
+    let dice_roll = 9;
+
+    match dice_roll {
+        3 => println!("You rolled 3!"),
+        7 => println!("Lucky 7!"),
+        other => println!("You rolled {other}"),  // Catch-all
+    }
+
+    // Or use `_` when you don't need the value:
+    match dice_roll {
+        3 => add_fancy_hat(),
+        7 => remove_fancy_hat(),
+        _ => (),  // Do nothing for everything else
+    }
+}
+
+fn add_fancy_hat() {}
+fn remove_fancy_hat() {}
+```
+
+### 9.6 `if let` — Concise Match for Single Pattern
+
+```rust
+fn main() {
+    let config_max = Some(3u8);
+
+    // Verbose match:
+    match config_max {
+        Some(max) => println!("Maximum: {max}"),
+        _ => (),
+    }
+
+    // Concise if let:
+    if let Some(max) = config_max {
+        println!("Maximum: {max}");
+    }
+
+    // With else:
+    let value: Option<i32> = None;
+    if let Some(val) = value {
+        println!("{val}");
+    } else {
+        println!("No value");
+    }
+
+    // while let — loop while pattern matches:
+    let mut stack = Vec::new();
+    stack.push(1);
+    stack.push(2);
+    stack.push(3);
+    while let Some(top) = stack.pop() {
+        println!("{top}");  // 3, 2, 1
+    }
+}
+```
+
+---
+
+## Chapter 10: Basic I/O & Modules
+
+<Badge variant="green">Junior</Badge>
+
+### 10.1 Printing
+
+```rust
+fn main() {
+    // println! — with newline
+    println!("Hello, world!");
+
+    // Positional arguments
+    println!("{0} is {1} and {0} likes {2}", "Alice", 30, "Rust");
+    // "Alice is 30 and Alice likes Rust"
+
+    // Named arguments
+    println!("{name} is {age}", name = "Bob", age = 25);
+
+    // Formatting
+    println!("Hex: {val:x}, Octal: {val:o}, Binary: {val:b}", val = 255);
+    // Hex: ff, Octal: 377, Binary: 11111111
+
+    println!("{pi:.2}", pi = 3.14159);  // 3.14
+
+    // Debug printing (for types that implement Debug)
+    let arr = vec![1, 2, 3];
+    println!("{arr:?}");       // [1, 2, 3]
+    println!("{arr:#?}");      // Pretty-printed:
+                               // [
+                               //     1,
+                               //     2,
+                               //     3,
+                               // ]
+
+    // print! — without newline (need flush for immediate output)
+    print!("Enter name: ");
+    use std::io::Write;
+    std::io::stdout().flush().unwrap();
+}
+```
+
+### 10.2 Reading Input
+
+```rust
+use std::io;
+
+fn main() {
+    let mut input = String::new();
+
+    println!("Enter your name:");
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read line");
+
+    let trimmed = input.trim();  // Remove the trailing newline
+    println!("Hello, {trimmed}!");
+
+    // Reading numbers
+    let mut num_str = String::new();
+    println!("Enter a number:");
+    io::stdin()
+        .read_line(&mut num_str)
+        .expect("Failed to read line");
+
+    let number: i32 = num_str
+        .trim()
+        .parse()
+        .expect("Please enter a valid number");
+
+    println!("{number} + 10 = {}", number + 10);
+}
+```
+
+### 10.3 Modules and Visibility
+
+```rust
+// src/main.rs
+mod greetings;  // Declares the module (looks for src/greetings.rs)
+
+fn main() {
+    greetings::hello();      // "Hello!"
+    // greetings::internal();  // ❌ private function
+}
+
+// src/greetings.rs
+pub fn hello() {
+    println!("Hello!");
+    internal();  // ✅ Can call private functions within the module
+}
+
+fn internal() {
+    println!("Internal function");
+}
+```
+
+### 10.4 Nested Modules
+
+```rust
+// src/main.rs
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+        fn seat_at_table() {}  // Private — only accessible within hosting
+    }
+
+    mod serving {
+        fn take_order() {}
+        fn serve_order() {}
+        fn take_payment() {}
+    }
+}
+
+pub fn eat_at_restaurant() {
+    // Absolute path
+    crate::front_of_house::hosting::add_to_waitlist();
+    // Relative path
+    front_of_house::hosting::add_to_waitlist();
+}
+
+// Using `use` to bring into scope:
+use crate::front_of_house::hosting;
+
+pub fn eat_again() {
+    hosting::add_to_waitlist();  // Cleaner!
+}
+```
+
+### 10.5 The `pub` Keyword
+
+| Visibility | Meaning |
+|------------|---------|
+| `fn foo()` | Private — only accessible within current module |
+| `pub fn foo()` | Public — accessible outside the module |
+| `pub(crate) fn foo()` | Public within the crate only |
+| `pub(super) fn foo()` | Public to parent module |
+| `pub(in path)` | Public to specified path only |
+
+---
+
+## Practical Exercise: Number Guessing Game
+
+Putting it all together:
+
+```rust
+use std::io;
+use std::cmp::Ordering;
+use rand::Rng;
+
+fn main() {
+    println!("Guess the number!");
+
+    let secret_number = rand::thread_rng().gen_range(1..=100);
+    let mut attempts = 0;
+
+    loop {
+        println!("Enter your guess (1-100):");
+
+        let mut guess = String::new();
+        io::stdin()
+            .read_line(&mut guess)
+            .expect("Failed to read line");
+
+        let guess: u32 = match guess.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("Please enter a valid number!");
+                continue;
+            }
+        };
+
+        attempts += 1;
+
+        match guess.cmp(&secret_number) {
+            Ordering::Less => println!("Too small!"),
+            Ordering::Greater => println!("Too big!"),
+            Ordering::Equal => {
+                println!("You win! It took you {attempts} attempts.");
+                break;
+            }
+        }
+    }
+}
+```
+
+```toml
+# Cargo.toml — add:
+# [dependencies]
+# rand = "0.8"
+```

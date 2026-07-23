@@ -6,8 +6,162 @@
     <description>A blazingly fast documentation and blog platform built with React, Vite, and MDX.</description>
     <language>en</language>
     <atom:link href="https://mdxhub.vercel.app/rss.xml" rel="self" type="application/rss+xml"/>
-    <lastBuildDate>Tue, 21 Jul 2026 14:56:06 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 23 Jul 2026 18:43:16 GMT</lastBuildDate>
     
+    <item>
+      <title>Pengantar &amp; Filosofi</title>
+      <link>https://mdxhub.vercel.app/blog/id/rust/bagian-0/pengantar-filosofi</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/id/rust/bagian-0/pengantar-filosofi</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Ikhtisar panduan Rust — jalur belajar, mengapa Rust, instalasi, toolchain, dan program Rust pertamamu.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Panduan</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Tingkat Pemula — Dasar-Dasar</title>
+      <link>https://mdxhub.vercel.app/blog/id/rust/bagian-1/dasar-dasar</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/id/rust/bagian-1/dasar-dasar</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Fundamental Rust — variabel, tipe data, fungsi, kontrol alur, ownership, borrowing, slices, struct, enum, pattern matching, dan I/O dasar.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Panduan</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Tingkat Menengah — Membangun Aplikasi Nyata</title>
+      <link>https://mdxhub.vercel.app/blog/id/rust/bagian-2/membangun-aplikasi-nyata</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/id/rust/bagian-2/membangun-aplikasi-nyata</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Pengembangan Rust modern — error handling, generics, traits, lifetimes, closures, iterators, collections, modules, testing, file I/O, dan smart pointers.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Panduan</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Tingkat Expert — Menguasai Rust</title>
+      <link>https://mdxhub.vercel.app/blog/id/rust/bagian-3/menguasai-rust</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/id/rust/bagian-3/menguasai-rust</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Konsep Rust tingkat lanjut — unsafe Rust, traits lanjutan, konkurensi, async/await, macros, Pin, FFI, dan optimasi performa.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Panduan</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Proyek Praktis</title>
+      <link>https://mdxhub.vercel.app/blog/id/rust/bagian-4/proyek-praktis</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/id/rust/bagian-4/proyek-praktis</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Bangun proyek Rust dunia nyata — CLI task manager, concurrent web scraper, dan key-value store (mini Redis).</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Panduan</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Jebakan Umum &amp; Praktik Terbaik</title>
+      <link>https://mdxhub.vercel.app/blog/id/rust/bagian-5/jebakan-umum</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/id/rust/bagian-5/jebakan-umum</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Jebakan umum Rust, praktik terbaik, kartu referensi cepat, riwayat edition Rust, glosarium, dan sumber daya untuk belajar lanjutan.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Panduan</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Panduan Lengkap Rust</title>
+      <link>https://mdxhub.vercel.app/blog/id/rust/panduan-lengkap-rust</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/id/rust/panduan-lengkap-rust</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Menguasai Pemrograman Rust Dari Pemula hingga Expert</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Panduan</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Introduction &amp; Philosophy</title>
+      <link>https://mdxhub.vercel.app/blog/rust/part-0/introduction-philosophy</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/rust/part-0/introduction-philosophy</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Overview of the Rust guide — learning path, why Rust, installation, toolchain setup, and your first Rust program.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Junior Level — Foundations</title>
+      <link>https://mdxhub.vercel.app/blog/rust/part-1/foundations</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/rust/part-1/foundations</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Rust fundamentals — variables, data types, functions, control flow, ownership, borrowing, slices, structs, enums, pattern matching, and basic I/O.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Intermediate Level — Building Real Applications</title>
+      <link>https://mdxhub.vercel.app/blog/rust/part-2/building-real-applications</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/rust/part-2/building-real-applications</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Modern Rust development — error handling, generics, traits, lifetimes, closures, iterators, collections, modules, testing, file I/O, and smart pointers.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Expert Level — Mastering Rust</title>
+      <link>https://mdxhub.vercel.app/blog/rust/part-3/mastering-rust</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/rust/part-3/mastering-rust</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Advanced Rust concepts — unsafe Rust, advanced traits, concurrency, async/await, macros, Pin, FFI, and performance optimization.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Practical Projects</title>
+      <link>https://mdxhub.vercel.app/blog/rust/part-4/practical-projects</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/rust/part-4/practical-projects</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Build real-world Rust projects — a CLI task manager, a concurrent web scraper, and a key-value store (mini Redis).</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>Common Pitfalls &amp; Best Practices</title>
+      <link>https://mdxhub.vercel.app/blog/rust/part-5/common-pitfalls</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/rust/part-5/common-pitfalls</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Common Rust pitfalls, best practices, a quick reference card, Rust edition history, glossary, and resources for continued learning.</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
+    <item>
+      <title>The Complete Guide to Rust</title>
+      <link>https://mdxhub.vercel.app/blog/rust/the-complete-guide-to-rust</link>
+      <guid isPermaLink="true">https://mdxhub.vercel.app/blog/rust/the-complete-guide-to-rust</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Mastering Rust Programming From Newbie to Expert</description>
+      <category>Rust</category>
+      <category>Rust</category>
+      <category>Guide</category>
+      <author>Chigusa Asuha</author>
+    </item>
     <item>
       <title>A 600-Mile Road Trip Shows EV Fast Charging Has Turned a Corner</title>
       <link>https://mdxhub.vercel.app/blog/news/2026-07-19-a-600-mile-road-trip-shows-ev-fast-charging-has-turned-a-corner</link>
